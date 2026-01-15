@@ -262,6 +262,7 @@ then reform(qsl.B[0, \*]), reform(qsl.B[1, \*]), reform(qsl.B[2, \*]) are actual
       * 6 - xmax, lon_max
       * 7 - an edge or a corner
       * 8 - B is 0 or NaN
+      
     So for a closed field line that its both two foots stand on the photosphere, its rboundary is 11. 
     * If calculate at the bottom, rb_launch=1 for all launch points. i.e. where sign2d is 1 (or -1), then rbs (or rbe) must be 1. Then we can define rb_target for all target points. Where sign2d is 1 (or -1), rb_target=rbe (or rbs)
     * boundary_mark_colors.pdf is the color table for *_rbs.png, *_rbe.png *_rb_target.png.
