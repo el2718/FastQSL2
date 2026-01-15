@@ -268,7 +268,7 @@ then reform(qsl.B[0, \*]), reform(qsl.B[1, \*]), reform(qsl.B[2, \*]) are actual
   * **Bs, Be**: $\vec{B}$ on rFs, rFe
       * [Priest and Demoulin (1995)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/95JA02740) use $N$ at the photosphere to locate QSLs; in Titov (2007),
       $Q = N^2 / \Delta$, and $\Delta =|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$.
-      If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr=$|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ from rboundary, Bs and Be.
+      If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ from rboundary, Bs and Be.
   * **CurlBs, CurlBe**: $\nabla \times \vec{B}$  on rFs, rFe
   * **path**: path of field lines launched from the output grid. 
     * For example, if the output domain is 2D,
