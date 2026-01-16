@@ -4,7 +4,6 @@ To calculate the squashing factor $Q$, and other quatities related to the magnet
 
 If your markdown reader can not can not render the formulae in README\.md, please read README.html directly
 
------------------------------
 
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
