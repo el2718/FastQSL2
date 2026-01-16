@@ -112,11 +112,9 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     * The values in x{yz}a should be increased by order
   * **sphericalFlag**: whether the magnetic field is settled on a spherical grid. 
     * FastQSL uses longitude (in radian), latitude (in radian) and radius as the coordinates for spherical grid, denoted as $\varphi$, $\vartheta$, and $r$, respectively. The maximum range of $\varphi$ is $[0, 2 \pi]$, the maximum range of $\vartheta$ is $[-\pi/2, \pi/2]$. The relations between $\{\varphi, \vartheta, r\}$ and $\{x, y, z\}$ are
-    $
-    x=r\,\cos \vartheta\,\cos \varphi,\\
-    y=r\,\cos \vartheta\,\sin \varphi,\\
-    z=r\,\sin \vartheta.
-    $
+    $x=r \cos \vartheta \cos \varphi,$
+    $y=r \cos \vartheta \sin \varphi,$
+    $z=r \sin \vartheta.$
     The classical spherical coordinates are $\{r, \theta, \varphi\}$, **which are not the spherical coordinates for FastQSL!**  The maximum range of $\theta$ is $[0, \pi]$. If you take a magnetic field on a grid with the classical spherical coordinates, two relations should be applied:
       * $\vartheta=\pi/2-\theta$
       * $B_\vartheta=-B_\theta$
