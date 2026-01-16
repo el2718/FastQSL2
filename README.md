@@ -2,6 +2,10 @@
 
 To calculate the squashing factor $Q$, and other quatities related to the magnetic connectivity, at the bottom or at a cross section or in a box volume or on some seed points, given a 3D magnetic field on a Cartesian or spherical, uniformed or stretched grid.
 
+If your markdown reader can not can not render the formulae in README\.md, please read README.html directly
+
+-----------------------------
+
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
 This module is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
@@ -9,6 +13,8 @@ This module is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 [cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
 [cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
 [cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
+
+
 
 -----------------------------
 ## Cite as
@@ -99,8 +105,8 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
 ### Magnetic field
   * **Bx, By, Bz**: 
     * For fastqsl\.pro, the normal dimesions of Bx, By and Bz are (nx,ny,nz). If the dimesions of Bx are (3,nx,ny,nz), then By and Bz should not be presented, and then
-    reform(Bx[0, \*, \*, \*]) is the real $B_x$
-    reform(Bx[1, \*, \*, \*]) is the real $B_y$
+    reform(Bx[0, \*, \*, \*]) is the real $B_x$,
+    reform(Bx[1, \*, \*, \*]) is the real $B_y$,
     reform(Bx[2, \*, \*, \*]) is the real $B_z$
     * will be forcibly converted to 4-byte float arrays while writing 'bfield.bin'
     * some NaN values or nulls exist on grid is no matter for computation
