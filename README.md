@@ -111,22 +111,22 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     * the size of x{yz}a must be consistant with the size of the 3D magnetic field
     * The values in x{yz}a should be increased by order
   * **sphericalFlag**: whether the magnetic field is settled on a spherical grid. 
-    * FastQSL uses longitude (in radian), latitude (in radian) and radius as the coordinates for spherical grid, denoted as $\varphi$, $\vartheta$, and $r$, respectively. The maximum range of $\varphi$ is $[0,\, 2 \pi]$, the maximum range of $\vartheta$ is $[-\pi/2,\, \pi/2]$. The relations between $\{\varphi,\,\vartheta ,\,r\}$ and $\{x,\,y,\,z\}$ are
+    * FastQSL uses longitude (in radian), latitude (in radian) and radius as the coordinates for spherical grid, denoted as $\varphi$, $\vartheta$, and $r$, respectively. The maximum range of $\varphi$ is $[0, 2 \pi]$, the maximum range of $\vartheta$ is $[-\pi/2, \pi/2]$. The relations between $\{\varphi, \vartheta, r\}$ and $\{x, y, z\}$ are
     $
     x=r\,\cos \vartheta\,\cos \varphi,\\
     y=r\,\cos \vartheta\,\sin \varphi,\\
     z=r\,\sin \vartheta.
     $
-    The classical spherical coordinates are $\{r,\,\theta,\,\varphi\}$, **which are not the spherical coordinates for FastQSL!**  The maximum range of $\theta$ is $[0, \pi]$. If you take a magnetic field on a grid with the classical spherical coordinates, two relations should be applied:
+    The classical spherical coordinates are $\{r, \theta, \varphi\}$, **which are not the spherical coordinates for FastQSL!**  The maximum range of $\theta$ is $[0, \pi]$. If you take a magnetic field on a grid with the classical spherical coordinates, two relations should be applied:
       * $\vartheta=\pi/2-\theta$
       * $B_\vartheta=-B_\theta$
     * Default is 0 (Cartesian coordinates). If invoked, these keywords have such meanings:
       * Bx, By, Bz: longitudinal, latitudinal, radial component of the magnetic field, $B_\varphi, B_\vartheta, B_r$. 
         * **Be careful**: the index order of these arrays is [i_longitude, i_latitude, i_radius] for  fastqsl\.pro, and is [i_radius, i_latitude, i_longitude] for fastqsl\.py
-      * xa, ya, za: axis coordinates of $\varphi,\,\vartheta ,\,r$
-      * xreg, yreg, zreg: output ranges of $\varphi,\,\vartheta ,\,r$
+      * xa, ya, za: axis coordinates of $\varphi, \vartheta, r$
+      * xreg, yreg, zreg: output ranges of $\varphi, \vartheta, r$
         * will be rewrote as **lon_reg, lat_reg, r_reg** in returned **qsl**
-      * lon_delta, lat_delta, r_delta: output grid spacing of $\varphi,\,\vartheta ,\,r$
+      * lon_delta, lat_delta, r_delta: output grid spacing of $\varphi, \vartheta, r$
       * arc_delta: output grid spacing (in radian) of the arc on the great circle
           * works when csflag is invoked, the first curved axis is the arc on the great circle from point0 to point1, and the second axis is point0 -> point2
 ### Output domain
@@ -279,7 +279,7 @@ then reform(qsl.B[0, \*]), reform(qsl.B[1, \*]), reform(qsl.B[2, \*]) are actual
   * **Bs, Be**: $\vec{B}$ on rFs, rFe
       * [Priest and Demoulin (1995)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/95JA02740) use $N$ at the photosphere to locate QSLs; in Titov (2007),
       $Q = N^2 / \Delta$, and $\Delta =|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$.
-      If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ from rboundary, Bs and Be.
+      If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ from rboundary, Bs and Be
   * **CurlBs, CurlBe**: $\nabla \times \vec{B}$  on rFs, rFe
   * **path**: path of field lines launched from the output grid. 
     * For example, if the output domain is 2D,
@@ -301,7 +301,7 @@ f_\mathrm{s}(\varphi,\,\vartheta,\,r)=
 $
 where $(\varphi_\textrm{sun},\,\vartheta_\textrm{sun},\,R_\textrm{sun})$ are the target coordinates traced from $(\varphi,\,\vartheta,\,r)$ to the inner boundary of $r=R_\textrm{sun}$, and $(\varphi_1,\,\vartheta_1,\,R_1)$ are the target coordinates traced from $(\varphi,\,\vartheta,\,r)$ to the outer boundary of $r=R_1$.
 * $\theta_b(\varphi,\,\vartheta,\,r)$, the minimum angular distance of an open-field footpoint from a coronal hole boundary.
-* For a closed field line, its rboundary is 11, its $f_\mathrm{s}$ is set to 1000., its $\theta_b$ is set to 0., these default values can be adjusted in was_par\.pro (was_par\.py)
+* For a closed field line, its rboundary is 11, its $f_\mathrm{s}$ is set to 1000., its $\theta_b$ is set to 0., these default values can be adjusted in wsa_par\.pro (wsa_par\.py)
 
 ### Slip-Squashing Factors
 Slip-squashing factors $Q_\mathrm{sf}$ and $Q_\mathrm{sb}$ ([Titov_2009_ApJ_693_1029](https://iopscience.iop.org/article/10.1088/0004-637X/693/1/1029)) are defined by two field line mappings and two boundary flow mappings between two instants; their large values define the surfaces that border of the reconnected or to-be-reconnected magnetic flux tubes for a given period of time during the magnetic evolution. 
