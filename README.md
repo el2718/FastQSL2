@@ -241,7 +241,7 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
   * **tmp_dir**:     the temporary directory for the data transmission between fastqsl.x and fastqsl\.pro
     * default is cdir+'tmpFastQSL/'
     * a virtual disk created with computer memory  provide an incredibly fast IO performance, set tmp_dir on such disk is suggested
-      * For linux, /dev/shm/ is the directory from memory, one can set `tmp_dir='/dev/shm/tmpFastQSL/'`
+      * For linux, /dev/shm/ is the directory from memory, one can set tmp_dir='/dev/shm/tmpFastQSL/'
       * For macOS, one way is detailed in https://lvv.me/posts/2025/09/25_ramdisk_on_macos/
       * For Windows, one choice is https://sourceforge.net/projects/imdisk-toolkit/
   * **keep_tmp**:    do not delete the temporary  binary files output from fastqsl.x
@@ -274,11 +274,11 @@ Possible elements in **qsl** are:
   * **q**:        squashing factor $Q$, see  [Titov_2002_JGRA_107_1164](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2001JA000278) and [Titov_2007_ApJ_660_863](https://iopscience.iop.org/article/10.1086/512671)
   * **q_perp**:   $Q_\perp$ in Titov (2007)
     * only available when scottFlag invoked, Pariat (2012) is not precise enough for $Q_\perp$
-  * **twist**: $T_w = \int_L (\nabla \times \vec{B}) \cdot \vec{B}/(4\pi B^2)\, \mathrm{d}l$, can be used to measure how many turns two infinitesimally close field lines winding about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148).
+  * **twist**: $T_w = \int_L (\nabla \times \vec{B}) \cdot \vec{B}/(4\pi B^2) \mathrm{d}l$, can be used to measure how many turns two infinitesimally close field lines winding about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148).
 
   * **sign2d**:   sign(Bz) at the bottom
     * only exist when the bottom plane is included
-    * e.g. slogq = alog10(qsl.q[\*, \*, 0] > 1.)*qsl.sign2d
+    * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.)*qsl.sign2d`
   * **length**:   length of field lines
   * **B, CurlB**:  $\vec{B}$, $\nabla \times \vec{B}$ on the output grid
     For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field lines is given by *qsl.path[i] from a previous run, and density, pressure, temperature are 3D arrays on the same grid of Bx, By, Bz. Then just run
@@ -287,7 +287,7 @@ Possible elements in **qsl** are:
 IDL> fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
 ```
 
-then reform(qsl.B[0, \*]), reform(qsl.B[1, \*]), reform(qsl.B[2, \*]) are actually the density, pressure, temperature distribution on the field line
+then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the density, pressure, temperature distribution on the field line
 
   * **rFs, rFe**:  coordinates of terminal foot points (r:remote, F:foot, s:start, e:end), suggested by Jiang, Chaowei. A segment of a field line have two terminal points, at the start (or end) point, $\vec{B}$ (or $-\vec{B}$) points to the whole calculated path of the field line.  
     * If calculate at the bottom
@@ -320,14 +320,14 @@ then reform(qsl.B[0, \*]), reform(qsl.B[1, \*]), reform(qsl.B[2, \*]) are actual
   * **CurlBs, CurlBe**: $\nabla \times \vec{B}$  on rFs, rFe
   * **path**: path of field lines launched from the output grid. 
     * For example, if the output domain is 2D,
-      * In fastqsl\.pro, qsl.path is a pointer array, *qsl.path[i, j] gives a field line with dimeonsions of (3, n), and
-        * (\*qsl.path[i, j])[\*, 0] is qsl.rFs[\*, i, j]
-        * (\*qsl.path[i, j])[\*, n-1] is qsl.rFe[\*, i, j]
-        * (\*qsl.path[i, j])[\*, qsl.index_seed[i, j]] is qsl.seed[\*, i, j]
+      * In fastqsl\.pro, `qsl.path` is a pointer array, `*qsl.path[i, j]` gives a field line with dimeonsions of (3, n), and
+        * `(*qsl.path[i, j])[*, 0]` is `qsl.rFs[*, i, j]`
+        * `(*qsl.path[i, j])[*, n-1]` is `qsl.rFe[*, i, j]`
+        * `(*qsl.path[i, j])[*, qsl.index_seed[i, j]]` is `qsl.seed[*, i, j]`
       * In fastqsl\.py, qsl['path'] is a list, qsl['path'][j][i] gives a field line with  dimeonsions of (n, 3), and
-        * qsl['path'][j][i][0, :] is qsl['rFs'][j, i, :]
-        * qsl['path'][j][i][-1, :] is qsl['rFe'][j, i, :]
-        * qsl['path'][j][i][qsl['index_seed'][j, i], :] is qsl['seed'][j, i, :]
+        * `qsl['path'][j][i][0, :]` is `qsl['rFs'][j, i, :]`
+        * `qsl['path'][j][i][-1, :]` is `qsl['rFe'][j, i, :]`
+        * `qsl['path'][j][i][qsl['index_seed'][j, i], :]` is `qsl['seed'][j, i, :]`
     * using RKF45 requires much less grid points a path than using RK4; and a smaller tol (or step) requires more grid points on a path, while then the coordinate precision of the path is better
   * **loopB, loopCurlB**: $\vec{B}$, $\nabla \times \vec{B}$ on path
   * **index_seed**: the index in path for launch points
@@ -438,4 +438,4 @@ In fastqsl.x, the most memory is occupied by:
   * kill the pop-up window for fastqsl.exe finally in Windows
 * Jan, 12, 2026 Jun Chen, support python
 * Jan, 13, 2026 Jun Chen, allow seed = 1 in fastqsl\.pro (True in fastqsl\.py) for exporting output grid
-* Jan, 17, 2026 Jun Chen, remove the key_word  of no_preview, add key_words of preview, save_file, regular_seed
+* Jan, 17, 2026 Jun Chen, remove the keyword of no_preview, add keywords of preview, save_file, regular_seed
