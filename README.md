@@ -61,8 +61,10 @@ This module is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 ### Compiler install 
 * gfortran https://fortran-lang.org/learn/os_setup/install_gfortran/ or
 * Intel® Fortran Compiler https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler-download.html
-  * please append this line to ~/.bashrc   
-  source /opt/intel/oneapi/setvars.sh intel64
+  * please append this line to ~/.bashrc
+    ``` 
+    source /opt/intel/oneapi/setvars.sh intel64
+    ```
 * Other compilers in https://fortran-lang.org/compilers/ should also work for FastQSL, while I have not test them, welcome for testing and sharing your experiences to me
 * For checking whether your compiler is successfully installed, you can try https://github.com/el2718/sudoku
 ### Compilation
@@ -102,7 +104,7 @@ fields.f90 and trace_bline.f90 are included in fastqsl.f90
     ```python
     os.system(r'/path/of/fastqsl.x')
     ```
-* or move fastqsl.x to the $PATH (e.g. /usr/local/bin/) of the system and delete the text /path/of/
+* or move fastqsl.x to the $PATH (e.g. /usr/local/bin/) of the system and delete the text `/path/of/`
 * For Windows, use fastqsl.exe instead of fastqsl.x
 -----------------------------
 ## Keywords
@@ -142,7 +144,7 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     * The classical spherical coordinates are $\{r, \theta, \varphi\}$, **which are not the spherical coordinates for FastQSL!**  The maximum range of $\theta$ is $[0, \pi]$. If you take a magnetic field on a grid with the classical spherical coordinates, two relations should be applied:
       * $\vartheta=\pi/2-\theta$
       * $B_\vartheta=-B_\theta$
-    * For example, in a IDL script, if the arrays of $B_\varphi(r, \theta, \varphi), B_\theta(r, \theta, \varphi), B_r(r, \theta, \varphi), r, \theta, \varphi$ are bp, bt, br, radius, theta, phi, they should be converted to $B_\varphi(\varphi, \vartheta, r), B_\vartheta(\varphi, \vartheta, r), B_r(\varphi, \vartheta, r), \varphi, \vartheta, r$ in arrays of B_lon, B_lat, B_r, lon_rad, lat_rad, radius, the following code can give **q** at the bottom
+    * For example, in a IDL script, if the arrays of $B_\varphi(r, \theta, \varphi), B_\theta(r, \theta, \varphi), B_r(r, \theta, \varphi), r, \theta, \varphi$ are `bp, bt, br, radius, theta, phi`, they should be converted to $B_\varphi(\varphi, \vartheta, r), B_\vartheta(\varphi, \vartheta, r), B_r(\varphi, \vartheta, r), \varphi, \vartheta, r$ in arrays of `B_lon, B_lat, B_r, lon_rad, lat_rad, radius`, the following code can give **q** at the bottom:
       ```
       b_lon  = reverse(transpose( bp, [2, 1, 0]), 2)
       b_lat  = reverse(transpose(-bt, [2, 1, 0]), 2)
@@ -205,19 +207,19 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     * if keyword_set(delta), the keyword of factor will be ignored
   * **lon_delta, lat_delta, r_delta, arc_delta**: see **sphericalFlag**
   * **seed**: launch points for tracing
-    * if seed is 'original', or 'original_bottom'; or seed is an array of coordinates with dimensions of (3) or (3,n1) or (3,n1,n2) or (3,n1,n2,n3), its units should be same as x{yz}a
+    * if `seed = 'original'`, or `seed = 'original_bottom'`; or **seed** is an array of coordinates with dimensions of (3) or (3,n1) or (3,n1,n2) or (3,n1,n2,n3), its units should be same as x{yz}a
       * invoke sflag
-      * if the input **seed** is 'original', then the output **seed** in **qsl** will be the original 3D grid of magnetic field
-      * if the input **seed** is 'original_bottom', then the output **seed** in **qsl** will be the original 2D grid at the bottom of magnetic field
+      * if at input `seed = 'original'`, then the output **seed** in **qsl** will be the original 3D grid of magnetic field
+      * if at input `seed = 'original_bottom'`, then the output **seed** in **qsl** will be the original 2D grid at the bottom of magnetic field
       * x{yz}reg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta will be ignored
-    * if seed eq 1 in fastqsl\.pro ( /seed also makes seed eq 1), or seed is True in fastqsl\.py
+    * if seed eq 1 in fastqsl\.pro ( `, /seed` also makes seed eq 1), or seed is True in fastqsl\.py
       * not invoke sflag. The output grid is still described by x{yz}reg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, and return as the array **seed** in **qsl**
   * **regular_seed**:  the geometry of **seed** is regular 
     * default is 0
     * only works when sflag is invoked and the dimensions of **seed** is (3,n1,n2) or (3,n1,n2,n3)
     * If sflag is invoked and scottFlag is not invoked, due to the requirement of Method 3 of Pariat (2012), **q** can only be achieved if **regular_seed** is invoked. For example, if the dimensions of **seed** is (3,  n1,n2), **regular_seed** can be invoked if: 
-      * all seed[\*, i, j] (vary i) lies on a straight line, and all neighboring grid distances on this line is same
-      * all seed[\*, i, j] (vary j) lies on another straight line, and all neighboring grid distances on this line is same
+      * all `seed[*, i, j]` (vary i) lies on a straight line, and all neighboring grid distances on this line is same
+      * all `seed[*, i, j]` (vary j) lies on another straight line, and all neighboring grid distances on this line is same
       * these two straight lines should be perpendicular to each other
       * two grid distances on these two straight lines can be different
     * This keyword can tell the geometry of **seed** to FastQSL, be careful that FastQSL will not check the conditions above
@@ -275,9 +277,9 @@ See **Products** for more details. All default values here are 0.
   * **targetCurlB_out**: to export **CurlBs, CurlBe**
 -----------------------------
 ## Products
-For fastqsl\.pro, the results is given by the structure **qsl**, can be returned by the keyword qsl, or can be saved as odir+fstr+'.sav'. For example, the elements **q** can be accessed by qsl.q.
+For fastqsl\.pro, the results is given by the structure **qsl**, can be returned by the keyword qsl, or can be saved as `odir+fstr+'.sav'`. For example, the elements **q** can be accessed by `qsl.q`
 
-For fastqsl\.py, the results is given by the dictionary **qsl**, can be returned by the return of the function fastqsl, or can be saved as odir+fstr+'.pkl'. For example, the element **q** can be accessed by qsl['q']
+For fastqsl\.py, the results is given by the dictionary **qsl**, can be returned by the return of the function fastqsl, or can be saved as `odir+fstr+'.pkl'`. For example, the element **q** can be accessed by `qsl['q']`
 
 Possible elements in **qsl** are:
   * **csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
@@ -286,13 +288,12 @@ Possible elements in **qsl** are:
   * **q**:        squashing factor $Q$, see  [Titov_2002_JGRA_107_1164](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2001JA000278) and [Titov_2007_ApJ_660_863](https://iopscience.iop.org/article/10.1086/512671)
   * **q_perp**:   $Q_\perp$ in Titov (2007)
     * only available when scottFlag invoked, Pariat (2012) is not precise enough for $Q_\perp$
-  * **twist**: $T_w = \int_L (\nabla \times \vec{B}) \cdot \vec{B}/(4\pi B^2) \mathrm{d}l$, can be used to measure how many turns two infinitesimally close field lines winding about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148).
-
   * **sign2d**:   sign(Bz) at the bottom
     * only exist when the bottom plane is included
     * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.)*qsl.sign2d`
-  * **length**:   length of field lines
-  * **B, CurlB**:  $\vec{B}$, $\nabla \times \vec{B}$ on the output grid
+  * **length**: $L= \int_\mathrm{path} \mathrm{d}l$, length of field lines lauched from **seed**
+  * **twist**: $T_w = \int_\mathrm{path} (\nabla \times \vec{B}) \cdot \vec{B}/(4\pi B^2) \mathrm{d}l$, can be used to measure how many turns two infinitesimally close field lines winding about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148).
+  * **B, CurlB**:  $\vec{B}$, $\nabla \times \vec{B}$ on **seed**
     For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field lines is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same grid of Bx, By, Bz. Then just run
     ```
     IDL> fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
@@ -301,11 +302,10 @@ Possible elements in **qsl** are:
 
   * **rFs, rFe**:  coordinates of terminal foot points (r:remote, F:foot, s:start, e:end), suggested by Jiang, Chaowei. A segment of a field line have two terminal points, at the start (or end) point, $\vec{B}$ (or $-\vec{B}$) points to the whole calculated path of the field line.  
     * If calculate at the bottom
-      * if `sign2d[i, j]` is 1, then `rFs[*, i, j]` is the foot for launch, i.e. `seed[*, i, j]`; and `rFe[*, i, j]` is the target foot.
-      * if `sign2d[i, j]` is -1, then `rFe[*, i, j]` is the foot for launch, and `rFs[*, i, j]` is the target foot.
-      * If `sign2d[i, j]` is 0 and both `rFs[*, i, j]` and `rFe[*, i, j]` are not `seed[*, i, j]`, here must be on a bald patch where 
-      $\vec{B}\cdot\nabla B_z|_\mathrm{PIL} > 0$.
-  * **rboundary**:  nature of the terminal points, see 'subroutine trim_size' in trace_bline.f90. 
+      * if `sign2d[i, j]` is 1, then `rFs[*, i, j]` is `seed[*, i, j]`, i.e.  the foot for launch; and `rFe[*, i, j]` is the target foot.
+      * if `sign2d[i, j]` is -1, then `rFe[*, i, j]` is `seed[*, i, j]`, and `rFs[*, i, j]` is the target foot.
+      * If `sign2d[i, j]` is 0 and both `rFs[*, i, j]` and `rFe[*, i, j]` are not `seed[*, i, j]`, here must be on a bald patch where $\vec{B}\cdot\nabla B_z|_\mathrm{PIL} > 0$
+  * **rboundary**:  nature of the terminal points, see 'subroutine trim_size' in trace_bline.f90
   
     * rboundary is given by 10*rbs+rbe in fastqsl.x, therefore:
       ```
@@ -326,11 +326,11 @@ Possible elements in **qsl** are:
       So for a closed field line that its both two foots stand on the photosphere, its rboundary is 11. 
     * If calculate at the bottom, rb_launch=1 for all launch points. i.e. where sign2d is 1 (or -1), then rbs (or rbe) must be 1. Then we can define rb_target for all target points. Where sign2d is 1 (or -1), rb_target=rbe (or rbs)
     * boundary_mark_colors.pdf is the color table for *_rbs.png, *_rbe.png *_rb_target.png.
-  * **Bs, Be**: $\vec{B}$ on rFs, rFe
+  * **Bs, Be**: $\vec{B}$ on **rFs, rFe**
       * [Priest and Demoulin (1995)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/95JA02740) use $N$ at the photosphere to locate QSLs; in Titov (2007),
       $Q = N^2 / \Delta$, and $\Delta =|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$.
       If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ from rboundary, Bs and Be
-  * **CurlBs, CurlBe**: $\nabla \times \vec{B}$  on rFs, rFe
+  * **CurlBs, CurlBe**: $\nabla \times \vec{B}$  on **rFs, rFe**
   * **path**: path of field lines launched from the output grid. 
     * For example, if the output domain is 2D,
       * In fastqsl\.pro, `qsl.path` is a pointer array, `*qsl.path[i, j]` gives a field line with dimeonsions of (3, n), and
@@ -341,8 +341,9 @@ Possible elements in **qsl** are:
         * `qsl['path'][j][i][0, :]` is `qsl['rFs'][j, i, :]`
         * `qsl['path'][j][i][-1, :]` is `qsl['rFe'][j, i, :]`
         * `qsl['path'][j][i][qsl['index_seed'][j, i], :]` is `qsl['seed'][j, i, :]`
-    * using RKF45 requires much less grid points a path than using RK4; and a smaller tol (or step) requires more grid points on a path, while then the coordinate precision of the path is better
-  * **loopB, loopCurlB**: $\vec{B}$, $\nabla \times \vec{B}$ on path
+    * using RKF45 requires much less grid points a path than using RK4
+    * a smaller tol (or step) requires more grid points on a path, while then the coordinate precision of the path is better
+  * **loopB, loopCurlB**: $\vec{B}$, $\nabla \times \vec{B}$ on **path**
   * **index_seed**: the index in path for launch points
 -----------------------------
 ## Derived Products
