@@ -48,7 +48,8 @@ This module is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
     * Ubuntu & Fedora:  /usr/share/gnudatalanguage/lib
     * ArchLinux: /usr/lib/gdl
     * Gentoo: /usr/local/share/gdl
-    * macOS: /opt/local/share/gnudatalanguage/lib  
+    * macOS: /opt/local/share/gnudatalanguage/lib
+    
     ```
     **Please append such line to ~/.bashrc**, e.g. for Ubuntu
     ```bash
