@@ -2,7 +2,7 @@
 
 To calculate the squashing factor $Q$, and other quatities related to the magnetic connectivity, at the bottom or at a cross section or in a box volume or on some seed points, given a 3D magnetic field on a Cartesian or spherical, uniformed or stretched grid.
 
-If your markdown reader can not can not render the formulae in README\.md, please read README.html directly
+If your markdown reader can not can not render the formulae in README\.md, please read README.html directly.
 
 -----------------------------
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
@@ -64,6 +64,8 @@ This module is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 * Other compilers in https://fortran-lang.org/compilers/ should also work for FastQSL, while I have not test them, welcome for testing and sharing your experiences to me
 * For checking whether your compiler is successfully installed, you can try https://github.com/el2718/sudoku
 ### Compilation
+fields.f90 and trace_bline.f90 are included in fastqsl.f90
+
 * For Linux and macOS (either by ifx/ifort or gfortran):
   * set -O3, -xHost, -ipo, -march=native for a better efficiency
 ```bash
@@ -77,6 +79,8 @@ gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
 ```
 
 * For Windows (either by ifort or gfortran):
+  * In Windows 11, also in some upgraded Windows 10, the pop-up window for fastqsl.exe can not be closed automatically, please uncomment this line in fastqsl.f90 to kill the pop-up window (delete !):
+  ! call system('taskkill /im fastqsl.exe /f')
   * for ifx, the compilation should be the same as ifort, while I have not tested it
 
 executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would be necessary
@@ -88,9 +92,8 @@ gfortran -o fastqsl.exe fastqsl.f90 -fopenmp -O3 -march=native
 ``` 
 ### Path of fastqsl.x
 * please specify the path of fastqsl.x, 
-  * in fastqsl\.pro, please correct the line of 
+  * in fastqsl\.pro, please correct the line of
     spawn, '/path/of/fastqsl.x'
-    
   * in fastqsl\.py, please correct the line of  
     os.system(r'/path/of/fastqsl.x')
 * or move fastqsl.x to the $PATH (e.g. /usr/local/bin/) of the system and delete the text /path/of/
@@ -119,18 +122,41 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     $x=r \cos \vartheta \cos \varphi,$
     $y=r \cos \vartheta \sin \varphi,$
     $z=r \sin \vartheta.$
-    The classical spherical coordinates are $\{r, \theta, \varphi\}$, **which are not the spherical coordinates for FastQSL!**  The maximum range of $\theta$ is $[0, \pi]$. If you take a magnetic field on a grid with the classical spherical coordinates, two relations should be applied:
-      * $\vartheta=\pi/2-\theta$
-      * $B_\vartheta=-B_\theta$
     * Default is 0 (Cartesian coordinates). If invoked, these keywords have such meanings:
       * Bx, By, Bz: longitudinal, latitudinal, radial component of the magnetic field, $B_\varphi, B_\vartheta, B_r$. 
-        * **Be careful**: the index order of these arrays is [i_longitude, i_latitude, i_radius] for  fastqsl\.pro, and is [i_radius, i_latitude, i_longitude] for fastqsl\.py
+        * **Be careful**: the index order of these arrays is [i_longitude, i_latitude, i_radius] for  fastqsl\.pro, and is [i_radius, i_latitude, i_longitude] for fastqsl\.py.
       * xa, ya, za: axis coordinates of $\varphi, \vartheta, r$
       * xreg, yreg, zreg: output ranges of $\varphi, \vartheta, r$
         * will be rewrote as **lon_reg, lat_reg, r_reg** in returned **qsl**
       * lon_delta, lat_delta, r_delta: output grid spacing of $\varphi, \vartheta, r$
       * arc_delta: output grid spacing (in radian) of the arc on the great circle
           * works when csflag is invoked, the first curved axis is the arc on the great circle from point0 to point1, and the second axis is point0 -> point2
+    * The classical spherical coordinates are $\{r, \theta, \varphi\}$, **which are not the spherical coordinates for FastQSL!**  The maximum range of $\theta$ is $[0, \pi]$. If you take a magnetic field on a grid with the classical spherical coordinates, two relations should be applied:
+      * $\vartheta=\pi/2-\theta$
+      * $B_\vartheta=-B_\theta$
+    * For example, in a IDL script, if the arrays of $B_\varphi(r, \theta, \varphi), B_\theta(r, \theta, \varphi), B_r(r, \theta, \varphi), r, \theta, \varphi$ are bp, bt, br, radius, theta, phi, they should be converted to $B_\varphi(\varphi, \vartheta, r), B_\vartheta(\varphi, \vartheta, r), B_r(\varphi, \vartheta, r), \varphi, \vartheta, r$ in arrays of B_lon, B_lat, B_r, lon_rad, lat_rad, radius, the following code can give **q** at the bottom
+    ```
+    b_lon  = reverse(transpose( bp, [2, 1, 0]), 2)
+    b_lat  = reverse(transpose(-bt, [2, 1, 0]), 2)
+    b_r    = reverse(transpose( br, [2, 1, 0]), 2)
+    lon_rad= phi
+    lat_rad= !pi/2. - reverse(theta)
+
+    fastqsl, b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, /spherical, qsl=qsl
+    ```
+    In a python script, the corresponding code is
+    ```python
+    import numpy as np
+
+    b_lon  = np.flip(np.transpose( bp, (2, 1, 0)), 1)
+    b_lat  = np.flip(np.transpose(-bt, (2, 1, 0)), 1)
+    b_r    = np.flip(np.transpose( br, (2, 1, 0)), 1)
+    lon_rad= phi
+    lat_rad= np.pi/2. - np.flip(theta)
+
+    qsl=fastqsl(b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, sphericalFlag=True)
+    ```
+    * If you know Chinese, and have interest to see more properties about the coordinates, see the part of 例：经纬球坐标系 in 基矢量与张量\.pdf on https://github.com/el2718/thoughts/releases/tag/thoughts
 ### Output domain
   * **xreg, yreg, zreg**: coordinates of the output region, in arrays of two elements
     * default is to include the whole 2D region at the bottom
@@ -167,12 +193,20 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
   * **seed**: launch points for tracing
     * if seed is 'original', or 'original_bottom'; or seed is an array of coordinates with dimensions of (3) or (3,n1) or (3,n1,n2) or (3,n1,n2,n3), its units should be same as x{yz}a
       * invoke sflag
-      * if seed is 'original', then seed will be the original 3D grid
-      * if seed is 'original_bottom', then seed will be the original 2D grid at the bottom
+      * if the input **seed** is 'original', then the output **seed** in **qsl** will be the original 3D grid of magnetic field
+      * if the input **seed** is 'original_bottom', then the output **seed** in **qsl** will be the original 2D grid at the bottom of magnetic field
       * x{yz}reg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta will be ignored
-      * if scottFlag, **q, q_perp** will be exported; otherwise even **q** can not be found
     * if seed eq 1 in fastqsl\.pro ( /seed also makes seed eq 1), or seed is True in fastqsl\.py
       * not invoke sflag. The output grid is still described by x{yz}reg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, and return as the array **seed** in **qsl**
+  * **regular_seed**:  the geometry of **seed** is regular 
+    * default is 0
+    * only works when sflag is invoked and the dimensions of **seed** is (3,n1,n2) or (3,n1,n2,n3)
+    * If sflag is invoked and scottFlag is not invoked, due to the requirement of Method 3 of Pariat (2012), **q** can only be achieved if **regular_seed** is invoked. For example, if the dimensions of **seed** is (3,  n1,n2), **regular_seed** can be invoked if: 
+      * all seed[\*, i, j] (vary i) lies on a straight line, and all neighboring grid distances on this line is same
+      * all seed[\*, i, j] (vary j) lies on another straight line, and all neighboring grid distances on this line is same
+      * these two straight lines should be perpendicular to each other
+      * two grid distances on these two straight lines can be different
+    * This keyword can tell the geometry of **seed** to FastQSL, be careful that FastQSL will not check the conditions above
 ### Tracing details
   * **RK4Flag**:     to trace field line by RK4
     * default is 0 (use RKF45)
@@ -182,7 +216,7 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     * default is 10.^(-4)
     * if not (scottFlag or keyword_set(seed)), step and tol will be adjusted by Equations (20) (21) in Zhang (2022)
   * **maxsteps**:    maximum steps for stracing a field line at one direction; suggested by Jiang, Chaowei
-    * default is 10*(nx+ny+nz) if traced by RKF45, or long(10*(nx+ny+nz)/step) if traced by RK4.
+    * default is 10*(nx+ny+nz) if traced by RKF45, is long(10*(nx+ny+nz)/step) if traced by RK4.
     * if we want field lines terminated at boundaries but not inside of the box, maxsteps should be large enough.
     * if maxsteps is too small, many 0 will appear in **rboundary**,  then **q** can not be given and results NaN, while **length, twist, q_perp** still have values.
     * sometimes we want see **twist, q_perp** of a segments of field line at a fixed length.
@@ -201,7 +235,7 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     * default is 0
   * **save_file**:   produce odir+fstr+'.sav' in fastqsl\.pro (odir+fstr+'.pkl' in fastqsl\.py)
     * default is 0
-  * **compress**:    to invoke the keyword compress of save, for saving storage
+  * **compress**:    to invoke the keyword compress of the IDL routine save, for saving storage
     * default is 0
     * not exist in fastqsl\.py
   * **tmp_dir**:     the temporary directory for the data transmission between fastqsl.x and fastqsl\.pro
@@ -222,6 +256,7 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
 ### Optional outputs
 See **Products** for more details. All default values here are 0. 
   * **B_out, CurlB_out, length_out, twist_out, path_out, loopB_out, loopCurlB_out**:  to export **B, CurlB, length, twist, path, loopB, loopCurlB**, respectively
+    * path_out is not allowed to invoke with 3D output grid, due to the too huge memory occupation; if this happened, path_out will be ignored
     * path_out should be invoked first for invoking loopB_out, loopCurlB_out
   * **rF_out**:      to export **rFs, rFe**
   * **targetB_out**: to export **Bs, Be**
@@ -249,7 +284,7 @@ Possible elements in **qsl** are:
     For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field lines is given by *qsl.path[i] from a previous run, and density, pressure, temperature are 3D arrays on the same grid of Bx, By, Bz. Then just run
 
 ```bash
-IDL> fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
+IDL > fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
 ```
 
 then reform(qsl.B[0, \*]), reform(qsl.B[1, \*]), reform(qsl.B[2, \*]) are actually the density, pressure, temperature distribution on the field line
@@ -312,10 +347,27 @@ For the case of static boundaries, we can compute the slip-squashing factors usi
 
 -----------------------------
 ## Demos
-```idl
+
+### if use fastqsl\.pro
+```
 IDL> .r demo_charge4.pro
 ```
-or
+if you use Linux or macOS, and don't want to entry the interactive environment of IDL (or GDL), just create demo_charge4.sh with the content:
+```bash
+#! /bin/bash -f
+idl <<EOF
+.r demo_charge4.pro
+EOF
+```
+and the user should have the execute permission of demo_charge4.sh:
+```bash
+chmod u+x demo_charge4.sh
+```
+then just submit it in a terminal by
+```bash
+nohup ./demo_charge4.sh > verbose_demo.txt 2>&1 &
+```
+### if use fastqsl\.py
 ```bash
 python3 demo_charge4.py
 ```
@@ -351,12 +403,12 @@ In fastqsl.x, the most memory is occupied by:
 * Jan 30, 2022 Jun Chen, remove doppler_color_mix, due to the poor recognizability of green-white-yellow
 * Feb 16, 2022 Jun Chen, reduce the memory occupation for 3D case in Fortran
 * Apr 27, 2022 Jun Chen,
-  (1) forcibly assign the minimum value of Q to 2, the theoretical minimum;
-  (2) zreg[0] can be non-zero when calculate in a box volume;
-  (3) the format of cut_str can be '(i0)' or '(f0.1)' or '(f0.2)' or '(f0.3)', according to the input
+  * forcibly assign the minimum value of Q to 2, the theoretical minimum;
+  * zreg[0] can be non-zero when calculate in a box volume;
+  * the format of cut_str can be '(i0)' or '(f0.1)' or '(f0.2)' or '(f0.3)', according to the input
 * Jun 10, 2022 Jun Chen, support stretched grid
 * Oct 11, 2022 Jun Chen, support Windows
-* Jan 17, 2023 Jun Chen, integrate doppler color in qfactor.pro, doppler_color.pro is not more necessary;
+* Jan 17, 2023 Jun Chen, integrate doppler color in qfactor\.pro, doppler_color\.pro is not necessary anymore;
             for avioding an error in a remote server: % TVLCT: Unable to open X Windows display
 * Jun 23, 2024 Jun Chen, change all txt files to binary files in tmp_dir, since a txt file could introduce errors to float values
 * Jul  3, 2024 Jun Chen, support spherical coordinates
@@ -370,14 +422,14 @@ In fastqsl.x, the most memory is occupied by:
 * Dec  9, 2024 Jun Chen, deal with B=NaN/0
 * May  6, 2025 Jun Chen, deal the polar regions in spherical coordinates with two coordinates systems
 * Jan, 6, 2026 Jun Chen,
-  (1) add keywords of targetB_out, targetCurlB_out, qsl, silent, tmp_dir, keep_tmp
-  (2) allow seed = 'original' or 'original_bottom'
-  (3) remove the keyword of tmpB, RAMtmp
-  (4) remove qsl.Bnr in output, this can be derived if targetB_out
-  (5) rename the keyword nbridge to nthreads
-  (6) rename qfactor to fastqsl
-  (7) use os_sep=PATH_SEP() instead of '/'
-  (8) kill the pop-up window for fastqsl.exe finally in Windows
+  * add keywords of targetB_out, targetCurlB_out, qsl, silent, tmp_dir, keep_tmp
+  * allow seed = 'original' or 'original_bottom'
+  * remove the keyword of tmpB, RAMtmp
+  * remove qsl.Bnr in output, this can be derived if targetB_out
+  * rename the keyword nbridge to nthreads
+  * rename qfactor to fastqsl
+  * use os_sep=PATH_SEP() instead of '/'
+  * kill the pop-up window for fastqsl.exe finally in Windows
 * Jan, 12, 2026 Jun Chen, support python
 * Jan, 13, 2026 Jun Chen, allow seed = 1 in fastqsl\.pro (True in fastqsl\.py) for exporting output grid
-* Jan, 16, 2026 Jun Chen, remove the key_word  of no_preview, add key_words of preview, save_file
+* Jan, 17, 2026 Jun Chen, remove the key_word  of no_preview, add key_words of preview, save_file, regular_seed
