@@ -284,7 +284,7 @@ Possible elements in **qsl** are:
     For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field lines is given by *qsl.path[i] from a previous run, and density, pressure, temperature are 3D arrays on the same grid of Bx, By, Bz. Then just run
 
 ```bash
-IDL > fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
+> IDL > fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
 ```
 
 then reform(qsl.B[0, \*]), reform(qsl.B[1, \*]), reform(qsl.B[2, \*]) are actually the density, pressure, temperature distribution on the field line
