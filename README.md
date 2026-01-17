@@ -312,7 +312,7 @@ For the case of static boundaries, we can compute the slip-squashing factors usi
 
 -----------------------------
 ## Demos
-```bash
+```IDL
 IDL> .r demo_charge4.pro
 ```
 or
