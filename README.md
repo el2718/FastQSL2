@@ -50,7 +50,9 @@ This module is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
     -Gentoo: /usr/local/share/gdl
     -macOS: /opt/local/share/gnudatalanguage/lib  
     **Please append such line to ~/.bashrc**, e.g. for Ubuntu
+    ```bash
     export GDL_PATH=/usr/share/gnudatalanguage/lib
+    ```
 ### If use fastqsl\.py
 * install **python** https://www.python.org/
   * **numpy** and **matplotlib** should be intalled
@@ -67,35 +69,39 @@ This module is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 fields.f90 and trace_bline.f90 are included in fastqsl.f90
 
 * For Linux and macOS (either by ifx/ifort or gfortran):
+    ```bash
+    ifx -o fastqsl.x fastqsl.f90 -fopenmp -O3 -xHost -ipo
+    ```
+    ```bash
+    ifort -o fastqsl.x fastqsl.f90 -fopenmp -O3 -xHost -ipo
+    ```
+    ```bash
+    gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
+    ```
   * set -O3, -xHost, -ipo, -march=native for a better efficiency
-```bash
-ifx -o fastqsl.x fastqsl.f90 -fopenmp -O3 -xHost -ipo
-```
-```bash
-ifort -o fastqsl.x fastqsl.f90 -fopenmp -O3 -xHost -ipo
-```
-```bash
-gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
-```
-
 * For Windows (either by ifort or gfortran):
+  executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would be necessary
+  ```bash
+  ifort /o fastqsl.exe fastqsl.f90 /Qopenmp /O3 /QxHost /Qipo
+  ``` 
+  ```bash
+  gfortran -o fastqsl.exe fastqsl.f90 -fopenmp -O3 -march=native
+  ``` 
   * In Windows 11, also in some upgraded Windows 10, the pop-up window for fastqsl.exe can not be closed automatically, please uncomment this line in fastqsl.f90 to kill the pop-up window (delete !):
-  ! call system('taskkill /im fastqsl.exe /f')
+    ```
+    ! call system('taskkill /im fastqsl.exe /f')
+    ```
   * for ifx, the compilation should be the same as ifort, while I have not tested it
-
-executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would be necessary
-```bash
-ifort /o fastqsl.exe fastqsl.f90 /Qopenmp /O3 /QxHost /Qipo
-``` 
-```bash
-gfortran -o fastqsl.exe fastqsl.f90 -fopenmp -O3 -march=native
-``` 
 ### Path of fastqsl.x
 * please specify the path of fastqsl.x, 
   * in fastqsl\.pro, please correct the line of
+    ```fortran
     spawn, '/path/of/fastqsl.x'
+    ```
   * in fastqsl\.py, please correct the line of  
+    ```python
     os.system(r'/path/of/fastqsl.x')
+    ```
 * or move fastqsl.x to the $PATH (e.g. /usr/local/bin/) of the system and delete the text /path/of/
 * For Windows, use fastqsl.exe instead of fastqsl.x
 -----------------------------
@@ -106,15 +112,17 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
 ### Magnetic field
   * **Bx, By, Bz**: 
     * For fastqsl\.pro, the normal dimesions of Bx, By and Bz are (nx,ny,nz). If the dimesions of Bx are (3,nx,ny,nz), then By and Bz should not be presented, and then
-    reform(Bx[0, \*, \*, \*]) is the real $B_x$,
-    reform(Bx[1, \*, \*, \*]) is the real $B_y$,
-    reform(Bx[2, \*, \*, \*]) is the real $B_z$
+    `reform(Bx[0, *, *, *])` is the real $B_x$,
+    `reform(Bx[1, *, *, *])` is the real $B_y$,
+    `reform(Bx[2, *, *, *])` is the real $B_z$
     * will be forcibly converted to 4-byte float arrays while writing 'bfield.bin'
     * some NaN values or nulls exist on grid is no matter for computation
 ### Coordinates for stretched grid
   * **xa, ya, za**: axis coordinates of magnetic field in 1D arrays
     * should not be presented For uniformed input grid
-    stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
+      ```
+      stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
+      ```
     * the size of x{yz}a must be consistant with the size of the 3D magnetic field
     * The values in x{yz}a should be increased by order
   * **sphericalFlag**: whether the magnetic field is settled on a spherical grid. 
@@ -124,7 +132,7 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     $z=r \sin \vartheta.$
     * Default is 0 (Cartesian coordinates). If invoked, these keywords have such meanings:
       * Bx, By, Bz: longitudinal, latitudinal, radial component of the magnetic field, $B_\varphi, B_\vartheta, B_r$. 
-        * **Be careful**: the index order of these arrays is [i_longitude, i_latitude, i_radius] for  fastqsl\.pro, and is [i_radius, i_latitude, i_longitude] for fastqsl\.py.
+        * **Be careful**: the index order of these arrays is `[i_longitude, i_latitude, i_radius]` for fastqsl\.pro, and is `[i_radius, i_latitude, i_longitude]` for fastqsl\.py.
       * xa, ya, za: axis coordinates of $\varphi, \vartheta, r$
       * xreg, yreg, zreg: output ranges of $\varphi, \vartheta, r$
         * will be rewrote as **lon_reg, lat_reg, r_reg** in returned **qsl**
@@ -135,38 +143,38 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
       * $\vartheta=\pi/2-\theta$
       * $B_\vartheta=-B_\theta$
     * For example, in a IDL script, if the arrays of $B_\varphi(r, \theta, \varphi), B_\theta(r, \theta, \varphi), B_r(r, \theta, \varphi), r, \theta, \varphi$ are bp, bt, br, radius, theta, phi, they should be converted to $B_\varphi(\varphi, \vartheta, r), B_\vartheta(\varphi, \vartheta, r), B_r(\varphi, \vartheta, r), \varphi, \vartheta, r$ in arrays of B_lon, B_lat, B_r, lon_rad, lat_rad, radius, the following code can give **q** at the bottom
-    ```
-    b_lon  = reverse(transpose( bp, [2, 1, 0]), 2)
-    b_lat  = reverse(transpose(-bt, [2, 1, 0]), 2)
-    b_r    = reverse(transpose( br, [2, 1, 0]), 2)
-    lon_rad= phi
-    lat_rad= !pi/2. - reverse(theta)
+      ```
+      b_lon  = reverse(transpose( bp, [2, 1, 0]), 2)
+      b_lat  = reverse(transpose(-bt, [2, 1, 0]), 2)
+      b_r    = reverse(transpose( br, [2, 1, 0]), 2)
+      lon_rad= phi
+      lat_rad= !pi/2. - reverse(theta)
 
-    fastqsl, b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, /spherical, qsl=qsl
-    ```
-    In a python script, the corresponding code is
-    ```python
-    import numpy as np
+      fastqsl, b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, /spherical, qsl=qsl
+      ```
+      In a python script, the corresponding code is
+      ```python
+      import numpy as np
 
-    b_lon  = np.flip(np.transpose( bp, (2, 1, 0)), 1)
-    b_lat  = np.flip(np.transpose(-bt, (2, 1, 0)), 1)
-    b_r    = np.flip(np.transpose( br, (2, 1, 0)), 1)
-    lon_rad= phi
-    lat_rad= np.pi/2. - np.flip(theta)
+      b_lon  = np.flip(np.transpose( bp, (2, 1, 0)), 1)
+      b_lat  = np.flip(np.transpose(-bt, (2, 1, 0)), 1)
+      b_r    = np.flip(np.transpose( br, (2, 1, 0)), 1)
+      lon_rad= phi
+      lat_rad= np.pi/2. - np.flip(theta)
 
-    qsl=fastqsl(b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, sphericalFlag=True)
-    ```
+      qsl=fastqsl(b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, sphericalFlag=True)
+      ```
     * If you know Chinese, and have interest to see more properties of the coordinates, see the part of 例：经纬球坐标系 in 基矢量与张量\.pdf on https://github.com/el2718/thoughts/releases/tag/thoughts
 ### Output domain
   * **xreg, yreg, zreg**: coordinates of the output region, in arrays of two elements
     * default is to include the whole 2D region at the bottom
-    * If (xreg[0] ne xreg[1]) and (yreg[0] ne yreg[1]) and (zreg[0] ne zreg[1]) and not csFlag
+    * If `(xreg[0] ne xreg[1]) and (yreg[0] ne yreg[1]) and (zreg[0] ne zreg[1]) and not csFlag`
       * the output domain is a box volume
       * invoke vFlag
-    * If (xreg[0] eq xreg[1]) or (yreg[0] eq yreg[1]) or (zreg[0] eq zreg[1])
+    * If `(xreg[0] eq xreg[1]) or (yreg[0] eq yreg[1]) or (zreg[0] eq zreg[1])`
       * the output domain is a cross section perpendicular to X or Y or Z axis
       * invoke cFlag
-    * If zreg=[0, 0] (stretchFlag=0B) or zreg=[za(0), za(0)] (stretchFlag=1B)
+    * If `zreg=[0, 0]` (stretchFlag=0B) or `zreg=[za(0), za(0)]` (stretchFlag=1B)
       * the output domain is set at the bottom plane
       * invoke bflag
     * If csFlag is set, see below
@@ -176,11 +184,17 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
   * **csFlag**: 
     * the output domain is the cross section is defined by three points:
       * the origin of output: 
+        ```
         point0 = [xreg[0], yreg[0], zreg[0]] 
+        ```
       * point0 -> point1 is the first axis, and 
+        ```
         point1 = [xreg[1], yreg[1], zreg[0]]
+        ```
       * point0 -> point2 is the second axis, and 
-        point2 = [xreg[0], yreg[0], zreg[1]]  
+        ```
+        point2 = [xreg[0], yreg[0], zreg[1]]
+        ```  
     * default is 0
     * x{yz}reg[0] does not have to be smaller than x{yz}reg[1] in this case
   * **factor**: to bloat up the original resolution
@@ -216,12 +230,10 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     * default is 10.^(-4)
     * if calculate **q** with Method 3 of Pariat (2012), step or tol will be adjusted by Equations (20) (21) in Zhang (2022)
   * **maxsteps**:    maximum steps for stracing a field line at one direction; suggested by Jiang, Chaowei
-    * default is 10*(nx+ny+nz) if traced by RKF45, is long(10*(nx+ny+nz)/step) if traced by RK4.
+    * default is `10*(nx+ny+nz)` if traced by RKF45, is `long(10*(nx+ny+nz)/step)` if traced by RK4.
     * if we want field lines terminated at boundaries but not inside of the box, maxsteps should be large enough.
     * if maxsteps is too small, many 0 will appear in **rboundary**,  then **q** can not be given and results NaN, while **length, twist, q_perp** still have values.
-    * sometimes we want see **twist, q_perp** of a segments of field line at a fixed length.
-             If not stretchFlag and RK4flag and (scottFlag or keyword_set(seed)), and if rboundary[i, j] is 0, 
-             then length[i, j] is approximately 2\*maxsteps\*step
+    * sometimes we want see **twist, q_perp** of a segments of field line at a fixed length. If `not stretchFlag and RK4flag and (scottFlag or keyword_set(seed))`, and if `rboundary[i, j]` is 0, then `length[i, j]` is approximately `2*maxsteps*step`
 
     * Sometimes we want get **B, CurlB, seed** only, and immediately. If maxsteps is set to 0, then:
       * length_out, twist_out, rF_out, scottflag, path_out, loopB_out, loopCurlB_out will forcibly be 0, which means **length, twist, rFs, rFe, q_perp, path, loopB, loopCurlB** will not be presented in **qsl**
@@ -270,7 +282,7 @@ For fastqsl\.py, the results is given by the dictionary **qsl**, can be returned
 Possible elements in **qsl** are:
   * **csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
   * **seed**:    the coordinates of the output grid for the launch of tracing, its units are same as x{yz}a if stretchFlag
-  * **arc**:      longitude (in radian) and latitude (in radian) of the arc on the great circle from point0 to point1. It appears when csflag and sphericalflag are invoked, so then arc is seed[0:1, \*, 0]
+  * **arc**:      longitude (in radian) and latitude (in radian) of the arc on the great circle from point0 to point1. It appears when csflag and sphericalflag are invoked, so then arc is  `seed[0:1, *, 0]`
   * **q**:        squashing factor $Q$, see  [Titov_2002_JGRA_107_1164](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2001JA000278) and [Titov_2007_ApJ_660_863](https://iopscience.iop.org/article/10.1086/512671)
   * **q_perp**:   $Q_\perp$ in Titov (2007)
     * only available when scottFlag invoked, Pariat (2012) is not precise enough for $Q_\perp$
@@ -281,25 +293,25 @@ Possible elements in **qsl** are:
     * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.)*qsl.sign2d`
   * **length**:   length of field lines
   * **B, CurlB**:  $\vec{B}$, $\nabla \times \vec{B}$ on the output grid
-    For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field lines is given by *qsl.path[i] from a previous run, and density, pressure, temperature are 3D arrays on the same grid of Bx, By, Bz. Then just run
-
-```
-IDL> fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
-```
-
-then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the density, pressure, temperature distribution on the field line
+    For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field lines is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same grid of Bx, By, Bz. Then just run
+    ```
+    IDL> fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
+    ```
+    then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the density, pressure, temperature distribution on the field line
 
   * **rFs, rFe**:  coordinates of terminal foot points (r:remote, F:foot, s:start, e:end), suggested by Jiang, Chaowei. A segment of a field line have two terminal points, at the start (or end) point, $\vec{B}$ (or $-\vec{B}$) points to the whole calculated path of the field line.  
     * If calculate at the bottom
-      * if sign2d[i, j] is 1, then rFs[\*, i, j] is the foot for launch, i.e. seed[\*, i, j]; and rFe[\*, i, j] is the target foot.
-      * if sign2d[i, j] is -1, then rFe[\*, i, j] is the foot for launch, and rFs[\*, i, j] is the target foot.
-      * If sign2d[i, j] is 0 and both rFs[\*, i, j] and rFe[\*, i, j] are not seed[\*, i, j], here must be on a bald patch where 
+      * if `sign2d[i, j]` is 1, then `rFs[*, i, j]` is the foot for launch, i.e. `seed[*, i, j]`; and `rFe[*, i, j]` is the target foot.
+      * if `sign2d[i, j]` is -1, then `rFe[*, i, j]` is the foot for launch, and `rFs[*, i, j]` is the target foot.
+      * If `sign2d[i, j]` is 0 and both `rFs[*, i, j]` and `rFe[*, i, j]` are not `seed[*, i, j]`, here must be on a bald patch where 
       $\vec{B}\cdot\nabla B_z|_\mathrm{PIL} > 0$.
   * **rboundary**:  nature of the terminal points, see 'subroutine trim_size' in trace_bline.f90. 
   
     * rboundary is given by 10*rbs+rbe in fastqsl.x, therefore:
-       rbs = rboundary / 10
-       rbe = rboundary mod 10
+      ```
+      rbs = rboundary / 10
+      rbe = rboundary mod 10
+      ```
        their values mark for where rFs, rFe are terminated:
       * 0 - inside the domain
       * 1 - zmin, r_min
@@ -310,7 +322,8 @@ then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actuall
       * 6 - xmax, lon_max
       * 7 - an edge or a corner
       * 8 - B is 0 or NaN
-    So for a closed field line that its both two foots stand on the photosphere, its rboundary is 11. 
+
+      So for a closed field line that its both two foots stand on the photosphere, its rboundary is 11. 
     * If calculate at the bottom, rb_launch=1 for all launch points. i.e. where sign2d is 1 (or -1), then rbs (or rbe) must be 1. Then we can define rb_target for all target points. Where sign2d is 1 (or -1), rb_target=rbe (or rbs)
     * boundary_mark_colors.pdf is the color table for *_rbs.png, *_rbe.png *_rb_target.png.
   * **Bs, Be**: $\vec{B}$ on rFs, rFe
@@ -337,13 +350,13 @@ then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actuall
 [Wang-Sheeley-Arge (WSA) model](https://pubs.aip.org/aip/acp/article-abstract/679/1/190/1010917/Improved-Method-for-Specifying-Solar-Wind-Speed?redirectedFrom=fulltext) is a famous model for solar wind speed upgraded from [Sheeley-Arge (WS) model](https://ui.adsabs.harvard.edu/abs/1990ApJ...355..726W/abstract), two parameters in WSA model  can be derived from the coordinate mapping of FastQSL:
 * Magnetic field expansion factor
 $
-f_\mathrm{s}(\varphi,\,\vartheta,\,r)=
+f_\mathrm{s}(\varphi, \vartheta, r)=
 \left(\dfrac{R_\textrm{sun}}{R_1}\right) ^2
-\dfrac{B_r(\varphi_\textrm{sun},\,\vartheta_\textrm{sun},\,R_\textrm{sun})}
-{B_r(\varphi_1,\,\vartheta_1,\,R_1)}, 
+\dfrac{B_r(\varphi_\textrm{sun}, \vartheta_\textrm{sun}, R_\textrm{sun})}
+{B_r(\varphi_1, \vartheta_1, R_1)}, 
 $
-where $(\varphi_\textrm{sun},\,\vartheta_\textrm{sun},\,R_\textrm{sun})$ are the target coordinates traced from $(\varphi,\,\vartheta,\,r)$ to the inner boundary of $r=R_\textrm{sun}$, and $(\varphi_1,\,\vartheta_1,\,R_1)$ are the target coordinates traced from $(\varphi,\,\vartheta,\,r)$ to the outer boundary of $r=R_1$.
-* $\theta_b(\varphi,\,\vartheta,\,r)$, the minimum angular distance of an open-field footpoint from a coronal hole boundary.
+where $(\varphi_\textrm{sun}, \vartheta_\textrm{sun}, R_\textrm{sun})$ are the target coordinates traced from $(\varphi, \vartheta, r)$ to the inner boundary of $r=R_\textrm{sun}$, and $(\varphi_1, \vartheta_1, R_1)$ are the target coordinates traced from $(\varphi, \vartheta, r)$ to the outer boundary of $r=R_1$.
+* $\theta_b(\varphi, \vartheta, r)$, the minimum angular distance of an open-field footpoint from a coronal hole boundary.
 * For a closed field line, its rboundary is 11, its $f_\mathrm{s}$ is set to 1000., its $\theta_b$ is set to 0., these default values can be adjusted in wsa_par\.pro (wsa_par\.py)
 
 ### Slip-Squashing Factors
