@@ -90,6 +90,7 @@ gfortran -o fastqsl.exe fastqsl.f90 -fopenmp -O3 -march=native
 * please specify the path of fastqsl.x, 
   * in fastqsl\.pro, please correct the line of 
     spawn, '/path/of/fastqsl.x'
+    
   * in fastqsl\.py, please correct the line of  
     os.system(r'/path/of/fastqsl.x')
 * or move fastqsl.x to the $PATH (e.g. /usr/local/bin/) of the system and delete the text /path/of/
