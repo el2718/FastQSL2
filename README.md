@@ -2,6 +2,8 @@
 
 To calculate the squashing factor $Q$, and other quatities related to the magnetic connectivity, at the bottom or at a cross section or in a box volume or on some seed points, given a 3D magnetic field on a Cartesian or spherical, uniformed or stretched grid.
 
+Please address comments and suggestions to [Dr. Chen, Jun (陈俊)](mailto:chenjun@pmo.ac.cn)
+
 If your markdown reader can not can not render the formulae in README\.md, please read README.html directly.
 
 -----------------------------
@@ -41,22 +43,31 @@ This module is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 ## Software for Interface
 
 ### If use fastqsl\.pro
-* install **IDL** https://www.nv5geospatialsoftware.com/Products/IDL or
-* install **GDL** https://gnudatalanguage.github.io
-  * setting an environmental variable of GDL_PATH is necessary for write_png. 
-    If you used one of the binary packages available for Linux, then it depends on the distribution:
-    * Ubuntu & Fedora:  /usr/share/gnudatalanguage/lib
+* install **IDL** https://www.nv5geospatialsoftware.com/Products/IDL 
+  * setting an environmental variable of `$IDL_PATH` and placing fastqsl\.pro into a private path is suggested. If your IDL is installed at /usr/local/exelis/idl, just append such line to ~/.bashrc:
+     ```bash
+    export IDL_DIR=/usr/local/exelis/idl
+    export IDL_PATH="$IDL_IDL/lib:+$HOME/your/private/pro/path"
+    ``` 
+* or install **GDL** https://gnudatalanguage.github.io
+  * setting an environmental variable of `$GDL_PATH` is **necessary for write\_png**, and placing fastqsl\.pro into a private path is suggested. The default `$GDL_DIR` is depends on the distribution:
+    * Ubuntu & Fedora:  /usr/share/gnudatalanguage
     * ArchLinux: /usr/lib/gdl
     * Gentoo: /usr/local/share/gdl
-    * macOS: /opt/local/share/gnudatalanguage/lib
-    
-    **Please append such line to ~/.bashrc**, e.g. for Ubuntu
+    * macOS: /opt/local/share/gnudatalanguage
+    **Please append such lines to ~/.bashrc**, e.g. for Ubuntu
     ```bash
-    export GDL_PATH=/usr/share/gnudatalanguage/lib
+    export GDL_DIR=/usr/share/gnudatalanguage
+    export GDL_PATH="$GDL_IDL/lib:+$HOME/your/private/pro/path"
     ```
 ### If use fastqsl\.py
 * install **python** https://www.python.org/
   * **numpy** and **matplotlib** should be intalled
+  * **scipy** is suggested to intall for reading *.sav from IDL in a demo
+  * setting an environmental variable of `$PYTHONPATH` and placing fastqsl\.py into a private path is suggested, just append such line to ~/.bashrc
+  ```bash
+  export PYTHONPATH="$HOME/your/private/py/path:$PYTHONPATH"
+  ```
 -----------------------------
 ## Computation core with Fortran
 ### Compiler install 
@@ -117,35 +128,35 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
     * For fastqsl\.pro, the normal dimesions of Bx, By and Bz are (nx,ny,nz). If the dimesions of Bx are (3,nx,ny,nz), then By and Bz should not be presented, and then
     `reform(Bx[0, *, *, *])` is the real $B_x$,
     `reform(Bx[1, *, *, *])` is the real $B_y$,
-    `reform(Bx[2, *, *, *])` is the real $B_z$
+    `reform(Bx[2, *, *, *])` is the real $B_z$.
     * will be forcibly converted to 4-byte float arrays while writing 'bfield.bin'
-    * some NaN values or nulls exist on grid is no matter for computation
+    * some NaN values or magnetic nulls (B=0) exist on grid is no matter for computation
 ### Coordinates for stretched grid
   * **xa, ya, za**: axis coordinates of magnetic field in 1D arrays
     * should not be presented For uniformed input grid
       ```
       stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
       ```
-    * the size of x{yz}a must be consistant with the size of the 3D magnetic field
-    * The values in x{yz}a should be increased by order
+    * the size of **xa, ya, za** must be consistant with the size of the 3D magnetic field
+    * The values in **xa, ya, za** must be increased by order
   * **sphericalFlag**: whether the magnetic field is settled on a spherical grid. 
     * FastQSL uses longitude (in radian), latitude (in radian) and radius as the coordinates for spherical grid, denoted as $\varphi$, $\vartheta$, and $r$, respectively. The maximum range of $\varphi$ is $[0, 2 \pi]$, the maximum range of $\vartheta$ is $[-\pi/2, \pi/2]$. The relations between $\{\varphi, \vartheta, r\}$ and $\{x, y, z\}$ are
     $x=r \cos \vartheta \cos \varphi,$
     $y=r \cos \vartheta \sin \varphi,$
     $z=r \sin \vartheta.$
     * Default is 0 (Cartesian coordinates). If invoked, these keywords have such meanings:
-      * Bx, By, Bz: longitudinal, latitudinal, radial component of the magnetic field, $B_\varphi, B_\vartheta, B_r$. 
+      * **Bx, By, Bz**: longitudinal, latitudinal, radial component of the magnetic field, $B_\varphi, B_\vartheta, B_r$. 
         * **Be careful**: the index order of these arrays is `[i_longitude, i_latitude, i_radius]` for fastqsl\.pro, and is `[i_radius, i_latitude, i_longitude]` for fastqsl\.py.
-      * xa, ya, za: axis coordinates of $\varphi, \vartheta, r$
-      * xreg, yreg, zreg: output ranges of $\varphi, \vartheta, r$
+      * **xa, ya, za**: axis coordinates of $\varphi, \vartheta, r$
+      * **xreg, yreg, zreg**: output ranges of $\varphi, \vartheta, r$
         * will be rewrote as **lon_reg, lat_reg, r_reg** in returned **qsl**
-      * lon_delta, lat_delta, r_delta: output grid spacing of $\varphi, \vartheta, r$
-      * arc_delta: output grid spacing (in radian) of the arc on the great circle
+      * **lon_delta, lat_delta, r_delta**: output grid spacing of $\varphi, \vartheta, r$
+      * **arc_delta**: output grid spacing (in radian) of the arc on the great circle
           * works when csflag is invoked, the first curved axis is the arc on the great circle from point0 to point1, and the second axis is point0 -> point2
     * The classical spherical coordinates are $\{r, \theta, \varphi\}$, **which are not the spherical coordinates for FastQSL!**  The maximum range of $\theta$ is $[0, \pi]$. If you take a magnetic field on a grid with the classical spherical coordinates, two relations should be applied:
       * $\vartheta=\pi/2-\theta$
       * $B_\vartheta=-B_\theta$
-    * For example, in a IDL script, if the arrays of $B_\varphi(r, \theta, \varphi), B_\theta(r, \theta, \varphi), B_r(r, \theta, \varphi), r, \theta, \varphi$ are `bp, bt, br, radius, theta, phi`, they should be converted to $B_\varphi(\varphi, \vartheta, r), B_\vartheta(\varphi, \vartheta, r), B_r(\varphi, \vartheta, r), \varphi, \vartheta, r$ in arrays of `B_lon, B_lat, B_r, lon_rad, lat_rad, radius`, the following code can give **q** at the bottom:
+    * For example, in a IDL script, if the arrays of $B_r(r, \theta, \varphi), B_\theta(r, \theta, \varphi), B_\varphi(r, \theta, \varphi), r, \theta, \varphi$ are `br, bp, bt, radius, theta, phi`, they should be converted to $B_\varphi(\varphi, \vartheta, r), B_\vartheta(\varphi, \vartheta, r), B_r(\varphi, \vartheta, r), \varphi, \vartheta, r$ in arrays of `B_lon, B_lat, B_r, lon_rad, lat_rad, radius`, the following code can give **q** at the bottom:
       ```
       b_lon  = reverse(transpose( bp, [2, 1, 0]), 2)
       b_lat  = reverse(transpose(-bt, [2, 1, 0]), 2)
@@ -182,7 +193,7 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
       * invoke bflag
     * If csFlag is set, see below
       * invoke cFlag
-    * in return, qsl.x{yz}reg[1] may be slightly changed, which is same as the final grid of qsl.seed, due to the trim at the final grid
+    * in return, `qsl.xreg[1], qsl.yreg[1], qsl.zreg[1]` may slightly be changed, which is same as the final grid of `qsl.seed`, due to the trim at the final grid
 
   * **csFlag**: 
     * the output domain is the cross section is defined by three points:
@@ -198,84 +209,85 @@ The following introductions are wrote for fastqsl\.pro, the case is similar for 
         ```
         point2 = [xreg[0], yreg[0], zreg[1]]
         ```  
+    * `xreg[0], yreg[0], zreg[0]` does not have to be smaller than `xreg[1], yreg[1], zreg[1]` in this case
     * default is 0
-    * x{yz}reg[0] does not have to be smaller than x{yz}reg[1] in this case
-  * **factor**: to bloat up the original resolution
-    * For uniformed input grid, grid spacing of output = 1/factor
+  * **factor**: to bloat up the original resolution by a factor
+    * For uniformed input grid, the grid spacing of output = 1/factor
     * default is 4
   * **delta**: grid spacing of output
     * For uniformed input grid, default is 1/factor
-    * if keyword_set(delta), the keyword of factor will be ignored
+    * if keyword_set(delta), **factor** will be ignored
   * **lon_delta, lat_delta, r_delta, arc_delta**: see **sphericalFlag**
   * **seed**: launch points for tracing
-    * if `seed = 'original'`, or `seed = 'original_bottom'`; or **seed** is an array of coordinates with dimensions of (3) or (3,n1) or (3,n1,n2) or (3,n1,n2,n3), its units should be same as x{yz}a
-      * invoke sflag
-      * if at input `seed = 'original'`, then the output **seed** in **qsl** will be the original 3D grid of magnetic field
-      * if at input `seed = 'original_bottom'`, then the output **seed** in **qsl** will be the original 2D grid at the bottom of magnetic field
-      * x{yz}reg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta will be ignored
-    * if seed eq 1 in fastqsl\.pro ( `, /seed` also makes seed eq 1), or seed is True in fastqsl\.py
-      * not invoke sflag. The output grid is still described by x{yz}reg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, and return as the array **seed** in **qsl**
-  * **regular_seed**:  the geometry of **seed** is regular 
-    * default is 0
-    * only works when sflag is invoked and the dimensions of **seed** is (3,n1,n2) or (3,n1,n2,n3)
-    * If sflag is invoked and scottFlag is not invoked, due to the requirement of Method 3 of Pariat (2012), **q** can only be achieved if **regular_seed** is invoked. For example, if the dimensions of **seed** is (3,  n1,n2), **regular_seed** can be invoked if: 
-      * all `seed[*, i, j]` (vary i) lies on a straight line, and all neighboring grid distances on this line is same
-      * all `seed[*, i, j]` (vary j) lies on another straight line, and all neighboring grid distances on this line is same
-      * these two straight lines should be perpendicular to each other
-      * two grid distances on these two straight lines can be different
-    * This keyword can tell the geometry of **seed** to FastQSL, be careful that FastQSL will not check the conditions above
+    * if set `seed = 'original'`, or `seed = 'original_bottom'` at the input; **seed** is an array of coordinates with dimensions of (3) or (3,n1) or (3,n1,n2) or (3,n1,n2,n3), its units should be same as **xa, ya, za**
+      * invoke sflag. And then FastQSL applied **the second way** to define the output domain by **seed**, and **xreg, yreg, zreg, csFlag, factor, delta, lon_delta, lat_delta, r_delta, arc_delta** will be ignored
+      * if set `seed = 'original'`, then the output **seed** in **qsl** will be the original 3D grid of magnetic field
+      * if set `seed = 'original_bottom'`, then the output **seed** in **qsl** will be the original 2D grid at the bottom of magnetic field
+    * if set `seed = 1` at the input of fastqsl\.pro ( `, /seed` also makes seed eq 1), or set `seed = True` at the input of fastqsl\.py
+      * not invoke sflag. The output grid is still described by **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta**, and return as the array **seed** in **qsl**. For example, in fastqsl.pro, if sphericalFlag is invoked, 
+      `qsl.seed[i,j,k,0]` is same as `qsl.lon_reg[0] + i*qsl.lon_delta`
+      `qsl.seed[i,j,k,1]` is same as `qsl.lat_reg[0] + j*qsl.lat_delta`
+      `qsl.seed[i,j,k,2]` is same as `qsl.r_reg[0]   + k*qsl.r_delta`
 ### Tracing details
+A magnetic field line is integrated by $\dfrac{\mathrm{d} \vec{r}(s)}{\mathrm{d} s}=\dfrac{\vec{B}}{B}$
   * **RK4Flag**:     to trace field line by RK4
     * default is 0 (use RKF45)
-  * **step**:        step size in tracing field lines for RK4
+  * **step**:        step size of in tracing field lines ($\mathrm{d} s$) for RK4
     * default is 1.0
   * **tol**:         tolerance of a step in RKF45
     * default is 10.^(-4)
-    * if calculate **q** with Method 3 of Pariat (2012), step or tol will be adjusted by Equations (20) (21) in Zhang (2022)
-  * **maxsteps**:    maximum steps for stracing a field line at one direction; suggested by Jiang, Chaowei
-    * default is `10*(nx+ny+nz)` if traced by RKF45, is `long(10*(nx+ny+nz)/step)` if traced by RK4.
+    * the unit of **step** and **tol** is the original grid spacing. This unit can vare from cell to cell within a streched grid by a self-adaptive fashion with Equation (16-18) of [Zhang (2022)]((https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61))
+  * **scottFlag**:  to integrate $\dfrac{\mathrm{d} \{\vec{U}(s),\vec{V}(s)\}}{\mathrm{d} s}=\{\vec{U}(s),\vec{V}(s)\} \cdot\nabla\dfrac{\vec{B}}{B}$ along with the field line tracing, and to give $Q$ and $Q_\perp$ by Equation (22) of [Scott_2017_ApJ_848_117](https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64)
+    * default is 0 (Method 3 of [Pariat_2012_A&A_541_A78](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), some problematic sites are filled with [Scott (2017)]((https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64)))
+  * **inclineFlag**: to apply Equations (20) (21) in [Zhang (2022)]((https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61)):
+  $\texttt{step}|_{S_0} = \textrm{max}([\texttt{step}_{\perp} \times |B_{n,0} / B|, \texttt{step}_\mathrm{min}])$
+  $\texttt{tol}|_{S_0} = \texttt{tol}_{\perp} \times | B_{n,0} / B |^{1.5}$
+for every field line launched from $S_0$, then **step** and **tol** at the input are actually $\texttt{step}_\perp$ and $\texttt{tol}_\perp$
+    * invoke it can provide a better quality of **q** calculated with Method 3 of [Pariat (2012)](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), while then FastQSL will takes slightly longer time for computation and makes slightly more points on **path** (then set a slightly larger **maxsteps** maybe necessary)
+    * default is 0
+    * can only works when scottFlag is not invoked
+  * **maxsteps**:    maximum steps for stracing a field line at one direction
+    * default is `4*(nx+ny+nz)` if traced by RKF45, is `long(4*(nx+ny+nz)/step)` if traced by RK4.
     * if we want field lines terminated at boundaries but not inside of the box, maxsteps should be large enough.
     * if maxsteps is too small, many 0 will appear in **rboundary**,  then **q** can not be given and results NaN, while **length, twist, q_perp** still have values.
-    * sometimes we want see **twist, q_perp** of a segments of field line at a fixed length. If `not stretchFlag and RK4flag and (scottFlag or keyword_set(seed))`, and if `rboundary[i, j]` is 0, then `length[i, j]` is approximately `2*maxsteps*step`
+    * sometimes we want see **twist, q_perp** of a segments of field line at a fixed length. If `not stretchFlag and RK4flag and (scottFlag or keyword_set(seed))`, and if `qsl.rboundary[i, j]` is 0, then `qsl.length[i, j]` is approximately `2*maxsteps*step`
 
     * Sometimes we want get **B, CurlB, seed** only, and immediately. If maxsteps is set to 0, then:
       * length_out, twist_out, rF_out, scottflag, path_out, loopB_out, loopCurlB_out will forcibly be 0, which means **length, twist, rFs, rFe, q_perp, path, loopB, loopCurlB** will not be presented in **qsl**
       * **q, rboundary, sign2d, tol, step, RK4Flag** will not be presented in **qsl**
       * if even B_out, CurlB_out, launch_out are not invoked, then do nothing and return directly
-### Output details
-  * **odir**:        directory to save the results
-    * default is cdir+'fastqsl/', where cdir is the current directory
-  * **fstr**:        filename of the results
-  * **preview**:     produce PNG images for preview
+### Efficiencicy and verbose
+  * **nthreads**:    number of processors to engage the computation
+    * default is OMP_GET_NUM_PROCS() - 2 (reset in fastqsl.x if the value is 0)
+  * **silent**:      do not print anything if no mistake occured
     * default is 0
-  * **save_file**:   produce odir+fstr+'.sav' in fastqsl\.pro (odir+fstr+'.pkl' in fastqsl\.py)
+### Optional outputs
+See **Products** for more details. All default values here are 0. 
+  * **B_out, CurlB_out, length_out, twist_out, path_out, loopB_out, loopCurlB_out**:  to export **B, CurlB, length, twist, path, loopB, loopCurlB**, respectively
+    * **path_out** is not allowed to invoke with 3D output grid, due to the too huge memory occupation; if this happened, **path_out** will be ignored
+    * **path_out** should be invoked first for invoking **loopB_out, loopCurlB_out**
+  * **rF_out**:      to export **rFs, rFe**
+  * **targetB_out**: to export **Bs, Be**
+  * **targetCurlB_out**: to export **CurlBs, CurlBe**
+### Output files
+  * **odir**:        directory to save the results
+    * default is `cdir+'fastqsl/'`, where cdir is the current directory
+  * **fstr**:        filename of the results
+  * **save_file**:   produce `odir+fstr+'.sav'` in fastqsl\.pro (`odir+fstr+'.pkl'` in fastqsl\.py)
     * default is 0
   * **compress**:    to invoke the keyword compress of the IDL routine save, for saving storage
     * default is 0
     * not exist in fastqsl\.py
+  * **preview**:     produce PNG images for preview
+    * default is 0
   * **tmp_dir**:     the temporary directory for the data transmission between fastqsl.x and fastqsl\.pro
-    * default is cdir+'tmpFastQSL/'
+    * default is `cdir+'tmpFastQSL/'`
     * a virtual disk created with computer memory  provide an incredibly fast IO performance, set tmp_dir on such disk is suggested
-      * For linux, /dev/shm/ is the directory from memory, one can set tmp_dir='/dev/shm/tmpFastQSL/'
+      * For linux, /dev/shm/ is the directory from memory, one can set `tmp_dir='/dev/shm/tmpFastQSL/'`
       * For macOS, one way is detailed in https://lvv.me/posts/2025/09/25_ramdisk_on_macos/
       * For Windows, one choice is https://sourceforge.net/projects/imdisk-toolkit/
   * **keep_tmp**:    do not delete the temporary  binary files output from fastqsl.x
     * default is 0
-### Rest details
-  * **nthreads**:    number of processors to engage the computation
-    * default is OMP_GET_NUM_PROCS() - 2 (set in fastqsl.x)
-  * **silent**:      do not print anything if no mistake occured
-    * default is 0
-  * **scottFlag**:   to calculate $Q$ and $Q_\perp$ by the method of [Scott_2017_ApJ_848_117](https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64)
-    * default is 0 (method 3 of [Pariat_2012_A&A_541_A78](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), some problematic sites are filled with Scott (2017))
-### Optional outputs
-See **Products** for more details. All default values here are 0. 
-  * **B_out, CurlB_out, length_out, twist_out, path_out, loopB_out, loopCurlB_out**:  to export **B, CurlB, length, twist, path, loopB, loopCurlB**, respectively
-    * path_out is not allowed to invoke with 3D output grid, due to the too huge memory occupation; if this happened, path_out will be ignored
-    * path_out should be invoked first for invoking loopB_out, loopCurlB_out
-  * **rF_out**:      to export **rFs, rFe**
-  * **targetB_out**: to export **Bs, Be**
-  * **targetCurlB_out**: to export **CurlBs, CurlBe**
 -----------------------------
 ## Products
 For fastqsl\.pro, the results is given by the structure **qsl**, can be returned by the keyword qsl, or can be saved as `odir+fstr+'.sav'`. For example, the elements **q** can be accessed by `qsl.q`
@@ -284,16 +296,16 @@ For fastqsl\.py, the results is given by the dictionary **qsl**, can be returned
 
 Possible elements in **qsl** are:
   * **csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
-  * **seed**:    the coordinates of the output grid for the launch of tracing, its units are same as x{yz}a if stretchFlag
-  * **arc**:      longitude (in radian) and latitude (in radian) of the arc on the great circle from point0 to point1. It appears when csflag and sphericalflag are invoked, so then arc is  `seed[0:1, *, 0]`
+  * **seed**:    the coordinates of the output grid for the launch of tracing, its units are same as **xa, ya, za** if stretchFlag
+  * **arc**:      longitude (in radian) and latitude (in radian) of the arc on the great circle from point0 to point1. It appears when **csFlag** and **sphericalFlag** are invoked, so **arc** is `seed[0:1, *, 0]`
   * **q**:        squashing factor $Q$, see  [Titov_2002_JGRA_107_1164](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2001JA000278) and [Titov_2007_ApJ_660_863](https://iopscience.iop.org/article/10.1086/512671)
-  * **q_perp**:   $Q_\perp$ in Titov (2007)
-    * only available when scottFlag invoked, Pariat (2012) is not precise enough for $Q_\perp$
+  * **q_perp**:   $Q_\perp$ in [Titov (2007)](https://iopscience.iop.org/article/10.1086/512671)
+    * only available when **scottFlag** invoked, [Pariat (2012)]((https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html)) is not precise enough for $Q_\perp$
   * **sign2d**:   sign(Bz) at the bottom
     * only exist when the bottom plane is included
-    * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.)*qsl.sign2d`
+    * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.) * qsl.sign2d`
   * **length**: $L= \int_\mathrm{path} \mathrm{d}l$, length of field lines lauched from **seed**
-  * **twist**: $T_w = \int_\mathrm{path} (\nabla \times \vec{B}) \cdot \vec{B}/(4\pi B^2) \mathrm{d}l$, can be used to measure how many turns two infinitesimally close field lines winding about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148).
+  * **twist**: $T_w = \int_\mathrm{path} (\nabla \times \vec{B}) \cdot \vec{B}/(4\pi B^2) \mathrm{d}l$, can be used to measure how many turns two infinitesimally close field lines winding about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148)
   * **B, CurlB**:  $\vec{B}$, $\nabla \times \vec{B}$ on **seed**
     For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field lines is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same grid of Bx, By, Bz. Then just run
     ```
@@ -301,51 +313,51 @@ Possible elements in **qsl** are:
     ```
     then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the density, pressure, temperature distribution on the field line
 
-  * **rFs, rFe**:  coordinates of terminal foot points (r:remote, F:foot, s:start, e:end), suggested by Jiang, Chaowei. A segment of a field line have two terminal points, at the start (or end) point, $\vec{B}$ (or $-\vec{B}$) points to the whole calculated path of the field line.  
+  * **rFs, rFe**:  coordinates of terminal foot points (r:remote, F:foot, s:start, e:end). A segment of a field line have two terminal points, at the start (or end) point, $\vec{B}$ (or $-\vec{B}$) points to the whole calculated path of the field line.  
     * If calculate at the bottom
       * if `sign2d[i, j]` is 1, then `rFs[*, i, j]` is `seed[*, i, j]`, i.e.  the foot for launch; and `rFe[*, i, j]` is the target foot.
       * if `sign2d[i, j]` is -1, then `rFe[*, i, j]` is `seed[*, i, j]`, and `rFs[*, i, j]` is the target foot.
       * If `sign2d[i, j]` is 0 and both `rFs[*, i, j]` and `rFe[*, i, j]` are not `seed[*, i, j]`, here must be on a bald patch where $\vec{B}\cdot\nabla B_z|_\mathrm{PIL} > 0$
-  * **rboundary**:  nature of the terminal points, see 'subroutine trim_size' in trace_bline.f90
-  
+  * **rboundary**:  nature of the terminal points
     * rboundary is given by 10*rbs+rbe in fastqsl.x, therefore:
       ```
-      rbs = rboundary / 10
-      rbe = rboundary mod 10
+      rbs = qsl.rboundary / 10
+      rbe = qsl.rboundary mod 10
       ```
-       their values mark for where rFs, rFe are terminated:
-      * 0 - inside the domain
-      * 1 - zmin, r_min
-      * 2 - zmax, r_max
-      * 3 - ymin, lat_min
-      * 4 - ymax, lat_max
-      * 5 - xmin, lon_min
-      * 6 - xmax, lon_max
-      * 7 - an edge or a corner
+      their values mark for where **rFs, rFe** are terminated:
+      * 0 - inside the box
+      * 1 - $z=z_\textrm{min}$ or $r=r_\textrm{min}$
+      * 2 - $z=z_\textrm{max}$ or $r=r_\textrm{max}$
+      * 3 - $y=y_\textrm{min}$ or $\vartheta=\vartheta_\textrm{min}$
+      * 4 - $y=y_\textrm{max}$ or $\vartheta=\vartheta_\textrm{max}$
+      * 5 - $x=x_\textrm{min}$ or $\varphi=\varphi_\textrm{min}$
+      * 6 - $x=x_\textrm{max}$ or $\varphi=\varphi_\textrm{max}$
+      * 7 - edge or corner
       * 8 - B is 0 or NaN
 
-      So for a closed field line that its both two foots stand on the photosphere, its rboundary is 11. 
-    * If calculate at the bottom, rb_launch=1 for all launch points. i.e. where sign2d is 1 (or -1), then rbs (or rbe) must be 1. Then we can define rb_target for all target points. Where sign2d is 1 (or -1), rb_target=rbe (or rbs)
-    * boundary_mark_colors.pdf is the color table for *_rbs.png, *_rbe.png *_rb_target.png.
+      So for a closed field line that both its two foots stand on the photosphere, its **rboundary** value is 11
+    * If calculate at the bottom, 
+      * rb_launch=1 for all launch points. i.e. if `qsl.sign2d[i,j]` is 1 (or -1), then `rbs[i, j]` (or `rbe[i, j]`) must be 1, and `rb_target[i, j] = rbe[i, j]` (or `rbs[i, j]`) for all target points
+    * boundary_mark_colors.pdf is the color table for *_rbs.png, *_rbe.png *_rb_target.png
   * **Bs, Be**: $\vec{B}$ on **rFs, rFe**
-      * [Priest and Demoulin (1995)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/95JA02740) use $N$ at the photosphere to locate QSLs; in Titov (2007),
-      $Q = N^2 / \Delta$, and $\Delta =|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$.
-      If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ from rboundary, Bs and Be
+      * [Priest and Demoulin (1995)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/95JA02740) use $N$ at the photosphere to locate QSLs; in [Titov (2007)](https://iopscience.iop.org/article/10.1086/512671),
+      $Q = N^2 / \Delta$, and $\Delta =|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$
+      If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ from **rboundary, Bs, Be**
   * **CurlBs, CurlBe**: $\nabla \times \vec{B}$  on **rFs, rFe**
-  * **path**: path of field lines launched from the output grid. 
+  * **path**: path of field lines launched from **seed**
     * For example, if the output domain is 2D,
-      * In fastqsl\.pro, `qsl.path` is a pointer array, `*qsl.path[i, j]` gives a field line with dimeonsions of (3, n), and
+      * in fastqsl\.pro, `qsl.path` is a pointer array, `*qsl.path[i, j]` gives a field line with dimensions of (3, n), and
         * `(*qsl.path[i, j])[*, 0]` is `qsl.rFs[*, i, j]`
         * `(*qsl.path[i, j])[*, n-1]` is `qsl.rFe[*, i, j]`
         * `(*qsl.path[i, j])[*, qsl.index_seed[i, j]]` is `qsl.seed[*, i, j]`
-      * In fastqsl\.py, qsl['path'] is a list, qsl['path'][j][i] gives a field line with  dimeonsions of (n, 3), and
+      * in fastqsl\.py, qsl['path'] is a list, qsl['path'][j][i] gives a field line with  dimensions of (n, 3), and
         * `qsl['path'][j][i][0, :]` is `qsl['rFs'][j, i, :]`
         * `qsl['path'][j][i][-1, :]` is `qsl['rFe'][j, i, :]`
         * `qsl['path'][j][i][qsl['index_seed'][j, i], :]` is `qsl['seed'][j, i, :]`
-    * using RKF45 requires much less grid points a path than using RK4
-    * a smaller tol (or step) requires more grid points on a path, while then the coordinate precision of the path is better
+    * Using RKF45 requires much less grid points a path than using RK4
+    * A smaller tol (or step) requires more grid points on a path, while then the coordinate precision of the path is better
   * **loopB, loopCurlB**: $\vec{B}$, $\nabla \times \vec{B}$ on **path**
-  * **index_seed**: the index in path for launch points
+  * **index_seed**: the index in **path** for the launch points
 -----------------------------
 ## Derived Products
 ### Two Parameters in WSA Model
@@ -373,7 +385,7 @@ For the case of static boundaries, we can compute the slip-squashing factors usi
 ```
 IDL> .r demo_charge4.pro
 ```
-if you use Linux or macOS, and don't want to entry the interactive environment of IDL, just create demo_charge4.sh with the content:
+if you use Linux or macOS, and don't want to entry the interactive environment of IDL, you can create demo_charge4.sh with the content:
 ```bash
 #! /bin/bash -f
 idl <<EOF
@@ -384,7 +396,7 @@ and the user should have the execute permission of demo_charge4.sh:
 ```bash
 chmod u+x demo_charge4.sh
 ```
-then just submit it in a terminal by
+then submit it in a terminal by
 ```bash
 nohup ./demo_charge4.sh > verbose_demo.txt 2>&1 &
 ```
@@ -405,7 +417,7 @@ In fastqsl.x, the most memory is occupied by:
 * Jun 30, 2014 Rui Liu @ USTC, IDL edition
 * Apr 21, 2015 Rui Liu and Jun Chen, deal with field lines pass through the boundary other than the bottom
 * Apr 27, 2015 Rui Liu, calculate the squashing factor Q at a cross section
-* Jun 15, 2015 Jun Chen, Fortran Edition; correct foot points with $\dfrac{\mathrm{d}\, \vec{r}}{\mathrm{d} r_i}=\dfrac{\vec{B}}{B_i}$
+* Jun 15, 2015 Jun Chen, Fortran Edition; correct foot points with $\dfrac{\mathrm{d} \vec{r}}{\mathrm{d} r_i}=\dfrac{\vec{B}}{B_i}$
 * Jul  8, 2015 Jun Chen, calculate the squashing factor Q in a box volume
 * Oct 29, 2015 Jun Chen, deal with field lines touching the cut plane: use the plane quasi-perp to the field line  
 * Nov  1, 2015 Jun Chen, fuse qcs and qfactor(z=0) in qfactor.f90
@@ -415,10 +427,10 @@ In fastqsl.x, the most memory is occupied by:
 * May  1, 2021 PeiJin Zhang and Jun Chen, supplement RKF45 for tracing; previous classic RK4 is modified to 3/8-rule RK4
 * May  1, 2021 Jun Chen, adapted to gfortran compiler
 * Jun  1, 2021 Jun Chen, forcibly convert the input Bx, By, Bz to float arrays in IDL (Real(4) in Fortran)
-* Jun 10, 2021 Jun Chen, provide a keyword of maxsteps
-* Jun 11, 2021 Jun Chen, add the coordinates of mapping points to '*.sav' data
+* Jun 10, 2021 Jun Chen, add a keyword of maxsteps, suggested by Jiang, Chaowei
+* Jun 11, 2021 Jun Chen, add the coordinates of mapping points to '*.sav' data, suggested by Jiang, Chaowei. 
 * Jul  5, 2021 Jun Chen, switch the order of indexes of Bfield in trace_bline.f90 for a better efficiency
-* Jul  9, 2021 Jun Chen, provide an option of the method of Scott_2017_ApJ_848_117, and q_perp as an output
+* Jul  9, 2021 Jun Chen, add a keyword scottFlag, add q_perp in output
 * Dec 13, 2021 PeiJin Zhang and Jun Chen, adjust tol or step by incline
 * Dec 25, 2021 Jun Chen, remove the reliance of Solar SoftWare
 * Jan 30, 2022 Jun Chen, remove doppler_color_mix, due to the poor recognizability of green-white-yellow
@@ -440,7 +452,7 @@ In fastqsl.x, the most memory is occupied by:
 * Dec  5, 2024 Jun Chen, add a keyword of seed
 * Dec  6, 2024 Jun Chen, redefine rboundary
 * Dec  8, 2024 Jun Chen, add keywords of path_out, loopB_out, loopCurlB_out
-* Dec  9, 2024 Jun Chen, deal with B=NaN/0
+* Dec  9, 2024 Jun Chen, deal with B is NaN/0
 * May  6, 2025 Jun Chen, deal the polar regions in spherical coordinates with two coordinates systems
 * Jan, 6, 2026 Jun Chen,
   * add keywords of targetB_out, targetCurlB_out, qsl, silent, tmp_dir, keep_tmp
@@ -453,4 +465,6 @@ In fastqsl.x, the most memory is occupied by:
   * kill the pop-up window for fastqsl.exe finally in Windows
 * Jan, 12, 2026 Jun Chen, support python
 * Jan, 13, 2026 Jun Chen, allow seed = 1 in fastqsl\.pro (True in fastqsl\.py) for exporting output grid
-* Jan, 17, 2026 Jun Chen, remove the keyword of no_preview, add keywords of preview, save_file, regular_seed
+* Jan, 17, 2026 Jun Chen, remove the keyword of no_preview, add keywords of preview, save_file
+* Jan, 20, 2026 Jun Chen, add a keyword of inclineFlag
+* Jan, 21, 2026 Jun Chen, apply nint to determine nq1, nq2, nq3
