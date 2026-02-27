@@ -270,9 +270,7 @@ endelse
 ; computed by fastqsl.x
 cd, tmp_dir
 ; please specify the path
-spawn, '~/Desktop/QSLS/update/fastqsl.x'
-; spawn, '/data/QSLS/update/fastqsl.x'
-; spawn, '/path/of/fastqsl.x'
+spawn, '/path/of/fastqsl.x'
 cd, cdir
 ; ################################### retrieving results ######################################
 ; make the structure QSL
@@ -742,3 +740,4 @@ if (verbose) then begin
 endif
 
 END
+
