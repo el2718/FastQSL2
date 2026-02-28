@@ -4,7 +4,7 @@ To calculate the squashing factor $Q$, and other quatities related to the magnet
 
 This program can be downloaded with the command
 ```
-git clone https://github.com/FastQSL2
+git clone https://github.com/el2718/FastQSL2
 ```
 
 Please address comments and suggestions to [Dr. Chen, Jun (陈俊)](mailto:chenjun@pmo.ac.cn)
