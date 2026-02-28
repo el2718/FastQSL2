@@ -15,9 +15,9 @@ def bfield_charge4_cartersian(bfile, ixh=45, nz=61, xmax=2.5):
     Bz=np.zeros((nz, nx, nx),'f4')
 
     ri=np.array([[-1.5,0.0,-0.5], \
-                 [-0.5,0.0,-0.5], \
+                 [ 1.5,0.0,-0.5], \
                  [ 0.5,0.0,-0.5], \
-                 [ 1.5,0.0,-0.5]],'f4')
+                 [-0.5,0.0,-0.5]],'f4')
     qi=np.array([1.,-1.,1.,-1.],'f4')
 
     for k in range(nz):
