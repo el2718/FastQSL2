@@ -49,10 +49,10 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 
 ### If use fastqsl\.pro
 * install **IDL** https://www.nv5geospatialsoftware.com/Products/IDL 
-  * setting an environmental variable of `$IDL_PATH` and placing fastqsl\.pro into a private path is suggested. If your IDL is installed at /usr/local/exelis/idl, just append such line to ~/.bashrc:
+  * setting an environmental variable of `$IDL_PATH` and placing fastqsl\.pro into a private path is suggested. If your IDL is installed at /usr/local/exelis/idl, and if you use Bash Shell, just append such line to ~/.bashrc:
      ```bash
     export IDL_DIR=/usr/local/exelis/idl
-    export IDL_PATH="$IDL_IDL/lib:+$HOME/your/private/pro/path"
+    export IDL_PATH="$IDL_DIR/lib:+/your/private/pro/path"
     ``` 
 * or install **GDL** https://gnudatalanguage.github.io/downloads.html
   * setting an environmental variable of `$GDL_PATH` is **necessary for write\_png**, and placing fastqsl\.pro into a private path is suggested. The default `$GDL_DIR` is depends on the distribution:
@@ -63,7 +63,7 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
     **Please append such lines to ~/.bashrc**, e.g. for Ubuntu
     ```bash
     export GDL_DIR=/usr/share/gnudatalanguage
-    export GDL_PATH="$GDL_IDL/lib:+$HOME/your/private/pro/path"
+    export GDL_PATH="$GDL_DIR/lib:+/your/private/pro/path"
     ```
   * If you also need [SSW](http://www.lmsal.com/solarsoft/) for some other analysis, please take a look at https://github.com/rbluosolar/sswgdl
 ### If use fastqsl\.py
@@ -72,7 +72,7 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
   * **scipy** is suggested to intall for reading *.sav from IDL in a demo
   * setting an environmental variable of `$PYTHONPATH` and placing fastqsl\.py into a private path is suggested, just append such line to ~/.bashrc
   ```bash
-  export PYTHONPATH="$HOME/your/private/py/path:$PYTHONPATH"
+  export PYTHONPATH="/your/private/py/path:$PYTHONPATH"
   ```
 -----------------------------
 ## Computation core with Fortran
@@ -175,7 +175,7 @@ The IDL language is case-insensitive, and the name of a keyword parameter can ab
         * will be rewrote as **lon_reg, lat_reg, r_reg** in returned **qsl**
       * **lon_delta, lat_delta, r_delta**: output grid spacing of $\varphi, \vartheta, r$
       * **arc_delta**: output grid spacing (in radian) of the arc on the great circle
-          * works when csflag is invoked, the first curved axis is the arc on the great circle from point0 to point1, and the second axis is point0 -> point2, see appendix A3 of Chen (2026).
+          * works when **csFlag** is invoked, the first curved axis is the arc on the great circle from point0 to point1, and the second axis is point0 -> point2, see appendix A3 of Chen (2026).
     * The classical spherical coordinates are $\{r, \theta, \varphi\}$, **which are not the spherical coordinates for FastQSL!**  The maximum range of $\theta$ is $[0, \pi]$. If you take a magnetic field on a grid with the classical spherical coordinates, two relations should be applied:
       * $\vartheta=\pi/2-\theta$
       * $B_\vartheta=-B_\theta$
@@ -204,12 +204,12 @@ The IDL language is case-insensitive, and the name of a keyword parameter can ab
     * If you know Chinese, and have interest to see more properties of the coordinates, see the part of 例：经纬球坐标系 in 基矢量与张量\.pdf on https://github.com/el2718/thoughts/releases/tag/thoughts
   * **xperiod, yperiod, zperiod**: whether the $x, y, z$ -directions are periodical. For example, if **yperiod** is invoked, the period of y-direction is `ya[ny-1]-ya[0]` (if stretchFlag is invoked), the field line tracing will not stop at ymin, ymax. And the layer of `Bx[*,0,*]` will be copyed to `Bx[*,ny-1,*]` in fastqsl.x (also for `By, Bz`).
     * defaults are 0
-    * can only work with Cartesian coordinates. For spherical coordinates, $\varphi$ -direction will be automatical periodical if `ya[ny-1]-ya[0]` is closed enough to $2 \pi$
+    * can only work with Cartesian coordinates. For spherical coordinates, $\varphi$-direction will be automatical periodical if `ya[ny-1]-ya[0]` is closed enough to $2 \pi$
     * Normally, FastQSL requires at least 3 layers for every direction to compute $\nabla \times \vec{B}$ and $\nabla \dfrac{\vec{B}}{B}$. If you need to analysis a field with the symmetry like 2D, e.g. $\dfrac{\partial \{B_x, B_y, B_z\}}{\partial y}=\{0,0,0\}$, just stack $\vec{B}(x,z)$ for 2 layers by
       ```
       size2d=size(Bx2d,/dim)
-      nx=size2d(0)
-      nz=size2d(1)
+      nx=size2d[0]
+      nz=size2d[1]
       Bx=fltarr(nx, 2, nz)
       By=fltarr(nx, 2, nz)
       Bz=fltarr(nx, 2, nz)
@@ -219,7 +219,7 @@ The IDL language is case-insensitive, and the name of a keyword parameter can ab
       fastqsl, Bx, By, Bz, xreg=[0,nx-1], yreg=[0,0], zreg=[0,nz-1], qsl=qsl
       ```
       * Actually **yperiod** is invoked in the above code, the space period is 1
-      * For spherical coordinates, ny, nz can not be 2, because $\vartheta, r$ -directions can not be periodical in any case
+      * For spherical coordinates, ny, nz can not be 2, because $\vartheta, r$-directions can not be periodical in any case
 ### Output domain
   * **xreg, yreg, zreg**: coordinates of the output region, in arrays of two elements
     * default is to include the whole 2D region at the bottom
@@ -229,9 +229,9 @@ The IDL language is case-insensitive, and the name of a keyword parameter can ab
     * If `(xreg[0] eq xreg[1]) or (yreg[0] eq yreg[1]) or (zreg[0] eq zreg[1])`
       * the output domain is a cross section perpendicular to X or Y or Z axis
       * invoke cFlag
-    * If `zreg=[0, 0]` (stretchFlag=0B) or `zreg=[za(0), za(0)]` (stretchFlag=1B)
+    * If `zreg=[0, 0]` (stretchFlag=0B) or `zreg=[za[0], za[0]]` (stretchFlag=1B)
       * the output domain is set at the bottom plane
-      * invoke bflag
+      * invoke bFlag
     * If csFlag is set, see below
       * invoke cFlag
     * in return, `qsl.xreg[1], qsl.yreg[1], qsl.zreg[1]` may slightly be changed, which is same as the final grid of `qsl.seed`, due to the trim at the final grid
@@ -416,8 +416,8 @@ Possible elements in **qsl** are:
 -----------------------------
 ## Demos
 
-### if use fastqsl\.pro
-```
+### If use fastqsl\.pro
+```idl
 IDL> .r demo_charge4.pro
 ```
 if you use Linux or macOS, and don't want to entry the interactive environment of IDL, you can create demo_charge4.sh with the content:
@@ -435,8 +435,8 @@ then submit it in a terminal by
 ```bash
 nohup ./demo_charge4.sh > verbose_demo.txt 2>&1 &
 ```
-### if use fastqsl\.py
-```bash
+### If use fastqsl\.py
+```python
 python3 demo_charge4.py
 ```
 ----------------------------
