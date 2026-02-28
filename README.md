@@ -443,7 +443,7 @@ python3 demo_charge4.py
 ## Memory occupation 
 In fastqsl.x, the most memory is occupied by: 
 * a 3D magnetic field
-* a 3D CurlB_field (if twistflag or CurlB_out or targetCurlB_out or loopCurlB_out)
+* a 3D CurlB_field (if twist_out or CurlB_out or targetCurlB_out or loopCurlB_out)
 * a dbdc_field (3 times as the occupation of the 3D magnetic field)
 * data on a 2D slice
   * Even if the output domain is 3D, FastQSL processes the computaion layer by layer. Once a layer's computation is finished, the results are appended to associated *.bin files. The program then proceeds to the subsequent layer.
