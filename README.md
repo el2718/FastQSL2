@@ -453,7 +453,7 @@ In fastqsl.x, the most memory is occupied by:
 ## Derived Products
 ### Two Parameters Used for Modeling Solar Wind Speed
 
-[Arge (2003)](https://pubs.aip.org/aip/acp/article-abstract/679/1/190/1010917/Improved-Method-for-Specifying-Solar-Wind-Speed?redirectedFrom=fulltext) found the Solar Wind Speed can be roughly modeled by
+[Arge (2003)](https://pubs.aip.org/aip/acp/article-abstract/679/1/190/1010917/Improved-Method-for-Specifying-Solar-Wind-Speed?redirectedFrom=fulltext) found the solar wind speed at the first Lagrangian point can be roughly modeled by
 $v_\textrm{sw}=265+\dfrac{25}{f_s^{2/7}} \left(5-1.1\times \exp(1-(\theta_b/4)^2)\right)~\mathrm{km/s}, $
 and two parameters in this formula are defined as:
 * Magnetic field expansion factor
