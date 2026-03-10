@@ -231,19 +231,14 @@ else
 			else
 				coef(0,i_diff)=-d1/d0
 				coef(2,i_diff)= d0/d1
-				coef(:,i_diff) = [-1., 0., 1.]
 			endif
 			coef(1,i_diff) = - coef(0,i_diff) - coef(2,i_diff)
 		enddo
 
-		if (delta_diff(1)* 100. < delta_diff(2) .or. delta_diff(2)* 100. < delta_diff(1)) key_nB=.true.
+		cos_tmp = cos2vector(arrow_seed(:,1), arrow_seed(:,2), gh) ! gh=sin_tmp
 
-		cos_tmp = cos2vector(arrow_seed(:,1), arrow_seed(:,2), sin_tmp)
-		if (sin_tmp .le. 0.01) then
-			key_nB=.true.
-		else
-			gh=sin_tmp
-		endif
+		if (delta_diff(1)* 100. < delta_diff(2) .or. &
+		    delta_diff(2)* 100. < delta_diff(1) .or. gh .le. 0.01) key_nB=.true.
 
 	endif
 endif
@@ -1034,7 +1029,7 @@ use compute
 implicit none
 logical:: qflag, verbose, launch_out
 real:: tcalc
-integer:: i, k, nthreads, loop_end, OMP_GET_NUM_PROCS, tnow, tend
+integer:: i, k, nthreads, i2end, OMP_GET_NUM_PROCS, tnow, tend
 integer(8), allocatable:: indexes(:)
 !------------------------------------------------------------
 open(1, file='head.bin', access='stream', status='old')
@@ -1168,11 +1163,11 @@ endif
 
 allocate_path = path_out .or. (q_local_Flag .and. diff_flag)
 if (allocate_path) then
-	loop_end=nq1*nq2-1
-	allocate(lines(0:loop_end))
-	allocate(loop_size(0:loop_end))
-	allocate(index_seed(0:loop_end))
-	allocate(indexes(0:loop_end))
+	i2end=nq1*nq2-1
+	allocate(lines(0:i2end))
+	allocate(loop_size(0:i2end))
+	allocate(index_seed(0:i2end))
+	allocate(indexes(0:i2end))
 	indexes(0)=0
 endif
 !------------------------------------------------------------
@@ -1181,7 +1176,6 @@ if (verbose) then
 	print*, '  _____________________________________'
 	print*, '        schedule         time'
 endif
-! call system_clock(tnow)
 !------------------------------------------------------------
 ! Fortran use unit 0 for error, unit 5 for input (keyboard) and unit 6 for output (screen), these units should not be used
 ! unit 1 is used in compute_layer
@@ -1250,29 +1244,29 @@ do k=0, nq3-1
 	if (path_out) then
 		write(19) index_seed
 
-		do i=1, loop_end
+		do i=1, i2end
 			indexes(i)=indexes(i-1)+loop_size(i-1)
 		enddo
 		write(20) indexes
-		indexes(0)=indexes(loop_end)+loop_size(loop_end)
+		indexes(0)=indexes(i2end)+loop_size(i2end)
 
-		do i=0, loop_end
+		do i=0, i2end
 			write(21) lines(i)%path
 		enddo
 		if (loopB_out) then
-			do i=0, loop_end
+			do i=0, i2end
 				write(22) lines(i)%loopB
 			enddo
 		endif
 		if (loopCurlB_out) then
-			do i=0, loop_end
+			do i=0, i2end
 				write(23) lines(i)%loopCurlB
 			enddo
 		endif
 	endif
 
 	if (allocate_path) then
-		do i=0, loop_end
+		do i=0, i2end
 			deallocate(lines(i)%path)
 			if (loopB_out) deallocate(lines(i)%loopB)
 			if (loopCurlB_out) deallocate(lines(i)%loopCurlB)
