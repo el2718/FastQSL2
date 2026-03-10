@@ -117,7 +117,7 @@ if (stretchFlag) then
 			binary_index_top=axis(s)%binary_index_start
 		endif
 	enddo
-! stop
+
 	if (binary_index_top .ne. 0) then
 		allocate(binary_values(0:binary_index_top))
 		forall(i=0:binary_index_top) binary_values(i)=2**i
@@ -154,7 +154,6 @@ if (periodFlag(1)) Bfield(:,:,pend(1),:)=Bfield(:,:,0,:)
 if (periodFlag(2)) Bfield(:,:,:,pend(2))=Bfield(:,:,:,0)
 !------------------------------------------------------------
 if (curlB_field_Flag) then
-
 	allocate(curlB_field(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
 	if (spherical) then
 		allocate(cos_lat_tmp(0:pend(1)))
@@ -170,7 +169,6 @@ if (curlB_field_Flag) then
 	enddo
 	!$OMP END PARALLEL DO
 	if (spherical) deallocate(cos_lat_tmp)
-	
 endif
 !------------------------------------------------------------
 if (dbdc_field_Flag) then
@@ -211,11 +209,7 @@ south_pole = .false.
 north_pole = .false.
 if (.not. period_lon) return
 
-! print*, period_lon
-! return
-
 lat_pole = 3./8. *Pi
-! lat_pole = 31./64. *Pi
 
 clat_pole= half_pi-lat_pole
 lat_pole2= half_pi+0.01
@@ -327,7 +321,6 @@ do s=0, 1
 	deallocate(lon_tmp, lat_tmp)
 enddo
 
-! print*,south_pole,north_pole
 END subroutine readB
 
 
@@ -478,7 +471,7 @@ function vp_car2spherical(vp_car)
 implicit none
 real:: vp_car2spherical(0:2), vp_car(0:2)
 !------------------------------------------------------------
-vp_car2spherical(2)=norm2s(vp_car(0:2))
+vp_car2spherical(2)=norm2s(vp_car)
 vp_car2spherical(1)=asin(vp_car(2)/vp_car2spherical(2))
 vp_car2spherical(0)=xy2lon(vp_car(0:1))
 end function vp_car2spherical
