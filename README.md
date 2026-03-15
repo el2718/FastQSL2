@@ -68,7 +68,7 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
   * If you also need [SSW](http://www.lmsal.com/solarsoft/) for some other analysis, please take a look at https://github.com/rbluosolar/sswgdl
 ### If use fastqsl\.py
 * install **python** https://www.python.org/
-  * **numpy** and **matplotlib** should be intalled
+  * **numpy** and **matplotlib** should be installed
   * **scipy** is suggested to intall for reading *.sav from IDL in a demo
   * setting an environmental variable of `$PYTHONPATH` and placing fastqsl\.py into a private path is suggested, just append such line to ~/.bashrc
   ```bash
