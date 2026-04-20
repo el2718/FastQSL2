@@ -163,7 +163,7 @@ fastqsl(Bx, By, Bz, xreg=[ixh/2,ixh], yreg=[ixh/4,ixh], zreg=[kend/4, kend/2], \
 delta=0.8, tol=1.0e-3, odir='fastqsl', nthreads=12, preview=True)
 
 # only exporting CurlB
-qsl=fastqsl(Bx, By, Bz, CurlB_out=True, maxsteps=0, seed='original', odir= 'fastqsl', save_file=True)
+qsl=fastqsl(Bx, By, Bz, CurlB_out=True, maxsteps=0, seed='original', odir= 'fastqsl', fname='CurlB', save_file=True)
 
 # Figure 4 of Chen (2026), see fname+'_logq_local.png'
 fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
@@ -183,13 +183,12 @@ with open(bfile, 'rb') as file: (b_lon, b_lat, b_r, lon_rad, lat_rad, radius) = 
 
 # Q at r=1
 fastqsl(b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, spherical=True, \
-factor=4, preview=True, \
+factor=4, preview=True, keep_tmp=True, \
 xreg=[0.,2*np.pi], yreg=[-np.pi/2, np.pi/2])
 
 
 # trace field lines from two points
-qsl=fastqsl(b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, spherical=True, \
-fname='spherical_seed_path', preview=True, \
+qsl=fastqsl(fname='spherical_seed_path', preview=True, \
 seed=[[np.pi*0.85, 0.1, 1.], [np.pi*1.1, -0.2, 1.2]], path_out=True, loopB_out=True)
 
 # transfrom *qsl['path'][1] in (longitude, latitude, radius() to path1_car in (x, y, z), and

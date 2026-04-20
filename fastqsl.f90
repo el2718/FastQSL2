@@ -613,10 +613,10 @@ if (key_trace4 .or. key_diff) then
 	Dmatrix(2,1)=  diff_e(2, 1)*diff_s(2, 2) - diff_e(2, 2)*diff_s(2, 1)
 	Dmatrix(2,2)= -diff_e(2, 1)*diff_s(1, 2) + diff_e(2, 2)*diff_s(1, 1)
 
-	q(i,j)=abs((g_e(1)*g_s(2)*Dmatrix(1,1)**2. +  &
-		        g_e(1)*g_s(1)*Dmatrix(1,2)**2. +  &
-		        g_e(2)*g_s(2)*Dmatrix(2,1)**2. +  &
-		        g_e(2)*g_s(1)*Dmatrix(2,2)**2.) * &
+	q(i,j)=abs((g_e(1)*g_s(2)*Dmatrix(1,1)**2 +  &
+		        g_e(1)*g_s(1)*Dmatrix(1,2)**2 +  &
+		        g_e(2)*g_s(2)*Dmatrix(2,1)**2 +  &
+		        g_e(2)*g_s(1)*Dmatrix(2,2)**2) * &
 		        Bn_s*Bn_e/(bn_square* gh* (4.*delta_diff(1)*delta_diff(2))**2.))
 
 else if (key_rb16) then
@@ -630,7 +630,7 @@ else
 	q(i,j)=NaN
 endif
 
-if (q_local_flag) then	
+if (q_local_flag) then
 
 	if ((local_diff .or. local_trace4) .and. local_s_flag(i,j)) then
 		g_s = r_local_square
@@ -667,10 +667,10 @@ if (q_local_flag) then
 	Dmatrix(2,1)=  diff_e(2, 1)*diff_s(2, 2) - diff_e(2, 2)*diff_s(2, 1)
 	Dmatrix(2,2)= -diff_e(2, 1)*diff_s(1, 2) + diff_e(2, 2)*diff_s(1, 1)
 
-	q_local(i,j)=abs((g_e(1)*g_s(2)*Dmatrix(1,1)**2. +  &
-		              g_e(1)*g_s(1)*Dmatrix(1,2)**2. +  &
-		              g_e(2)*g_s(2)*Dmatrix(2,1)**2. +  &
-		              g_e(2)*g_s(1)*Dmatrix(2,2)**2.) * &
+	q_local(i,j)=abs((g_e(1)*g_s(2)*Dmatrix(1,1)**2 +  &
+		              g_e(1)*g_s(1)*Dmatrix(1,2)**2 +  &
+		              g_e(2)*g_s(2)*Dmatrix(2,1)**2 +  &
+		              g_e(2)*g_s(1)*Dmatrix(2,2)**2) * &
 				      Bn_s*Bn_e/(bn_square* gh* (4.*delta_diff(1)*delta_diff(2))**2.))
 
 	! if q_local(i,j) is NaN
@@ -1037,7 +1037,8 @@ read(1) step, tol, r_local, maxsteps, RK4Flag, inclineFlag, &
         launch_out, B_out, CurlB_out, length_out, twist_out, &
 		rF_out, targetB_out, targetCurlB_out, &
 		path_out, loopB_out, loopCurlB_out, &
-		sflag, bflag, cflag, vflag, nthreads, scottFlag, verbose
+		sflag, bflag, cflag, vflag, nthreads, scottFlag, &
+		verbose, keep_tmp, magnetogram_out
 close(1, status='delete')
 !------------------------------------------------------------
 if (verbose) call system_clock(tnow)
@@ -1097,14 +1098,13 @@ min_incline = 0.05
 
 ! max steps for subroutine correct_foot
 if (RK4flag) then
-	if (step .lt. min_step) min_step=step
-	min_step_foot=min_step*0.25
-	maxsteps_foot=    step/min_step_foot*4
+	if (step .lt. min_step) min_step= step
+	min_step_foot= min_step*0.25
+	maxsteps_foot= step/min_step_foot*4
 else
-	step=min_step
-	min_step_foot=min_step*0.25
-	maxsteps_foot=min_step/min_step_foot*4
-	max_step=minval(pend)/4.
+	min_step_foot= min_step*0.25
+	maxsteps_foot= min_step/min_step_foot*4
+	max_step= minval(pend)/4.
 
 	a21=   1./4.
 	a31=   3./32.;   a32=    9./32.
@@ -1333,7 +1333,7 @@ if (verbose) then
 	call system_clock(tend)
 	tcalc=tend-tnow !ms
 	if (tcalc .ge. 3.6e6) then
-		print '(F7.2, " hours elapsed in fastqsl.x")', tcalc/3.6e6
+		print '(F7.2,   " hours elapsed in fastqsl.x")', tcalc/3.6e6
 	else if (tcalc .ge. 6.e4) then
 		print '(F7.2, " minutes elapsed in fastqsl.x")', tcalc/6.e4
 	else

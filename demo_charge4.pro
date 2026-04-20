@@ -169,7 +169,7 @@ ixh=(nx-1)/2
 kend=n_elements(za)-1
 
 ;images of Figure 4 in Zhang, P., Chen, J.*, Liu, R. and Wang, C., 2022, ApJ, 937, 26
-fastqsl, Bx, By, Bz, fname='method1_z0', /preview
+fastqsl, Bx, By, Bz, fname='method1_z0', /preview,factor=1,qsl=qsl,/b,/seed
 fastqsl, Bx, By, Bz, fname='method2_z0', /scottFlag, /rk4, /preview
 fastqsl, Bvec, xreg=[0,nx-1], yreg=[ixh,ixh], zreg=[0,kend/2], fname='method1_y0', /preview
 fastqsl, Bvec, xreg=[0,nx-1], yreg=[ixh,ixh], zreg=[0,kend/2], fname='method2_y0', /scott, /preview
@@ -185,7 +185,7 @@ fastqsl, Bx, By, Bz, xreg=[ixh/2,ixh], yreg=[ixh/4,ixh], zreg=[kend/4, kend/2], 
 delta=0.8, tol=1.0e-3, odir= 'fastqsl', nthreads=12, /preview
 
 ; only exporting curlB
-fastqsl, Bx, By, Bz, /curlB_out, maxsteps=0, seed='original', odir= 'fastqsl', qsl=qsl, /save_file
+fastqsl, Bx, By, Bz, /curlB_out, maxsteps=0, seed='original', fname='CurlB', odir= 'fastqsl', qsl=qsl, /save_file
 
 ; Figure 4 of Chen (2026), see fname+'_logq_local.png'
 fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, $
@@ -204,20 +204,17 @@ restore, bfile
 
 ; Q at r=1
 fastqsl, b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, /spherical, $
-factor=4, /preview, $
+factor=4, /preview, /keep_tmp, $
 xreg=[0.,2*!Pi], yreg=[-!pi/2, !pi/2]
 
 
 ; trace field lines from two points
-fastqsl, b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, /spherical, $
-fname='spherical_seed_path', /preview, $
+fastqsl, fname='spherical_seed_path', /preview, $
 seed=[[!pi*0.85, 0.1, 1.], [!pi*1.1, -0.2, 1.2]], /path, /loopB, $ 
 qsl=qsl
 
 ; transfrom *qsl.path[1] in (longitude, latitude, radius() to path1_car in (x, y, z), and
 ; transfrom *qsl.loopB[1] in (B_lon, B_lat, B_r) to loopB1_car in (B_x, B_y, B_z)
 path1_car= convert_coordinate(*qsl.path[1], *qsl.loopB[1], mode='lon_lat_r_to_xyz', v1out=loopB1_car)
-
-; wsa_par, b_lon, b_lat, b_r, lon_rad, lat_rad, radius, fs=fs, theta_b=theta_b, /preview, nth=12
 
 end

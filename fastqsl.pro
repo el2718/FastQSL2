@@ -1,67 +1,118 @@
 PRO fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, spherical=spherical,                $
-	        xperiod=xperiod, yperiod=yperiod, zperiod=zperiod,                    $
+            xperiod=xperiod, yperiod=yperiod, zperiod=zperiod,                    $
             xreg=xreg, yreg=yreg, zreg=zreg, csFlag=csFlag,                       $
             factor=factor, delta=delta, lon_delta=lon_delta, lat_delta=lat_delta, $
             r_delta=r_delta, arc_delta=arc_delta, seed=seed,                      $
             RK4Flag=RK4Flag, step=step, tol=tol, maxsteps=maxsteps,               $
-			scottFlag=scottFlag, inclineFlag=inclineFlag, r_local=r_local,        $
-			silent=silent, nthreads=nthreads, B_out=B_out, CurlB_out=CurlB_out,   $
+            scottFlag=scottFlag, inclineFlag=inclineFlag, r_local=r_local,        $
+            silent=silent, nthreads=nthreads, B_out=B_out, CurlB_out=CurlB_out,   $
             length_out=length_out, twist_out=twist_out, rF_out=rF_out,            $
             targetB_out=targetB_out, targetCurlB_out=targetCurlB_out,             $
             path_out=path_out, loopB_out=loopB_out, loopCurlB_out=loopCurlB_out,  $
             odir=odir, fname=fname, save_file=save_file, compress=compress,       $
-			preview=preview, tmp_dir=tmp_dir, keep_tmp=keep_tmp, qsl=qsl
+            preview=preview, tmp_dir=tmp_dir, keep_tmp=keep_tmp, qsl=qsl
 ;------------------------------------------------------------
-; check input
-B3flag = N_PARAMS() eq 3
-sbx=size(Bx)
-if B3flag then begin
-	sby=size(By) & sbz=size(Bz)
-	if sbx[0] ne 3 or sby[0] ne 3 or sbz[0] ne 3 then message, 'Bx, By and Bz must be 3D arrays!'
-	if sbx[1] ne sby[1] or sbx[1] ne sbz[1] or $
-	   sbx[2] ne sby[2] or sbx[2] ne sbz[2] or $
-	   sbx[3] ne sby[3] or sbx[3] ne sbz[3] then message, 'Bx, By and Bz must have the same dimensions!'
-	nx=sbz[1] & ny=sbz[2] & nz=sbz[3]
-endif else begin 
-    ; the dimensions of Bx are (3,nx,ny,nz)
-	if sbx[0] ne 4 or sbx[1] ne 3 then message, 'Something is wrong with the magnetic field'
-	nx=sbx[2] & ny=sbx[3] & nz=sbx[4]
-endelse
+; the temporary directory for the data transmission between fastqsl.x and fastqsl.pro
 
-stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
-spherical= keyword_set(spherical)
+; https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats#canonicalize-separators
+; Actually Windows also accept '/', set as below just for a better readability in Windows
+os_sep=PATH_SEP()
 
-if stretchFlag then begin
-	if (nx ne n_elements(xa)) or (ny ne n_elements(ya)) or (nz ne n_elements(za)) then $
-	message, 'the size of xa, ya and za must be consistant with the dimensions of the magnetic field'
-endif else if spherical then message, 'xa, ya and za should be specified in spherical coordinates'
+cd, current = cdir
+IF STRMID(cdir, STRLEN(cdir)-1) NE os_sep THEN cdir=cdir+os_sep
 
-if nx lt 2 or ny lt 2 or nz lt 2 then begin
-	message, 'The thickness of Bx should not be smaller than 2!'
+if keyword_set(tmp_dir) then begin
+	IF STRMID(tmp_dir, STRLEN(tmp_dir)-1) NE os_sep THEN tmp_dir=tmp_dir+os_sep
+endif else tmp_dir= cdir+'tmpFastQSL'+os_sep
+
+if N_PARAMS() eq 0 then begin
+	BtmpFlag=file_test(tmp_dir+'bfield.bin')
+	if ~BtmpFlag then message, 'please provde a magnetic field'
+endif else BtmpFlag=0
+
+old_tmp_dir=file_test(tmp_dir)
+
+if old_tmp_dir then begin
+	dummy=file_search(tmp_dir, '*.bin', count=nf)
+	if BtmpFlag then begin
+		for i=0, nf-1 do begin
+			if dummy[i] ne tmp_dir+'bfield.bin' and  $
+			   dummy[i] ne tmp_dir+'magnetogram.bin' $
+			   then file_delete, dummy[i]
+		endfor
+	endif else if nf gt 0 then file_delete, dummy
+endif else file_mkdir, tmp_dir
+;------------------------------------------------------------
+; magnetic field
+get_lun, unit
+if BtmpFlag then begin
+	nx=0L & ny=0L & nz=0L & spherical=0L & B3Flag=0L & xperiod=0L & yperiod=0L & zperiod=0L
+	openr, unit, tmp_dir+'bfield.bin'
+	readu, unit, nx, ny, nz, stretchFlag, spherical, B3Flag, xperiod, yperiod, zperiod
+	if stretchFlag then begin
+		xa= fltarr(nx) & ya= fltarr(ny) & za= fltarr(nz)
+		readu, unit, xa, ya, za
+	endif
+	close, unit
 endif else begin
-	if spherical then begin
-		xperiod=0
-		yperiod=0
-		zperiod=0
-	endif else begin
-		if nx eq 2 then xperiod=1
-		if ny eq 2 then yperiod=1
-		if nz eq 2 then zperiod=1
-		xperiod=keyword_set(xperiod)
-		yperiod=keyword_set(yperiod)
-		zperiod=keyword_set(zperiod)
+	; check input
+	B3Flag = N_PARAMS() eq 3
+	sbx=size(Bx)
+	if B3Flag then begin
+		sby=size(By) & sbz=size(Bz)
+		if sbx[0] ne 3 or sby[0] ne 3 or sbz[0] ne 3 then message, 'Bx, By and Bz must be 3D arrays!'
+		if sbx[1] ne sby[1] or sbx[1] ne sbz[1] or $
+		sbx[2] ne sby[2] or sbx[2] ne sbz[2] or $
+		sbx[3] ne sby[3] or sbx[3] ne sbz[3] then message, 'Bx, By and Bz must have the same dimensions!'
+		nx=sbz[1] & ny=sbz[2] & nz=sbz[3]
+	endif else begin 
+		; the dimensions of Bx are (3,nx,ny,nz)
+		if sbx[0] ne 4 or sbx[1] ne 3 then message, 'Something is wrong with the magnetic field'
+		nx=sbx[2] & ny=sbx[3] & nz=sbx[4]
 	endelse
+
+	stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
+	spherical= keyword_set(spherical)
+
+	if stretchFlag then begin
+		if (nx ne n_elements(xa)) or (ny ne n_elements(ya)) or (nz ne n_elements(za)) then $
+		message, 'the size of xa, ya and za must be consistant with the dimensions of the magnetic field'
+	endif else if spherical then message, 'xa, ya and za should be specified in spherical coordinates'
+
+	if nx lt 2 or ny lt 2 or nz lt 2 then begin
+		message, 'The thickness of Bx should not be smaller than 2!'
+	endif else begin
+		if spherical then begin
+			xperiod=0; this could be changed in field.f90
+			yperiod=0
+			zperiod=0
+		endif else begin
+			if nx eq 2 then xperiod=1
+			if ny eq 2 then yperiod=1
+			if nz eq 2 then zperiod=1
+			xperiod=keyword_set(xperiod)
+			yperiod=keyword_set(yperiod)
+			zperiod=keyword_set(zperiod)
+		endelse
+	endelse
+
+	openw,  unit, tmp_dir+'bfield.bin'
+	writeu, unit, long([nx, ny, nz, stretchFlag, spherical, B3Flag, xperiod, yperiod, zperiod])
+	if stretchFlag then writeu, unit, float(xa), float(ya), float(za)
+	writeu, unit, float(Bx)
+	if B3Flag then writeu, unit, float(By), float(Bz)
+	close,  unit
 endelse
 ;------------------------------------------------------------
 ; understand the output grid
 csFlag=keyword_set(csFlag)
 
-;  provide qsl.seed even sflag eq 0
+;  provide qsl.seed even sFlag eq 0
 launch_out = keyword_set(seed) and n_elements(seed) eq 1 and (size(seed,/tname) ne 'STRING') 
 
-sflag= keyword_set(seed) and ~launch_out
+sFlag= keyword_set(seed) and ~launch_out
 
-if sflag then begin
+if sFlag then begin
 	
 	if (size(seed,/tname) eq 'STRING') then begin
 		if seed eq 'original' then begin
@@ -96,9 +147,9 @@ if sflag then begin
 	if out_dim ge 2 then nq2=sz_seed[3] else nq2=1
 	if out_dim eq 3 then nq3=sz_seed[4] else nq3=1
 	
-	bflag=0B
-	vflag=0B
-	cflag=0B
+	bFlag=0B
+	vFlag=0B
+	cFlag=0B
 endif else begin
 
 	; if spherical and xa[nx-1] is very close to 2*!pi but not equivalent, 
@@ -134,12 +185,12 @@ endif else begin
 	endif
 	
 	if stretchFlag then zmin=za[0] else zmin=0.
-	bflag = zreg[0] eq zmin and zreg[1] eq zmin
+	bFlag = zreg[0] eq zmin and zreg[1] eq zmin
 	vFlag = xreg[1] ne xreg[0] and $
 			yreg[1] ne yreg[0] and $
-			zreg[1] ne zreg[0] and ~csflag
-	cFlag = ~(vflag or bflag)
-	if vflag then out_dim=3 else out_dim=2
+			zreg[1] ne zreg[0] and ~csFlag
+	cFlag = ~(vFlag or bFlag)
+	if vFlag then out_dim=3 else out_dim=2
 
 	; grid spacing for output
 	if ~keyword_set(factor) then factor=4
@@ -168,17 +219,12 @@ RK4Flag = keyword_set(RK4Flag)
 if ~keyword_set(step) then step= 1.
 if ~keyword_set(tol)  then tol = 10.0^(-4.)
 if (N_ELEMENTS(maxsteps) eq 0) then $
-if RK4flag then maxsteps=long(4L*(nx+ny+nz)/step) else maxsteps=4L*(nx+ny+nz)
+if RK4Flag then maxsteps=long(4L*(nx+ny+nz)/step) else maxsteps=4L*(nx+ny+nz)
 inclineFlag=keyword_set(inclineFlag)
 if ~keyword_set(r_local) then r_local=0.
 
 B_out           = keyword_set(B_out)
 CurlB_out       = keyword_set(CurlB_out)
-
-; if ~B_out and ~CurlB_out and ~launch_out and maxsteps eq 0 then begin
-; 	print, 'nothing to do, maybe invoke B_out or CurlB_out, or set seed=1, or set non-zero maxsteps'
-; 	return
-; endif
 
 scottFlag       = keyword_set(scottFlag)   and (maxsteps ne 0)
 twist_out       = keyword_set(twist_out)   and (maxsteps ne 0)
@@ -198,60 +244,21 @@ loopCurlB_out   = keyword_set(loopCurlB_out) and path_out
 preview         = keyword_set(preview) ; or n_elements(preview) eq 0
 save_file       = keyword_set(save_file)
 verbose         =~keyword_set(silent)
+keep_tmp        = keyword_set(keep_tmp)
+magnetogram_out = preview and (BtmpFlag or stretchFlag) and ~file_test(tmp_dir+'magnetogram.bin')
 ;------------------------------------------------------------
-; the directory for output
-
-; https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats#canonicalize-separators
-; Actually Windows also accept '/', set as below just for a better readability in Windows
-os_sep=PATH_SEP()
-
-cd, current = cdir
-IF STRMID(cdir, STRLEN(cdir)-1) NE os_sep THEN cdir=cdir+os_sep
-
-; if preview or save_file then begin
-	if keyword_set(odir) then begin
-		IF STRMID(odir, STRLEN(odir)-1) NE os_sep THEN odir=odir+os_sep
-	endif else odir= cdir+'fastqsl'+os_sep
-	if ~file_test(odir) then file_mkdir, odir
-; endif
-;------------------------------------------------------------
-; the temporary directory for the data transmission between fastqsl.x and fastqsl.pro
-if keyword_set(tmp_dir) then begin
-	IF STRMID(tmp_dir, STRLEN(tmp_dir)-1) NE os_sep THEN tmp_dir=tmp_dir+os_sep
-endif else tmp_dir= cdir+'tmpFastQSL'+os_sep
-
-old_tmp_dir=file_test(tmp_dir)
-if old_tmp_dir then begin
-	dummy=file_search(tmp_dir, '*.bin', count=nf)
-	if nf gt 0 then file_delete, dummy
-endif else file_mkdir, tmp_dir
-;------------------------------------------------------------
-;  transmit data to fastqsl.x
-get_lun, unit
-
+;  transmit the configure of computation to fastqsl.x
 openw,  unit, tmp_dir+'head.bin'
 writeu, unit, float([step, tol, r_local]), $
               long([maxsteps, RK4Flag, inclineFlag, $
               launch_out, B_out, CurlB_out, length_out, twist_out, $
 		      rF_out, targetB_out, targetCurlB_out, $
 			  path_out, loopB_out, loopCurlB_out, $
-			  sflag, bflag, cflag, vflag, nthreads, scottFlag, verbose])
+			  sFlag, bFlag, cFlag, vFlag, nthreads, scottFlag, $
+			  verbose, keep_tmp, magnetogram_out])
 close,  unit
 
-openw,  unit, tmp_dir+'bfield.bin'
-writeu, unit, long([nx, ny, nz, B3flag, spherical, $
-preview, xperiod, yperiod, zperiod])
-writeu, unit, float(Bx)
-if B3flag then writeu, unit, float(By), float(Bz)
-close,  unit
-
-if (stretchFlag) then begin
-	openw,  unit, tmp_dir+'axis.bin'
-	writeu, unit, float(xa), float(ya), float(za)
-	close,  unit
-endif
-
-if sflag then begin
+if sFlag then begin
 	openw,  unit, tmp_dir+'dim_seed.bin'
 	writeu, unit, long([nq1,nq2,nq3])
 	close,  unit
@@ -260,17 +267,19 @@ if sflag then begin
 	close,  unit
 endif else begin
 	if spherical then deltas=[arc_delta, lon_delta, lat_delta, r_delta] $
-	                 else deltas=fltarr(4)+delta
+	             else deltas=fltarr(4)+delta
 
 	openw,  unit, tmp_dir+'head_region.bin'
-	writeu, unit, float([xreg, yreg, zreg, deltas]), long([csflag, preset_xreg, preset_yreg])
+	writeu, unit, float([xreg, yreg, zreg, deltas]), long([csFlag, preset_xreg, preset_yreg])
 	close,  unit
 endelse
 ;------------------------------------------------------------
 ; computed by fastqsl.x
 cd, tmp_dir
 ; please specify the path
-spawn, '/path/of/fastqsl.x'
+spawn, '~/Desktop/QSLS/update/fastqsl.x'
+; spawn, '/data/QSLS/update/fastqsl.x'
+; spawn, '/path/of/fastqsl.x'
 cd, cdir
 ; ################################### retrieving results ######################################
 ; make the structure QSL
@@ -311,7 +320,7 @@ qsl_data0=[ $
 ['loopCurlB', array_ptr], $
 ['index_seed', array_long]]
 
-if ~sflag then begin
+if ~sFlag then begin
 	nq1=0L & nq2=0L & nq3=0L & normal_index=0L
 	xreg=[0.,0.] & yreg=[0.,0.] & zreg=[0.,0.]
 	openr,  unit, tmp_dir+'tail_region.bin'
@@ -357,15 +366,15 @@ printf, unit, 'free_lun, unit, /force'
 strs='QSL={ $'
 
 if maxsteps ne 0 then $
-if rk4flag then strs=[strs, 'step:float(step), $'] else strs=[strs, 'tol:float(tol), $'] 
+if rk4Flag then strs=[strs, 'step:float(step), $'] else strs=[strs, 'tol:float(tol), $'] 
 
-if ~sflag then begin
+if ~sFlag then begin
 	if spherical then begin
 		strs=[strs, 'lon_reg:xreg, $','lat_reg:yreg, $','r_reg:zreg, $']
 		if normal_index eq -1 then strs=[strs, 'arc_delta:float(arc_delta), $']
 		if normal_index eq 0 or normal_index eq 2 then strs=[strs, 'lat_delta:float(lat_delta), $']
 		if normal_index eq 1 or normal_index eq 2 then strs=[strs, 'lon_delta:float(lon_delta), $']
-		if (normal_index ne 2) or vflag then strs=[strs, 'r_delta:float(r_delta), $']
+		if (normal_index ne 2) or vFlag then strs=[strs, 'r_delta:float(r_delta), $']
 	endif else strs=[strs, 'xreg:xreg, $','yreg:yreg, $','zreg:zreg, $','delta:float(delta), $']
 endif
 
@@ -386,16 +395,24 @@ cd, cdir
 
 qsl_structure, QSL, nq1, nq2, nq3, xreg, yreg, zreg, $
 delta, arc_delta, lon_delta, lat_delta, r_delta, step, tol, r_local
+;------------------------------------------------------------
+; the directory for output
+if preview or save_file then begin
+	if keyword_set(odir) then begin
+		IF STRMID(odir, STRLEN(odir)-1) NE os_sep THEN odir=odir+os_sep
+	endif else odir= cdir+'fastqsl'+os_sep
+	if ~file_test(odir) then file_mkdir, odir
+endif
 ;------------------------------------------------------------	
 ; the name of .sav file
 if ~keyword_set(fname) then begin
 
-    if sflag then head_str='seed'
-    if bflag then head_str='bottom'
-    if cflag then head_str='cs'
-    if vflag then head_str='volume'
+    if sFlag then head_str='seed'
+    if bFlag then head_str='bottom'
+    if cFlag then head_str='cs'
+    if vFlag then head_str='volume'
 	
-	if ~(spherical or sflag) then begin
+	if ~(spherical or sFlag) then begin
 		decimal3=round(1000.*(delta-floor(delta)))
 		for i = 1, 4 do if (decimal3 mod 10^i) ne 0 then break
 		; string(0.99,'(i0)')='0'; string(round(0.99), '(i0)')='1'
@@ -403,7 +420,7 @@ if ~keyword_set(fname) then begin
 		          else delta_str='_delta'+string(delta, '(f0.'+string(4-i)+')')
 	endif else delta_str=''
 
-	if cFlag and ~csflag then begin
+	if cFlag and ~csFlag then begin
 
 		case normal_index of
 			0: begin
@@ -440,15 +457,15 @@ if verbose then begin
 endif
 
 ; mark the area for calculation or plot seed and their field lines on the magnetogram
-if stretchFlag then begin
+if BtmpFlag or stretchFlag then begin
 	nx_mag=0L & ny_mag=0L & mag_delta=0.0
 	openr, unit, tmp_dir+'magnetogram.bin'
 	readu, unit, nx_mag, ny_mag, mag_delta
 	magnetogram=fltarr(nx_mag, ny_mag)
 	readu, unit, magnetogram
 	close, unit
-endif else begin
-	if B3flag then magnetogram=Bz[*,*,0] else magnetogram=reform(Bx[2,*,*,0])
+endif else  begin
+	if B3Flag then magnetogram=Bz[*,*,0] else magnetogram=reform(Bx[2,*,*,0])
 	nx_mag=nx
 	ny_mag=ny
 endelse
@@ -463,7 +480,7 @@ scale_top= max(abs(magnetogram))/4.0 < 1000.0
 tv, bytscl(temporary(magnetogram), min=-scale_top, max=scale_top, top=253B)
 
 if spherical then two_pi=2*!pi
-if sflag then begin
+if sFlag then begin
 	if (out_dim le 1) then begin
 	
 		x_seed=reform(seed[0,*])
@@ -504,7 +521,7 @@ if sflag then begin
 		          reform(seed[1,nq1-1,*])]
 	endelse
 endif else begin
-	if CSflag then begin
+	if csFlag then begin
 		if spherical then begin
 			x_margin=reform(QSL.axis1(0,*))
 			y_margin=reform(QSL.axis1(1,*))
@@ -519,7 +536,7 @@ endif else begin
 endelse
 
 if (out_dim ge 2) then begin
-	if (spherical and CSflag) then PSym=3 else PSym=0
+	if (spherical and csFlag) then PSym=3 else PSym=0
 
 	if stretchFlag then begin
 
@@ -563,7 +580,7 @@ if verbose then print, odir+fname+'_magnetogram.png'
 ;------------------------------------------------------------
 ; preview q/q_perp, length, twist
 
-; if vflag and the bottom plane is included, 'sign2d.bin' also can be found
+; if vFlag and the bottom plane is included, 'sign2d.bin' also can be found
 plot_bottom=file_test(tmp_dir+'sign2d.bin')
 
 if (maxsteps ne 0 and (out_dim eq 2 or plot_bottom)) then begin
@@ -706,13 +723,13 @@ endif ; preview
 ;------------------------------------------------------------
 free_lun, unit, /force
 
-if ~keyword_set(keep_tmp) then begin
+if ~keep_tmp then begin
 	if old_tmp_dir then begin
 		file_delete, tmp_dir+'qsl_structure.pro'
 		if n_data gt 0 then file_delete, tmp_dir+qsl_data+'.bin'
 		if path_out then file_delete, tmp_dir+'indexes.bin'
-		if ~sflag then file_delete, tmp_dir+'tail_region.bin'
-		if preview and stretchFlag then file_delete, tmp_dir+'magnetogram.bin'
+		if ~sFlag then file_delete, tmp_dir+'tail_region.bin'
+		if preview and (BtmpFlag or stretchFlag) then file_delete, tmp_dir+'magnetogram.bin'
 	endif else file_delete, tmp_dir, /recursive
 endif
 
@@ -740,4 +757,3 @@ if (verbose) then begin
 endif
 
 END
-

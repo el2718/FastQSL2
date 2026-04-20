@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import os, subprocess, pickle
 
-def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False, \
+def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False, \
             xperiod=False, yperiod=False, zperiod=False, \
             xreg=None, yreg=None, zreg=None, csFlag=False, factor=4, delta=None, \
             lon_delta=None, lat_delta=None, r_delta=None, arc_delta=None, seed=None, \
@@ -14,43 +14,81 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
             path_out=False, loopB_out=False, loopCurlB_out=False, \
             odir=None, fname=None, save_file=False, preview=False, tmp_dir=None, keep_tmp=False):
 # ------------------------------------------------------------
-    # check input
-    B3flag= By is not None and Bz is not None
-    
-    Bx_ndim=np.array(Bx).ndim
-    sBx    =np.array(Bx).shape
+    # the temporary directory for the data transmission between fastqsl.x and fastqsl.py 
+    # https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats#canonicalize-separators
+    # Actually Windows also accept '/', set as below just for a better readability in Windows
+    cdir = os.getcwd()+os.sep 
+    if tmp_dir is not None: 
+        if tmp_dir[-1] != os.sep : tmp_dir=tmp_dir+os.sep
+    else: tmp_dir= cdir+'tmpFastQSL'+os.sep
 
-    if B3flag:
-        if Bx_ndim != 3 or np.array(By).ndim != 3 or np.array(Bz).ndim != 3: 
-            raise Exception('Bx, By and Bz must be 3D arrays!')
-        if sBx != np.array(By).shape or sBx != np.array(Bz).shape:
-            raise Exception('Bx, By and Bz must have the same dimensions!')
-    else: 
-        # the dimensions of Bx are (nz,ny,nx,3)
-        if Bx_ndim != 4 or sBx[3] != 3: raise Exception('Something is wrong with the magnetic field')
+    if Bx is None and By is None and Bz is None:
+        BtmpFlag= os.path.exists(tmp_dir+'bfield.bin')
+        if not BtmpFlag:  raise Exception('please provde a magnetic field')
+    else: BtmpFlag=False
 
-    nz, ny, nx = sBx[0:3]
-
-    if nx < 2 or ny < 2 or nz < 2: raise Exception('The thickness of Bx should not be smaller than 2')
-    elif not spherical:
-        if nx == 2: xperiod=True
-        if ny == 2: yperiod=True
-        if nz == 2: zperiod=True
-
-    stretchFlag = (xa is not None) and (ya is not None) and (za is not None)
-    if stretchFlag:
-        if (nx != len(xa) or ny != len(ya) or nz != len(za)):
-            raise Exception('The size of xa, ya and za must be consistant with the dimensions of the magnetic field')
-    elif spherical: raise Exception('xa, ya and za should be specified in spherical coordinates')
+    old_tmp_dir=os.path.exists(tmp_dir)
+    if old_tmp_dir:
+        for file in os.listdir(tmp_dir): 
+            if file[-4:] == '.bin' and file != 'bfield.bin' \
+            and file != 'magnetogram.bin': os.remove(tmp_dir+file)
+    else: os.makedirs(tmp_dir, exist_ok=True)
 # ------------------------------------------------------------
-    #  understand the output grid
+    # check input
+    B3Flag= Bx is not None and By is not None and Bz is not None
+    
+    if BtmpFlag:
+        with open(tmp_dir+'bfield.bin','rb') as file:
+            nx, ny, nz = np.fromfile(file, dtype='i4', count=3)
+            stretchFlag, spherical, B3Flag, xperiod, yperiod, zperiod \
+            = np.array(np.fromfile(file, dtype='i4', count=6), dtype='b1')
+            if stretchFlag:
+                xa=np.fromfile(file, dtype='f4', count=nx)
+                ya=np.fromfile(file, dtype='f4', count=ny)
+                za=np.fromfile(file, dtype='f4', count=nz)
+    else:
+        Bx_ndim=np.array(Bx).ndim
+        sBx    =np.array(Bx).shape
 
-    # provide qsl.seed even sflag is False
+        if B3Flag:
+            if Bx_ndim != 3 or np.array(By).ndim != 3 or np.array(Bz).ndim != 3: 
+                raise Exception('Bx, By and Bz must be 3D arrays!')
+            if sBx != np.array(By).shape or sBx != np.array(Bz).shape:
+                raise Exception('Bx, By and Bz must have the same dimensions!')
+        else: 
+            # the dimensions of Bx are (nz,ny,nx,3)
+            if Bx_ndim != 4 or sBx[3] != 3: raise Exception('Something is wrong with the magnetic field')
+
+        nz, ny, nx = sBx[0:3]
+
+        if nx < 2 or ny < 2 or nz < 2: raise Exception('The thickness of Bx should not be smaller than 2')
+        elif not spherical:
+            if nx == 2: xperiod=True
+            if ny == 2: yperiod=True
+            if nz == 2: zperiod=True
+
+        stretchFlag = (xa is not None) and (ya is not None) and (za is not None)
+        if stretchFlag:
+            if (nx != len(xa) or ny != len(ya) or nz != len(za)):
+                raise Exception('The size of xa, ya and za must be consistant with the dimensions of the magnetic field')
+        elif spherical: raise Exception('xa, ya and za should be specified in spherical coordinates')
+
+        with open(tmp_dir+'bfield.bin','wb') as file:
+            file.write(np.array([nx, ny, nz, stretchFlag, spherical, B3Flag, xperiod, yperiod, zperiod], dtype='i4'))
+            if stretchFlag:
+                file.write(np.array(xa, dtype='f4'))
+                file.write(np.array(ya, dtype='f4'))
+                file.write(np.array(za, dtype='f4'))
+            file.write(np.array(Bx, dtype='f4', order='C'))
+            if B3Flag: file.write(np.array([By,Bz], dtype='f4', order='C'))
+# ------------------------------------------------------------
+    # understand the output grid
+    # provide qsl.seed even sFlag is False
     launch_out = seed is True
 
-    sflag = seed is not None and not launch_out
+    sFlag = seed is not None and not launch_out
 
-    if sflag:
+    if sFlag:
         if isinstance(seed, str):
             if seed == 'original':
                 seed = np.zeros((nz, ny, nx, 3), dtype='f4')
@@ -80,7 +118,7 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
         nq2=seed.shape[out_dim-2] if out_dim >= 2 else 1
         nq3=seed.shape[out_dim-3] if out_dim == 3 else 1
 
-        bflag, cflag, vflag = False, False, False
+        bFlag, cFlag, vFlag = False, False, False
     else :
         # if spherical and xa(nx-1) is very close to 2*!pi but not equivalent, 
         # xa(nx-1) will be reset to 2*!pi.
@@ -111,10 +149,10 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
             # if p0 \cdot p1 eq 1 or -1, there are many great circles can pass p0 and p1
             if np.dot(p0,p1) > 0.999: raise Exception('The great circle can not be clearly defined')
         zmin = za[0] if stretchFlag else 0.0
-        bflag = zreg[0] == zmin and zreg[1] == zmin
-        vflag = (xreg[1] != xreg[0]) and (yreg[1] != yreg[0]) and (zreg[1] != zreg[0]) and (not csFlag)
-        cflag = not (vflag or bflag)
-        out_dim = 3 if vflag else 2
+        bFlag = zreg[0] == zmin and zreg[1] == zmin
+        vFlag = (xreg[1] != xreg[0]) and (yreg[1] != yreg[0]) and (zreg[1] != zreg[0]) and (not csFlag)
+        cFlag = not (vFlag or bFlag)
+        out_dim = 3 if vFlag else 2
 
 	    # grid spacing for output
         if stretchFlag:
@@ -130,7 +168,7 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
                 if     arc_delta is None: arc_delta = min([lon_delta, lat_delta])
             elif           delta is None:     delta = (xa[nx-1]-xa[0])/((nx-1.0)*factor)
         elif               delta is None:     delta = 1.0/factor
-    # end if sflag
+    # end if sFlag
 # ------------------------------------------------------------
     if maxsteps is None: maxsteps=int(4*(nx+ny+nz)/step) if RK4Flag else 4*(nx+ny+nz)
 
@@ -150,27 +188,15 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
     loopCurlB_out   = loopCurlB_out and path_out
 
     verbose         = not silent
+    magnetogram_out = preview and (BtmpFlag or stretchFlag) and not os.path.exists(tmp_dir+'magnetogram.bin')
 # ------------------------------------------------------------
     # the directory for output
-    # https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats#canonicalize-separators
-    # Actually Windows also accept '/', set as below just for a better readability in Windows
-    cdir = os.getcwd()+os.sep 
     if preview or save_file:
         if odir is not None:
             if odir[-1] != os.sep: odir=odir+os.sep
         else: odir= cdir+'fastqsl'+os.sep
         os.makedirs(odir, exist_ok=True)
 # ------------------------------------------------------------   
-    # the temporary directory for the data transmission between fastqsl.x and fastqsl.py 
-    if tmp_dir is not None: 
-        if tmp_dir[-1] != os.sep : tmp_dir=tmp_dir+os.sep
-    else: tmp_dir= cdir+'tmpFastQSL'+os.sep
-    old_tmp_dir=os.path.exists(tmp_dir)
-    if old_tmp_dir:
-        for file in os.listdir(tmp_dir): 
-            if file[-4:] == '.bin': os.remove(tmp_dir+file)
-    else: os.makedirs(tmp_dir, exist_ok=True)
-# ------------------------------------------------------------
     # transmit data to fastqsl.x
     with open(tmp_dir+'head.bin','wb') as file:
         file.write(np.array([step, tol, r_local], dtype='f4'))
@@ -178,19 +204,10 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
         launch_out, B_out, CurlB_out, length_out, twist_out, \
 		rF_out, targetB_out, targetCurlB_out, \
 		path_out, loopB_out, loopCurlB_out, \
-		sflag, bflag, cflag, vflag, nthreads, scottFlag, verbose], dtype='i4'))
+		sFlag, bFlag, cFlag, vFlag, nthreads, scottFlag, \
+        verbose, keep_tmp, magnetogram_out], dtype='i4'))
 
-    with open(tmp_dir+'bfield.bin','wb') as file:
-        file.write(np.array([nx, ny, nz, B3flag, spherical, preview, xperiod, yperiod, zperiod], dtype='i4'))
-        file.write(np.array(Bx, dtype='f4', order='C'))
-        if B3flag: file.write(np.array([By,Bz], dtype='f4', order='C'))
-
-    if stretchFlag:
-        with open(tmp_dir+'axis.bin','wb') as file:
-            file.write(np.array(xa, dtype='f4'))
-            file.write(np.array(ya, dtype='f4'))
-            file.write(np.array(za, dtype='f4'))
-    if sflag:
+    if sFlag:
         with open(tmp_dir+'dim_seed.bin','wb') as file: file.write(np.array([nq1,nq2,nq3], dtype='i4'))
         with open(tmp_dir+'seed.bin','wb') as file: file.write(np.array(seed, dtype='f4', order='C'))
     else:
@@ -204,7 +221,8 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
 
     # please specify the path
     # the following r can avoid the potential problem of '\n' from os.sep ='\' in Windows
-    subprocess.run(r'/path/of/fastqsl.x', shell=True)
+    # subprocess.run(r'/path/of/fastqsl.x', shell=True)
+    subprocess.run(r'~/Desktop/QSLS/update/fastqsl.x', shell=True)
     os.chdir(cdir)
 # ################################### retrieving results ######################################
 # make the dictionary qsl
@@ -215,7 +233,7 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
         else: qsl.update({'tol':np.array(tol, dtype="f4")})
 
     # the output grid   
-    if not sflag:
+    if not sFlag:
         with open(tmp_dir+'tail_region.bin','rb') as file:
             nq1, nq2, nq3, normal_index = np.fromfile(file, dtype="i4", count=4) 
             dummy = np.fromfile(file, dtype="f4")
@@ -228,9 +246,9 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
             if normal_index == -1: qsl.update({'arc_delta':np.array(arc_delta,'f4')})
             if normal_index in [0, 2]: qsl.update({'lat_delta':np.array(lat_delta,'f4')})
             if normal_index in [1, 2]: qsl.update({'lon_delta':np.array(lon_delta,'f4')})
-            if normal_index != 2 or vflag: qsl.update({'r_delta':np.array(r_delta,'f4')})
+            if normal_index != 2 or vFlag: qsl.update({'r_delta':np.array(r_delta,'f4')})
         else: qsl.update({'xreg':xreg, 'yreg':yreg, 'zreg':zreg, 'delta':np.array(delta,'f4')})
-    # end if not sflag
+    # end if not sFlag
 
     if os.path.exists(tmp_dir+'q_local.bin'): qsl.update({'r_local':np.array(r_local, dtype="f4")})
 
@@ -290,12 +308,12 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
 # the name of .pkl file
     if fname is None and (preview or save_file):
 
-        if sflag: head_str='seed'
-        if bflag: head_str='bottom'
-        if cflag: head_str='cs'
-        if vflag: head_str='volume'
+        if sFlag: head_str='seed'
+        if bFlag: head_str='bottom'
+        if cFlag: head_str='cs'
+        if vFlag: head_str='volume'
 
-        if not (spherical or sflag):
+        if not (spherical or sFlag):
             decimal3=round(1000.*(delta-np.floor(delta)))
             for i in range(1,5): 
                 if (decimal3 % 10**i) != 0: break
@@ -303,7 +321,7 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
             else: delta_str='_delta' + ('{:0.'+f'{4-i:d}'+'f}').format(float(delta))
         else: delta_str=''
 
-        if cflag and not csFlag:
+        if cFlag and not csFlag:
             if   normal_index== 0:
                 cut_coordinate=xreg[0]
                 cut_str0='_lon' if spherical else '_x'
@@ -329,22 +347,22 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
     if preview:
         if verbose: print('\n'+'These images are produced:')
 
-        if stretchFlag:
+        if BtmpFlag or stretchFlag:
             with open(tmp_dir+'magnetogram.bin','rb') as file:
                 nx_mag, ny_mag = np.fromfile(file, dtype='i4', count=2)
                 mag_delta  = np.fromfile(file, dtype='f4', count=1)[0]
                 magnetogram= np.fromfile(file, dtype='f4').reshape(ny_mag, nx_mag)
-                
-            extent=[xa[0], xa[0]+mag_delta*nx_mag, ya[0], ya[0]+mag_delta*ny_mag]
-        else: 
-            magnetogram=Bz[0,:,:].copy() if B3flag else Bx[0,:,:,2].copy()
+        else:
+            magnetogram=Bz[0,:,:].copy() if B3Flag else Bx[0,:,:,2].copy()
             nx_mag, ny_mag= nx, ny
-            extent=[0, nx_mag-1, 0, ny_mag-1]  
+
+        if stretchFlag: extent=[xa[0], xa[0]+mag_delta*nx_mag, ya[0], ya[0]+mag_delta*ny_mag]
+        else: extent=[0, nx_mag-1, 0, ny_mag-1]  
 
         # mark the area for calculation or plot seed and their field lines on the magnetogram
         plt.figure(figsize=(nx_mag*0.02, ny_mag*0.02), dpi=100)
         if spherical: two_pi=2*np.pi
-        if sflag:
+        if sFlag:
             if out_dim <=1:
 
                 if path_out:
@@ -379,7 +397,7 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
             else:
                 x_margin=[xreg[0],xreg[1],xreg[1],xreg[0],xreg[0]]
                 y_margin=[yreg[0],yreg[0],yreg[1],yreg[1],yreg[0]]
-        # end if sflag
+        # end if sFlag
 
         if out_dim >=2: 
             style='-r' if len(x_margin) <=5 else '.r'
@@ -406,7 +424,7 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
         # ------------------------------------------------------------
         # preview q/q_perp, length, twist
 
-        # if vflag and the bottom plane is included, 'sign2d.bin' also can be found
+        # if vFlag and the bottom plane is included, 'sign2d.bin' also can be found
         plot_bottom=os.path.exists(tmp_dir+'sign2d.bin')
 
         if maxsteps != 0 and (out_dim ==2 or plot_bottom):
@@ -537,8 +555,8 @@ def fastqsl(Bx, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False,
     if not keep_tmp:
         for str3 in qsl_data: os.remove(tmp_dir+str3[0]+'.bin')
         if path_out: os.remove(tmp_dir+'indexes.bin')
-        if not sflag: os.remove(tmp_dir+'tail_region.bin')
-        if preview and stretchFlag: os.remove(tmp_dir+'magnetogram.bin')
+        if not sFlag: os.remove(tmp_dir+'tail_region.bin')
+        if preview and (BtmpFlag or stretchFlag): os.remove(tmp_dir+'magnetogram.bin')
         if not old_tmp_dir: os.rmdir(tmp_dir)
 
     if verbose:

@@ -1,7 +1,8 @@
 module fields
 implicit none
 logical:: curlB_field_Flag, dbdc_field_Flag, stretchFlag, &
-spherical, periodFlag(0:2), period_lon, south_pole, north_pole
+spherical, periodFlag(0:2), period_lon, south_pole, north_pole, &
+keep_tmp, magnetogram_out ! thest two are inputed in fastqsl.f90
 integer:: binary_index_top, pend(0:2), dend(0:2)
 integer, allocatable:: binary_values(:)
 real:: pi, half_pi, two_pi, NaN, lat_pole, lat_pole2, pmin(0:2), pmax(0:2), period(0:2)
@@ -36,7 +37,7 @@ contains
 
 subroutine readB
 implicit none
-logical:: preview, southFlag, B3flag
+logical:: southFlag, B3flag
 integer:: i, j, k, s, nx, ny, nz, nx_mag, ny_mag, aend1, round(0:1,0:2), j1, j2
 real:: weight(0:1,0:1,0:1), mag_delta, clat_pole, dlast, dperiod, &
 vp_yin(0:2), vp(0:2), bp_yin(0:2), bp(0:2), e_yin(0:2, 0:1), e_yang(0:2, 0:1), fj2
@@ -46,31 +47,18 @@ type(pole_field), pointer:: pole
 !------------------------------------------------------------
 ! read Bx, By, Bz
 open(1, file='bfield.bin', access='stream', status='old')
-read(1) nx, ny, nz, B3flag, spherical, preview, periodFlag
+read(1) nx, ny, nz, stretchFlag, spherical, B3flag, periodFlag
 
 pend = [nx, ny, nz] - 1
 dend = pend - 1
-
-if (B3flag) then
-	allocate(field_tmp(0:pend(0), 0:pend(1), 0:pend(2), 0:2))
-else
-	allocate(field_tmp(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
-endif
-read(1) field_tmp
-close(1, status='delete')
 !------------------------------------------------------------
-inquire(file='axis.bin', exist=stretchFlag)
-
 if (stretchFlag) then
 
 	binary_index_top=0
-
-	open(1, file='axis.bin', access='stream', status='old')
 	do s=0, 2
 		allocate(axis(s)%pa(0:pend(s)))
 		read(1) axis(s)%pa
 	enddo
-	close(1, status='delete')
 
 	if (spherical) then ! period check
 		dperiod= (axis(0)%pa(pend(0))-axis(0)%pa(0))-two_pi
@@ -131,10 +119,21 @@ else
 	pmax= pend
 	round_weight => round_weight_uniform
 endif
-
 period_lon = periodFlag(0) .and. spherical
 
 if (.not. spherical) forall(s=0:2, periodFlag(s)) period(s)=pmax(i)-pmin(i)
+!------------------------------------------------------------
+if (B3flag) then
+	allocate(field_tmp(0:nx-1, 0:ny-1, 0:nz-1, 0:2))
+else
+	allocate(field_tmp(0:2, 0:nx-1, 0:ny-1, 0:nz-1))
+endif
+read(1) field_tmp
+if (keep_tmp) then
+	close(1, status='keep')
+else
+	close(1, status='delete')
+endif
 !------------------------------------------------------------
 allocate(Bfield(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
 
@@ -142,11 +141,11 @@ if (B3flag) then
 ! switch the indexes order for a better efficiency in subroutine interpolate
 !$OMP PARALLEL DO PRIVATE(s), schedule(DYNAMIC)
 	do s=0, 2
-		Bfield(s,0:nx-1,0:ny-1,0:nz-1)=field_tmp(:,:,:,s)
+		Bfield(s, 0:nx-1, 0:ny-1, 0:nz-1)=field_tmp(:,:,:,s)
 	enddo
 !$OMP END PARALLEL DO
 else
-	Bfield(:,0:nx-1,0:ny-1,0:nz-1)=field_tmp
+	Bfield(:, 0:nx-1, 0:ny-1, 0:nz-1)=field_tmp
 endif
 deallocate(field_tmp)
 if (periodFlag(0)) Bfield(:,pend(0),:,:)=Bfield(:,0,:,:)
@@ -185,19 +184,28 @@ if (dbdc_field_Flag) then
 endif
 !------------------------------------------------------------
 ! interpolate magnetogram on uniformed grids from the stretched input
-if (stretchFlag .and. preview) then
-	mag_delta=minval([axis(0)%da(0:dend(0)-1), axis(1)%da])
+if (magnetogram_out) then
 
-	nx_mag=nint((pmax(0)-pmin(0))/mag_delta)+1
-	ny_mag=nint((pmax(1)-pmin(1))/mag_delta)+1
-	
-	allocate(magnetogram(0:nx_mag-1, 0:ny_mag-1))
-	do j=0, ny_mag-1
-	do i=0, nx_mag-1
-		call round_weight(pmin + mag_delta * [i, j, 0], round, weight)
-		magnetogram(i, j)=sum(weight(:, :, 0)*Bfield(2, round(:,0), round(:,1), 0))
-	enddo
-	enddo
+	if (stretchFlag) then 
+		mag_delta=minval([axis(0)%da(0:dend(0)-1), axis(1)%da])
+
+		nx_mag=nint((pmax(0)-pmin(0))/mag_delta)+1
+		ny_mag=nint((pmax(1)-pmin(1))/mag_delta)+1
+		
+		allocate(magnetogram(0:nx_mag-1, 0:ny_mag-1))
+		do j=0, ny_mag-1
+		do i=0, nx_mag-1
+			call round_weight(pmin + mag_delta * [i, j, 0], round, weight)
+			magnetogram(i, j)=sum(weight(:, :, 0)*Bfield(2, round(:,0), round(:,1), 0))
+		enddo
+		enddo
+	else
+		nx_mag=nx
+		ny_mag=ny
+		mag_delta=1.
+		allocate(magnetogram(0:nx_mag-1, 0:ny_mag-1))
+		magnetogram=Bfield(2, 0:nx_mag-1, 0:ny_mag-1, 0)
+	endif
 
 	open(1, file='magnetogram.bin', access='stream', status='replace')
 	write(1) nx_mag, ny_mag, mag_delta, magnetogram
@@ -288,7 +296,6 @@ do s=0, 1
 		enddo
 	enddo
 	enddo
-
 
 	if (curlB_field_Flag) then
 		allocate(pole%curlB_field(0:2, -pole%aend:pole%aend, -pole%aend:pole%aend, 0:pend(2)))
