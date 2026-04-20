@@ -34,9 +34,7 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
             and file != 'magnetogram.bin': os.remove(tmp_dir+file)
     else: os.makedirs(tmp_dir, exist_ok=True)
 # ------------------------------------------------------------
-    # check input
-    B3Flag= Bx is not None and By is not None and Bz is not None
-    
+    # magnetic field
     if BtmpFlag:
         with open(tmp_dir+'bfield.bin','rb') as file:
             nx, ny, nz = np.fromfile(file, dtype='i4', count=3)
@@ -46,7 +44,9 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
                 xa=np.fromfile(file, dtype='f4', count=nx)
                 ya=np.fromfile(file, dtype='f4', count=ny)
                 za=np.fromfile(file, dtype='f4', count=nz)
-    else:
+    else:   
+        # check input
+        B3Flag= Bx is not None and By is not None and Bz is not None
         Bx_ndim=np.array(Bx).ndim
         sBx    =np.array(Bx).shape
 
