@@ -87,7 +87,7 @@ arXiv: https://arxiv.org/pdf/2604.16195
 * Other compilers listed at https://fortran-lang.org/compilers/ should also work for FastQSL, while I have not tested them, testing and sharing your experiences to me are welcome
 * For checking whether your compiler is successfully installed, you can try https://github.com/el2718/sudoku
 ### Compilation
-fields.f90 and trace_bline.f90 are included in fastqsl.f90. All *.mod produced from compilation can be deleted
+All *.mod produced from compilation can be deleted
 
 * For Linux and macOS (either by ifx/ifort or gfortran):
     ```bash
