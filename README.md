@@ -271,18 +271,18 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
     * if set `seed = 1` at the input of fastqsl\.pro ( `, /seed` also makes seed eq 1), or set `seed = True` at the input of fastqsl\.py
       * not invoke sflag. The output grid is still described by **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta**, and is returned as the array **seed** in **qsl**. For example, if **spherical** is invoked, and the output domain is set on the surface $\vartheta=\vartheta_0$ (i.e. `qsl.lat_reg[0] eq qsl.lat_reg[1]`), then `qsl.seed[0,i,j]` is same as `qsl.lon_reg[0] + i*qsl.lon_delta`, `qsl.seed[1,i,j]` is same as `qsl.lat_reg[0]`, and `qsl.seed[2,i,j]` is same as `qsl.r_reg[0] + j*qsl.r_delta`
 ### Tracing details
-A magnetic field line is integrated using $\dfrac{\mathrm{d} \vec{r}(s)}{\mathrm{d} s}=\dfrac{\vec{B}}{B}$
+A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm{d} s}=\dfrac{\vec{B}}{B}$
   * **RK4Flag**:     to trace field line by RK4
     * default is 0 (use RKF45)
-  * **step**:        step size of tracing field lines ($\mathrm{d} s$) for RK4
+  * **step**:        step size of tracing field lines ($\textrm{d} s$) for RK4
     * default is 1.0
   * **tol**:         tolerance of a step in RKF45
     * default is 10.^(-4)
     * the unit of **step** and **tol** is the original grid spacing. This unit can vary from cell to cell within a stretched grid in a self-adaptive fashion with Equation (16-18) of [Zhang (2022)]((https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61))
-  * **scottFlag**:  to integrate $\dfrac{\mathrm{d} \{\vec{U}(s),\vec{V}(s)\}}{\mathrm{d} s}=\{\vec{U}(s),\vec{V}(s)\} \cdot\nabla\dfrac{\vec{B}}{B}$ along with the field line tracing, and to give $Q$ and $Q_\perp$ by Equation (22) of [Scott_2017_ApJ_848_117](https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64)
+  * **scottFlag**:  to integrate $\dfrac{\textrm{d} \{\vec{U}(s),\vec{V}(s)\}}{\textrm{d} s}=\{\vec{U}(s),\vec{V}(s)\} \cdot\nabla\dfrac{\vec{B}}{B}$ along with the field line tracing, and to give $Q$ and $Q_\perp$ by Equation (22) of [Scott_2017_ApJ_848_117](https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64)
     * default is 0 (Method 3 of [Pariat_2012_A&A_541_A78](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), some problematic sites are filled with [Scott (2017)]((https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64)))
   * **inclineFlag**: to apply Equation (20) or (21) in [Zhang (2022)]((https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61)):
-  $ step|_{S_0} = \textrm{max}([step_{\perp} \times |B_{n,0} / B|, step_\mathrm{min}])$
+  $ step|_{S_0} = \textrm{max}([step_{\perp} \times |B_{n,0} / B|, step_\textrm{min}])$
   $\textrm{tol}|_{S_0} = \textrm{tol}_{\perp} \times | B_{n,0} / B |^{1.5}$
 for every field line launched from $S_0$, then **step** and **tol** at the input are actually $\textrm{step}_\perp$ and $\textrm{tol}_\perp$
     * invoking it can provide a better quality of **q** calculated with Method 3 of [Pariat (2012)](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), but then FastQSL will take slightly longer time for computation and make slightly more points on **path** (so setting a slightly larger **maxsteps** may be necessary)
@@ -358,8 +358,8 @@ Possible elements in **qsl** are:
   * **seed**:    the coordinates of the output grid for the launch of tracing; its units are the same as **xa, ya, za** if stretchFlag
   * **axis1**:  the coordinates $x, y$ ($\varphi, \vartheta$, if **spherical** is invoked) from point0 to point1
     * only appears when **csFlag** is invoked, then **axis1** is same as `qsl.seed[0:1, *, 0]`
-  * **length**: $L= \int_\mathrm{path} \mathrm{d}l$, length of field lines launched from **seed**
-  * **twist**: $T_w = \int_\mathrm{path} \dfrac{(\nabla \times \vec{B}) \cdot \vec{B}}{4\pi B^2} \mathrm{d}l$, can be used to measure how many turns two infinitesimally close field lines wind about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148)
+  * **length**: $L= \int_\textrm{path} \textrm{d}l$, length of field lines launched from **seed**
+  * **twist**: $T_w = \int_\textrm{path} \dfrac{(\nabla \times \vec{B}) \cdot \vec{B}}{4\pi B^2} \textrm{d}l$, can be used to measure how many turns two infinitesimally close field lines wind about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148)
   * **q, q_perp**: squashing factor $Q$ and $Q_\perp$, see  [Titov_2002_JGRA_107_1164](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2001JA000278) and [Titov_2007_ApJ_660_863](https://iopscience.iop.org/article/10.1086/512671)
     * **q_perp** is only available when **scottFlag** is invoked, [Pariat (2012)]((https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html)) is not precise enough for $Q_\perp$
   * **q_local**: see Chen (2026), for locating where magnetic field lines bifurcate, i.e.  (quasi-) separators 
@@ -369,14 +369,14 @@ Possible elements in **qsl** are:
     IDL> fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
     ```
     then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line
-  * **sign2d**:   $\mathrm{sign}(B_z)|_{z=z_\mathrm{min}}$
+  * **sign2d**:   $\textrm{sign}(B_z)|_{z=z_\textrm{min}}$
     * only exists when the bottom plane is included
     * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.) * qsl.sign2d`
   * **rFs, rFe**:  coordinates of terminal foot points (r:remote, F:foot, s:start, e:end). A segment of a field line has two terminal points, at the start (or end) point, $\vec{B}$ (or $-\vec{B}$) points to the whole calculated path of the field line.  
     * If calculated at the bottom
       * if `qsl.sign2d[i, j]` is 1, then `qsl.rFs[*, i, j]` is identical to `qsl.seed[*, i, j]`, i.e.  the foot for launch; and `rFe[*, i, j]` is the target foot.
       * if `qsl.sign2d[i, j]` is -1, then `qsl.rFe[*, i, j]` is identical to `qsl.seed[*, i, j]`, and `rFs[*, i, j]` is the target foot.
-      * If `qsl.sign2d[i, j]` is 0 and both `qsl.rFs[*, i, j]` and `qsl.rFe[*, i, j]` are not `qsl.seed[*, i, j]`, it must be on a bald patch ([Seehafer (1986)](https://link.springer.com/article/10.1007/BF00172044); [Titov (1993)](https://ui.adsabs.harvard.edu/abs/1993A%26A...276..564T/abstract)) where $\vec{B}\cdot\nabla B_z|_\mathrm{PIL} > 0$
+      * If `qsl.sign2d[i, j]` is 0 and both `qsl.rFs[*, i, j]` and `qsl.rFe[*, i, j]` are not `qsl.seed[*, i, j]`, it must be on a bald patch ([Seehafer (1986)](https://link.springer.com/article/10.1007/BF00172044); [Titov (1993)](https://ui.adsabs.harvard.edu/abs/1993A%26A...276..564T/abstract)) where $\vec{B}\cdot\nabla B_z|_\textrm{PIL} > 0$
   * **rboundary**:  nature of the terminal points
     * rboundary is given by 10*rbs+rbe in fastqsl.x, therefore:
       ```
@@ -404,8 +404,8 @@ Possible elements in **qsl** are:
     * boundary_mark_colors.pdf is the color table for *_rbs.png, *_rbe.png, and *_rb_target.png
   * **Bs, Be**: $\vec{B}$ on **rFs, rFe**
       * [Priest and Demoulin (1995)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/95JA02740) use $N$ at the photosphere to locate QSLs; in [Titov (2007)](https://iopscience.iop.org/article/10.1086/512671),
-      $Q = N^2 / \Delta$, and $\Delta =|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$
-      If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\mathrm{n,launch}/B_\mathrm{n,target}|$ from **rboundary, Bs, Be**
+      $Q = N^2 / \Delta$, and $\Delta =|B_\textrm{n,launch}/B_\textrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$
+      If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\textrm{n,launch}/B_\textrm{n,target}|$ from **rboundary, Bs, Be**
   * **CurlBs, CurlBe**: $\nabla \times \vec{B}$  on **rFs, rFe**
   * **path**: path of field lines launched from **seed**
     * For example, if the output domain is 2D,
@@ -462,7 +462,7 @@ In fastqsl.x, the most memory is occupied by:
 ### Two Parameters Used for Modeling Solar Wind Speed
 
 [Arge (2003)](https://pubs.aip.org/aip/acp/article-abstract/679/1/190/1010917/Improved-Method-for-Specifying-Solar-Wind-Speed?redirectedFrom=fulltext) found that the solar wind speed at the first Lagrangian point from December 1994 to the end of 1995 can be roughly modeled by
-$v_\textrm{sw}=265+\dfrac{25}{f_s^{2/7}} \left(5-1.1\times \exp(1-(\theta_b/4)^2)\right)~\mathrm{km/s}, $
+$v_\textrm{sw}=265+\dfrac{25}{f_s^{2/7}} \left(5-1.1\times \exp(1-(\theta_b/4)^2)\right)~\textrm{km/s}, $
 and two parameters in this formula are defined as:
 * Magnetic field expansion factor
 $f_\textrm{s}(\varphi, \vartheta, r)=
@@ -471,12 +471,12 @@ $f_\textrm{s}(\varphi, \vartheta, r)=
 {B_r(\varphi_1, \vartheta_1, R_1)}, $
 where $(\varphi_0, \vartheta_0, R_0)$ are the target coordinates traced from $(\varphi, \vartheta, r)$ to the inner boundary of $r=R_0$, and $(\varphi_1, \vartheta_1, R_1)$ are the target coordinates traced from $(\varphi, \vartheta, r)$ to the outer boundary of $r=R_1$.
 * $\theta_b(\varphi, \vartheta, r)$, the minimum angular distance of an open-field footpoint from a coronal hole boundary.
-* For a closed field line, its **rboundary** is 11, its $f_\mathrm{s}$ is set to 1000., its $\theta_b$ is set to 0.; these default values can be adjusted in par2solarwind\.pro (par2solarwind\.py)
+* For a closed field line, its **rboundary** is 11, its $f_\textrm{s}$ is set to 1000., its $\theta_b$ is set to 0.; these default values can be adjusted in par2solarwind\.pro (par2solarwind\.py)
 
 
 If you need this derived code, please visit https://github.com/el2718/par2solarwind
 ### Slip-Squashing Factors
-Slip-squashing factors $Q_\mathrm{sf}$ and $Q_\mathrm{sb}$ ([Titov_2009_ApJ_693_1029](https://iopscience.iop.org/article/10.1088/0004-637X/693/1/1029)) are defined by two field line mappings and two boundary flow mappings between two instants; their large values define the surfaces that border of the reconnected or to-be-reconnected magnetic flux tubes for a given period of time during the magnetic evolution. 
+Slip-squashing factors $Q_\textrm{sf}$ and $Q_\textrm{sb}$ ([Titov_2009_ApJ_693_1029](https://iopscience.iop.org/article/10.1088/0004-637X/693/1/1029)) are defined by two field line mappings and two boundary flow mappings between two instants; their large values define the surfaces that border of the reconnected or to-be-reconnected magnetic flux tubes for a given period of time during the magnetic evolution. 
 
 For the case of static boundaries, we can compute the slip-squashing factors using the coordinate mapping provided by FastQSL. Following the initial coordinate mapping within the first magnetic field, the resulting mapped coordinates can serve as a seed grid for applying FastQSL to the second magnetic field. 
 
@@ -487,7 +487,7 @@ If you need this derived code, please visit https://github.com/el2718/slipq
 * Jun 30, 2014 Rui Liu @ USTC, IDL edition
 * Apr 21, 2015 Rui Liu and Jun Chen, deal with field lines passing through the boundary other than the bottom
 * Apr 27, 2015 Rui Liu, calculate the squashing factor Q at a cross section
-* Jun 15, 2015 Jun Chen, Fortran Edition; correct foot points with $\dfrac{\mathrm{d} \vec{r}}{\mathrm{d} r_i}=\dfrac{\vec{B}}{B_i}$
+* Jun 15, 2015 Jun Chen, Fortran Edition; correct foot points with $\dfrac{\textrm{d} \vec{r}}{\textrm{d} r_i}=\dfrac{\vec{B}}{B_i}$
 * Jul  8, 2015 Jun Chen, calculate the squashing factor Q in a box volume
 * Oct 29, 2015 Jun Chen, deal with field lines touching the cut plane: use the plane quasi-perpendicular to the field line  
 * Nov  1, 2015 Jun Chen, fuse qcs and qfactor(z=0) in qfactor.f90
