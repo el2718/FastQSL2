@@ -165,9 +165,9 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
     * The values in **xa, ya, za** must be in increasing order
   * **spherical**: whether the magnetic field is described on a spherical grid. 
     * FastQSL uses longitude (in radians), latitude (in radians) and radius as the coordinates for spherical grid, denoted as $\varphi$, $\vartheta$, and $r$, respectively. The maximum range of $\varphi$ is $[0, 2 \pi]$; the maximum range of $\vartheta$ is $[-\pi/2, \pi/2]$. The relations between $\{\varphi, \vartheta, r\}$ and $\{x, y, z\}$ are
-    $x=r\,\cos \vartheta\,\cos \varphi,$
-    $y=r\,\cos \vartheta\,\sin \varphi,$
-    $z=r\,\sin \vartheta.$
+    $x=r \cos \vartheta \cos \varphi,$
+    $y=r \cos \vartheta \sin \varphi,$
+    $z=r \sin \vartheta.$
     * Default is 0 (Cartesian coordinates). If invoked, these keywords have such meanings:
       * **Bx, By, Bz**: longitudinal, latitudinal, radial components of the magnetic field, $B_\varphi, B_\vartheta, B_r$. 
         * **Be careful**: the index order of these arrays is `[i_longitude, i_latitude, i_radius]` for fastqsl\.pro, and is `[i_radius, i_latitude, i_longitude]` for fastqsl\.py.
