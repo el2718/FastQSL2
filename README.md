@@ -1,6 +1,6 @@
 # FastQSL 2
 
-To calculate the squashing factor $Q$, and other quantities related to the magnetic connectivity, at the bottom or, a cross section, a box volume, or on some seed points, given a 3D magnetic field on a Cartesian or spherical, uniform or stretched grid.
+To calculate the squashing factor $Q$, and other quantities related to the magnetic connectivity, at the bottom, a cross section, a box volume, or on some seed points, given a 3D magnetic field on a Cartesian or spherical, uniform or stretched grid.
 
 This program can be downloaded via the command
 ```
