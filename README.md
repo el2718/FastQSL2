@@ -467,7 +467,7 @@ and two parameters in this formula are defined as:
 * Magnetic field expansion factor
 $
 f_\mathrm{s}(\varphi, \vartheta, r)=
-\left(\dfrac{R_0}{R_1}\right) ^2
+(\dfrac{R_0}{R_1}) ^2
 \dfrac{B_r(\varphi_0, \vartheta_0, R_0)}
 {B_r(\varphi_1, \vartheta_1, R_1)}, 
 $
