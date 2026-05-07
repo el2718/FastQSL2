@@ -349,9 +349,9 @@ See **Products** for more details. All default values here are 0.
       `qsl1` and `qsl2` are identical, and `qsl3` is computed from the same `Bvec` at $z=1$.
 -----------------------------
 ## Products
-For fastqsl\.pro, the result is given by the structure **qsl**, and can be returned by the keyword **qsl**, or can be saved as `odir+fname+'.sav'`. For example, the element **q** can be accessed by `qsl.q`
+For fastqsl\.pro, the result is given by the structure **qsl**, and can be returned by the keyword **qsl**, or can be saved as `odir+fname+'.sav'`. The infomation of its elements can be known by `help, qsl, /str`. For example, the element **q** can be accessed by `qsl.q`.
 
-For fastqsl\.py, the result is given by the [dictionary](https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries) **qsl**, and can be returned by the return of the function fastqsl, or can be saved as `odir+fname+'.pkl'`. For example, the element **q** can be accessed by `qsl['q']`
+For fastqsl\.py, the result is given by the [dictionary](https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries) **qsl**, and can be returned by the return of the function fastqsl, or can be saved as `odir+fname+'.pkl'`. The names of its elements can be found in `qsl.keys()`. For example, the element **q** can be accessed by `qsl['q']`
 
 Possible elements in **qsl** are:
   * **csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
