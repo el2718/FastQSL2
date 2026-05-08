@@ -46,9 +46,9 @@ endif else file_mkdir, tmp_dir
 ; magnetic field
 get_lun, unit
 if BtmpFlag then begin
-	nx=0L & ny=0L & nz=0L & spherical=0L & B3Flag=0L & xperiod=0L & yperiod=0L & zperiod=0L
+	nx=0L & ny=0L & nz=0L & spherical=0L & B3flag=0L & xperiod=0L & yperiod=0L & zperiod=0L
 	openr, unit, tmp_dir+'bfield.bin'
-	readu, unit, nx, ny, nz, stretchFlag, spherical, B3Flag, xperiod, yperiod, zperiod
+	readu, unit, nx, ny, nz, stretchFlag, spherical, B3flag, xperiod, yperiod, zperiod
 	if stretchFlag then begin
 		xa= fltarr(nx) & ya= fltarr(ny) & za= fltarr(nz)
 		readu, unit, xa, ya, za
@@ -241,11 +241,11 @@ path_out        = keyword_set(path_out) and (maxsteps ne 0) and out_dim lt 3
 loopB_out       = keyword_set(loopB_out) and path_out
 loopCurlB_out   = keyword_set(loopCurlB_out) and path_out
 
-preview         = keyword_set(preview) ; or n_elements(preview) eq 0
+preview         = keyword_set(preview)
 save_file       = keyword_set(save_file)
 verbose         =~keyword_set(silent)
 keep_tmp        = keyword_set(keep_tmp)
-magnetogram_out = preview and (BtmpFlag or stretchFlag) and ~file_test(tmp_dir+'magnetogram.bin')
+magnetogram_out = preview and ((BtmpFlag and ~file_test(tmp_dir+'magnetogram.bin')) or stretchFlag)
 ;------------------------------------------------------------
 ;  transmit the configure of computation to fastqsl.x
 openw,  unit, tmp_dir+'head.bin'
@@ -277,7 +277,9 @@ endelse
 ; computed by fastqsl.x
 cd, tmp_dir
 ; please specify the path
-spawn, '/path/of/fastqsl.x'
+spawn, '~/Desktop/QSLS/update/fastqsl.x'
+; spawn, '/data/QSLS/update/fastqsl.x'
+; spawn, '/path/of/fastqsl.x'
 cd, cdir
 ; ################################### retrieving results ######################################
 ; make the structure QSL
@@ -305,6 +307,8 @@ qsl_data0=[ $
 ['sign2d', 'intarr(nq1, nq2)'], $
 ['length', array_float], $
 ['twist', array_float], $
+['Int_CurlB2', array_float], $
+['Int_CurlBoB', array_float], $
 ['B', array_vfloat], $
 ['CurlB', array_vfloat], $
 ['rFs', array_vfloat], $
@@ -463,7 +467,7 @@ if BtmpFlag or stretchFlag then begin
 	readu, unit, magnetogram
 	close, unit
 endif else  begin
-	if B3Flag then magnetogram=Bz[*,*,0] else magnetogram=reform(Bx[2,*,*,0])
+	if B3flag then magnetogram=Bz[*,*,0] else magnetogram=reform(Bx[2,*,*,0])
 	nx_mag=nx
 	ny_mag=ny
 endelse

@@ -188,7 +188,7 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     loopCurlB_out   = loopCurlB_out and path_out
 
     verbose         = not silent
-    magnetogram_out = preview and (BtmpFlag or stretchFlag) and not os.path.exists(tmp_dir+'magnetogram.bin')
+    magnetogram_out = preview and ((BtmpFlag and not os.path.exists(tmp_dir+'magnetogram.bin')) or stretchFlag)
 # ------------------------------------------------------------
     # the directory for output
     if preview or save_file:
@@ -221,7 +221,8 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
 
     # please specify the path
     # the following r can avoid the potential problem of '\n' from os.sep ='\' in Windows
-    subprocess.run(r'/path/of/fastqsl.x', shell=True)
+    # subprocess.run(r'/path/of/fastqsl.x', shell=True)
+    subprocess.run(r'~/Desktop/QSLS/update/fastqsl.x', shell=True)
     os.chdir(cdir)
 # ################################### retrieving results ######################################
 # make the dictionary qsl
