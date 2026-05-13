@@ -25,7 +25,7 @@
       <div class="crossnote markdown-preview  ">
       
 <h1 id="fastqsl-2">FastQSL 2 </h1>
-<p>To calculate the squashing factor <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span></span></span></span>, and other quantities related to the magnetic connectivity, at the bottom or, a cross section, a box volume, or on some seed points, given a 3D magnetic field on a Cartesian or spherical, uniform or stretched grid.</p>
+<p>To calculate the squashing factor <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span></span></span></span>, and other quantities related to the magnetic connectivity, at the bottom, a cross section, a box volume, or on some seed points, given a 3D magnetic field on a Cartesian or spherical, uniform or stretched grid.</p>
 <p>This program can be downloaded via the command</p>
 <pre data-role="codeBlock" data-info="" class="language-text"><code>git clone https://github.com/el2718/FastQSL2
 </code></pre><p>Please address comments and suggestions to <a href="mailto:chenjun@pmo.ac.cn">Dr. Chen, Jun (陈俊)</a></p>
@@ -37,7 +37,7 @@
 <h2 id="cite-as">Cite as </h2>
 <ul>
 <li>
-<p>Jun Chen*, Thomas Wiegelmann, Li Feng*, Chaowei Jiang, and Rui Liu. FastQSL 2: A Comprehensive Toolkit for Magnetic Connectivity Analysis. 2026, SCIENCE CHINA Physics, Mechanics &amp; Astronomy, submitted<br>
+<p><a href="https://www.sciengine.com/SCPMA/doi/10.1007/s11433-025-2982-2">Jun Chen*, Thomas Wiegelmann, Li Feng*, Chaowei Jiang, and Rui Liu. FastQSL 2: A Comprehensive Toolkit for Magnetic Connectivity Analysis. 2026, SCIENCE CHINA Physics, Mechanics &amp; Astronomy, accepted</a><br>
 arXiv: <a href="https://arxiv.org/pdf/2604.16195">https://arxiv.org/pdf/2604.16195</a></p>
 </li>
 <li>
@@ -552,8 +552,8 @@ fastqsl, qsl=qsl3, zreg=[1,1]
 </ul>
 <hr>
 <h2 id="products">Products </h2>
-<p>For fastqsl.pro, the result is given by the structure <strong>qsl</strong>, and can be returned by the keyword <strong>qsl</strong>, or can be saved as <code>odir+fname+'.sav'</code>. For example, the element <strong>q</strong> can be accessed by <code>qsl.q</code></p>
-<p>For fastqsl.py, the result is given by the <a href="https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries">dictionary</a> <strong>qsl</strong>, and can be returned by the return of the function fastqsl, or can be saved as <code>odir+fname+'.pkl'</code>. For example, the element <strong>q</strong> can be accessed by <code>qsl['q']</code></p>
+<p>For fastqsl.pro, the result is given by the structure <strong>qsl</strong>, and can be returned by the keyword <strong>qsl</strong>, or can be saved as <code>odir+fname+'.sav'</code>. The infomation of its elements can be known by <code>help, qsl, /str</code>. For example, the element <strong>q</strong> can be accessed by <code>qsl.q</code>.</p>
+<p>For fastqsl.py, the result is given by the <a href="https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries">dictionary</a> <strong>qsl</strong>, and can be returned by the return of the function fastqsl, or can be saved as <code>odir+fname+'.pkl'</code>. The names of its elements can be found in <code>qsl.keys()</code>. For example, the element <strong>q</strong> can be accessed by <code>qsl['q']</code></p>
 <p>Possible elements in <strong>qsl</strong> are:</p>
 <ul>
 <li><strong>csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol</strong> can also appear, their meanings are the same as the input keywords</li>
