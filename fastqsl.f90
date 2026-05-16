@@ -271,8 +271,8 @@ do s=0, 1
 			vp=[axis(0)%pa(i), axis(1)%pa(j1), axis(2)%pa(k)]
 			bp=Bfield(:,i,j1,k)
 			call vp_yinyang(vp_yin, vp, .false., e_yin, e_yang)
-			forall(i=0:1) bp_yin(i)=bp(0)*dot_product(e_yang(:, 0), e_yin(:, i))+&
-                                    bp(1)*dot_product(e_yang(:, 1), e_yin(:, i))     
+			forall(s=0:1) bp_yin(s)=bp(0)*dot_product(e_yang(:, 0), e_yin(:, s))+&
+                                    bp(1)*dot_product(e_yang(:, 1), e_yin(:, s))
 			              bp_yin(2)=bp(2)
 			pole%Bfield(:,0,0,k)= pole%Bfield(:,0,0,k)+ bp_yin
 		enddo
