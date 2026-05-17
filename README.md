@@ -424,7 +424,7 @@ Possible elements in **qsl** are:
 ----------------------------
 ## User-defined line integrals
 Users can define their private line integrals of the form $\int_\textrm{path} \mathrm{privates}(\vec{B}, \nabla \times \vec{B}, \vec{A} )\ \textrm{d}s$
-* In `privates.f90`, which is included in `fastqsl.f90`, `privates(0)`, `privates(1)`, `privates(2)`, and `privates(3)` are the functions for **length**, **twist**, $\int_\textrm{path} |\nabla \times \vec{B}|^2\, \textrm{d}s$, and $\int_\textrm{path} |\nabla \times \vec{B}|/|\vec{B}|\, \textrm{d}s$. At most 10 different functions can be defined
+* In `privates.f90`, which is included in `fastqsl.f90`, `privates(0)`, `privates(1)`, `privates(2)`, and `privates(3)` are the functions for **length**, **twist**, $\int_\textrm{path} |\nabla \times \vec{B}|^2\ \textrm{d}s$, and $\int_\textrm{path} |\nabla \times \vec{B}|/|\vec{B}|\ \textrm{d}s$. At most 10 different functions can be defined
 * The names of the line integrals should be added to the line in fastqsl\.pro/fastqsl\.py
   ```
   int_private_name=['length', 'twist', 'int_curlB2', 'int_curlBoB']
