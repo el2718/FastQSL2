@@ -593,7 +593,7 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
                             int_top=2.
                             doppler_Flag=True
                         elif np.min(int_tmp) < 0. :
-                            int_top=max([np.min(int_tmp),max(np.int_tmp)])/2.
+                            int_top=max([np.abs(np.min(int_tmp)),max(np.int_tmp)])/2.
                             doppler_Flag=True
                         else:
                             int_top=np.max(int_tmp)/2.
