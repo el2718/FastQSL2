@@ -422,7 +422,7 @@ Possible elements in **qsl** are:
   * **loopB, loopCurlB**: $\vec{B}$, $\nabla \times \vec{B}$ on **path**
   * **index_seed**: the index in **path** for the launch points
 ----------------------------
-## User-defined line integral
+## User-defined line integrals
 Users can define their private line integrals of the form $\int_\textrm{path} \mathrm{privates}(\vec{B}, \nabla \times \vec{B}, \vec{A} )\ \textrm{d}s$
 * In `privates.f90`, which is included in `fastqsl.f90`, `privates(0)`, `privates(1)`, `privates(2)`, and `privates(3)` are the functions for **length**, **twist**, $\int_\textrm{path} |\nabla \times \vec{B}|^2\, \textrm{d}s$, and $\int_\textrm{path} |\nabla \times \vec{B}|/|\vec{B}|\, \textrm{d}s$. At most 10 different functions can be defined
 * The names of the line integrals should be added to the line in fastqsl\.pro/fastqsl\.py
@@ -440,7 +440,7 @@ Users can define their private line integrals of the form $\int_\textrm{path} \m
 * If the function needs $\nabla \times \vec{B}$, please also modify the line
   ```
   curlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out $
-or int_private_out[1] or int_private_out[2] or int_private_out[3]
+  or int_private_out[1] or int_private_out[2] or int_private_out[3]
   ```
 * If an additional field $\vec{A}$ is necessary for the integrals, the field can be assigned to the keywords **Ax**, **Ay**, and **Az**. The forms are similar to **Bx**, **By**, and **Bz**
 -----------------------------
@@ -561,4 +561,4 @@ If you need this derived code, please visit https://github.com/el2718/slipq
 * Jan, 20, 2026 Jun Chen, add a keyword of inclineFlag
 * Jan, 24, 2026 Jun Chen, add keywords of xperiod, yperiod, zperiod
 * Feb,  8, 2026 Jun Chen, add a keyword of r_local
-* May, 17, 2026 Jun Chen, User-defined line integral
+* May, 17, 2026 Jun Chen, User-defined line integrals

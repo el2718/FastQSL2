@@ -743,7 +743,7 @@ c-16-25.333-24-45-24-59z"></path></svg></span></span></span></span></span></span
 <li><strong>index_seed</strong>: the index in <strong>path</strong> for the launch points</li>
 </ul>
 <hr>
-<h2 id="user-defined-line-integral">User-defined line integral </h2>
+<h2 id="user-defined-line-integrals">User-defined line integrals </h2>
 <p>Users can define their private line integrals of the form <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∫</mo><mtext>path</mtext></msub><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">v</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mover accent="true"><mi>B</mi><mo>⃗</mo></mover><mo separator="true">,</mo><mi mathvariant="normal">∇</mi><mo>×</mo><mover accent="true"><mi>B</mi><mo>⃗</mo></mover><mo separator="true">,</mo><mover accent="true"><mi>A</mi><mo>⃗</mo></mover><mo stretchy="false">)</mo><mtext>&nbsp;d</mtext><mi>s</mi></mrow><annotation encoding="application/x-tex">\int_\textrm{path} \mathrm{privates}(\vec{B}, \nabla \times \vec{B}, \vec{A} )\ \textrm{d}s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.4583em;vertical-align:-0.4919em;"></span><span class="mop"><span class="mop op-symbol small-op" style="margin-right:0.19445em;position:relative;top:-0.0006em;">∫</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1303em;"><span style="top:-2.3442em;margin-left:-0.1945em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord textrm mtight">path</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4919em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathrm">privates</span></span><span class="mopen">(</span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9663em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1522em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.471em" height="0.714em" style="width:0.471em" viewBox="0 0 471 714" preserveAspectRatio="xMinYMin"><path d="M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
 3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
 10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
@@ -798,16 +798,20 @@ int_private_out[3]= (maxsteps ne 0) and keyword_set(int_curlBoB_out)
 -7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
 H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
 c-16-25.333-24-45-24-59z"></path></svg></span></span></span></span></span></span></span></span></span></span>, please also modify the line<pre data-role="codeBlock" data-info="" class="language-text"><code>curlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out $
+or int_private_out[1] or int_private_out[2] or int_private_out[3]
 </code></pre></li>
+<li>If an additional field <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>A</mi><mo>⃗</mo></mover></mrow><annotation encoding="application/x-tex">\vec{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9663em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9663em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">A</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0966em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.471em" height="0.714em" style="width:0.471em" viewBox="0 0 471 714" preserveAspectRatio="xMinYMin"><path d="M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z"></path></svg></span></span></span></span></span></span></span></span></span></span> is necessary for the integrals, the field can be assigned to the keywords <strong>Ax</strong>, <strong>Ay</strong>, and <strong>Az</strong>. The forms are similar to <strong>Bx</strong>, <strong>By</strong>, and <strong>Bz</strong></li>
 </ul>
-<p>or int_private_out[1] or int_private_out[2] or int_private_out[3]</p>
-<pre data-role="codeBlock" data-info="" class="language-text"><code>* If an additional field $\vec{A}$ is necessary for the integrals, the field can be assigned to the keywords **Ax**, **Ay**, and **Az**. The forms are similar to **Bx**, **By**, and **Bz**
------------------------------
-## Demos {#demos }
-
-### If using fastqsl\.pro {#if-using-fastqslpro-1 }
-```idl
-IDL&gt; .r demo_charge4.pro
+<hr>
+<h2 id="demos">Demos </h2>
+<h3 id="if-using-fastqslpro-1">If using fastqsl.pro </h3>
+<pre data-role="codeBlock" data-info="idl" class="language-idl idl"><code>IDL&gt; .r demo_charge4.pro
 </code></pre><p>if you use Linux or macOS, and don't want to entry the interactive environment of IDL, you can create demo_charge4.sh with the content:</p>
 <pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token shebang important">#! /bin/bash -f</span>
 idl <span class="token operator">&lt;&lt;</span><span class="token string">EOF
@@ -930,7 +934,7 @@ to avoid an error in a remote server: % TVLCT: Unable to open X Windows display<
 <li>Jan, 20, 2026 Jun Chen, add a keyword of inclineFlag</li>
 <li>Jan, 24, 2026 Jun Chen, add keywords of xperiod, yperiod, zperiod</li>
 <li>Feb,  8, 2026 Jun Chen, add a keyword of r_local</li>
-<li>May, 17, 2026 Jun Chen, User-defined line integral</li>
+<li>May, 17, 2026 Jun Chen, User-defined line integrals</li>
 </ul>
 
       </div>
@@ -1026,8 +1030,8 @@ to avoid an error in a remote server: % TVLCT: Unable to open X Windows display<
             <p>Products</p>
 
           </a></div><div class="md-toc-link-wrapper" style="padding:0;;display:list-item;list-style:square;margin-left:42px">
-          <a href="#user-defined-line-integral" class="md-toc-link">
-            <p>User-defined line integral</p>
+          <a href="#user-defined-line-integrals" class="md-toc-link">
+            <p>User-defined line integrals</p>
 
           </a></div><details style="padding:0;;padding-left:24px;" open="">
         <summary class="md-toc-link-wrapper">
