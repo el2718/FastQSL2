@@ -437,6 +437,11 @@ Users can define their private line integrals of the form $\int_\textrm{path} \m
   int_private_out[2]= (maxsteps ne 0) and keyword_set(int_curlB2_out)
   int_private_out[3]= (maxsteps ne 0) and keyword_set(int_curlBoB_out)
   ```
+* If the function needs $\nabla \times \vec{B}$, please also modify the line
+  ```
+  curlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out $
+or int_private_out[1] or int_private_out[2] or int_private_out[3]
+  ```
 * If an additional field $\vec{A}$ is necessary for the integrals, the field can be assigned to the keywords **Ax**, **Ay**, and **Az**. The forms are similar to **Bx**, **By**, and **Bz**
 -----------------------------
 ## Demos
