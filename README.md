@@ -358,8 +358,8 @@ Possible elements in **qsl** are:
   * **seed**:    the coordinates of the output grid for the launch of tracing; its units are the same as **xa, ya, za** if stretchFlag
   * **axis1**:  the coordinates $x, y$ ($\varphi, \vartheta$, if **spherical** is invoked) from point0 to point1
     * only appears when **csFlag** is invoked, then **axis1** is same as `qsl.seed[0:1, *, 0]`
-  * **length**: $L= \int_\textrm{path} \textrm{d}l$, length of field lines launched from **seed**
-  * **twist**: $T_w = \int_\textrm{path} \dfrac{(\nabla \times \vec{B}) \cdot \vec{B}}{4\pi B^2} \textrm{d}l$, can be used to measure how many turns two infinitesimally close field lines wind about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148)
+  * **length**: $L= \int_\textrm{path} \textrm{d}s$, length of field lines launched from **seed**
+  * **twist**: $T_w = \int_\textrm{path} \dfrac{(\nabla \times \vec{B}) \cdot \vec{B}}{4\pi B^2} \textrm{d}s$, can be used to measure how many turns two infinitesimally close field lines wind about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148)
   * **q, q_perp**: squashing factor $Q$ and $Q_\perp$, see  [Titov_2002_JGRA_107_1164](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2001JA000278) and [Titov_2007_ApJ_660_863](https://iopscience.iop.org/article/10.1086/512671)
     * **q_perp** is only available when **scottFlag** is invoked, [Pariat (2012)]((https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html)) is not precise enough for $Q_\perp$
   * **q_local**: see Chen (2026), for locating where magnetic field lines bifurcate, i.e.  (quasi-) separators 
@@ -421,6 +421,23 @@ Possible elements in **qsl** are:
     * A smaller tol (or step) requires more grid points on a path, but then the coordinate precision of the path is better
   * **loopB, loopCurlB**: $\vec{B}$, $\nabla \times \vec{B}$ on **path**
   * **index_seed**: the index in **path** for the launch points
+----------------------------
+## User-defined line integral
+Users can define their private line integrals of the form $\int_\textrm{path} \mathrm{privates}(\vec{B}, \nabla \times \vec{B}, \vec{A} )\, \textrm{d}s$
+* In `privates.f90`, which is included in `fastqsl.f90`, `privates(0)`, `privates(1)`, `privates(2)`, and `privates(3)` are the functions for **length**, **twist**, $\int_\textrm{path} |\nabla \times \vec{B}|^2\, \textrm{d}s$, and $\int_\textrm{path} |\nabla \times \vec{B}|/|\vec{B}|\, \textrm{d}s$. At most 10 different functions can be defined
+* The names of the line integrals should be added to the line in fastqsl\.pro/fastqsl\.py
+  ```
+  int_private_name=['length', 'twist', 'int_curlB2', 'int_curlBoB']
+  ```
+* The corresponding keywords for invoking these line integrals should be added to the input 
+* Please append the corresponding lines to the following block:
+  ```
+  int_private_out[0]= (maxsteps ne 0) and keyword_set(length_out)
+  int_private_out[1]= (maxsteps ne 0) and keyword_set(twist_out)
+  int_private_out[2]= (maxsteps ne 0) and keyword_set(int_curlB2_out)
+  int_private_out[3]= (maxsteps ne 0) and keyword_set(int_curlBoB_out)
+  ```
+* If an additional field $\vec{A}$ is necessary for the integrals, the field can be assigned to the keywords **Ax**, **Ay**, and **Az**. The forms are similar to **Bx**, **By**, and **Bz**
 -----------------------------
 ## Demos
 
@@ -539,3 +556,4 @@ If you need this derived code, please visit https://github.com/el2718/slipq
 * Jan, 20, 2026 Jun Chen, add a keyword of inclineFlag
 * Jan, 24, 2026 Jun Chen, add keywords of xperiod, yperiod, zperiod
 * Feb,  8, 2026 Jun Chen, add a keyword of r_local
+* May, 17, 2026 Jun Chen, User-defined line integral
