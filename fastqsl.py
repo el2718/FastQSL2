@@ -9,9 +9,10 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
             lon_delta=None, lat_delta=None, r_delta=None, arc_delta=None, seed=None, \
             RK4Flag=False, step=1.0, tol=1.0e-4, maxsteps=None, \
             scottFlag=False, inclineFlag=False, r_local=0., nthreads=0, silent=False, \
-            B_out=False, CurlB_out=False, length_out=False, twist_out=False, \
-            rF_out=False, targetB_out=False, targetCurlB_out=False, \
+            B_out=False, CurlB_out=False, rF_out=False, targetB_out=False, targetCurlB_out=False, \
             path_out=False, loopB_out=False, loopCurlB_out=False, \
+			Ax=None, Ay=None, Az=None, length_out=False, twist_out=False, \
+			int_CurlB2_out=False, int_CurlBoB_out=False, \
             odir=None, fname=None, save_file=False, preview=False, tmp_dir=None, keep_tmp=False):
 # ------------------------------------------------------------
     # the temporary directory for the data transmission between fastqsl.x and fastqsl.py 
@@ -38,8 +39,8 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     if BtmpFlag:
         with open(tmp_dir+'bfield.bin','rb') as file:
             nx, ny, nz = np.fromfile(file, dtype='i4', count=3)
-            stretchFlag, spherical, B3Flag, xperiod, yperiod, zperiod \
-            = np.array(np.fromfile(file, dtype='i4', count=6), dtype='b1')
+            stretchFlag, spherical= np.array(np.fromfile(file, dtype='i4', count=2), dtype='b1')
+            dummy=np.fromfile(file, dtype='i4', count=5)
             if stretchFlag:
                 xa=np.fromfile(file, dtype='f4', count=nx)
                 ya=np.fromfile(file, dtype='f4', count=ny)
@@ -51,10 +52,9 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
         sBx    =np.array(Bx).shape
 
         if B3Flag:
-            if Bx_ndim != 3 or np.array(By).ndim != 3 or np.array(Bz).ndim != 3: 
-                raise Exception('Bx, By and Bz must be 3D arrays!')
+            if Bx_ndim != 3: raise Exception('Bx, By, and Bz must be 3D arrays!')
             if sBx != np.array(By).shape or sBx != np.array(Bz).shape:
-                raise Exception('Bx, By and Bz must have the same dimensions!')
+                raise Exception('Bx, By, and Bz must have the same dimensions!')
         else: 
             # the dimensions of Bx are (nz,ny,nx,3)
             if Bx_ndim != 4 or sBx[3] != 3: raise Exception('Something is wrong with the magnetic field')
@@ -70,17 +70,30 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
         stretchFlag = (xa is not None) and (ya is not None) and (za is not None)
         if stretchFlag:
             if (nx != len(xa) or ny != len(ya) or nz != len(za)):
-                raise Exception('The size of xa, ya and za must be consistant with the dimensions of the magnetic field')
-        elif spherical: raise Exception('xa, ya and za should be specified in spherical coordinates')
+                raise Exception('The size of xa, ya, and za must be consistant with the dimensions of the magnetic field')
+        elif spherical: raise Exception('xa, ya, and za should be specified in spherical coordinates')
 
-        with open(tmp_dir+'bfield.bin','wb') as file:
-            file.write(np.array([nx, ny, nz, stretchFlag, spherical, B3Flag, xperiod, yperiod, zperiod], dtype='i4'))
-            if stretchFlag:
-                file.write(np.array(xa, dtype='f4'))
-                file.write(np.array(ya, dtype='f4'))
-                file.write(np.array(za, dtype='f4'))
-            file.write(np.array(Bx, dtype='f4', order='C'))
-            if B3Flag: file.write(np.array([By,Bz], dtype='f4', order='C'))
+        if B3Flag: 
+            Bvec=np.zeros((nz, ny, nx, 3), dtype='f4')
+            Bvec[:,:,:,0]=Bx
+            Bvec[:,:,:,1]=By
+            Bvec[:,:,:,2]=Bz
+        else: Bvec=np.array(Bx, dtype='f4', order='C')
+
+        if Ax is not None:
+            if Ay is not None and Az is not None:
+                if sBx != np.array(Ax).shape or sBx != np.array(Ay).shape or sBx != np.array(Az).shape:
+                    raise Exception('Ax, Ay, and Az must have the same dimensions!')
+                Avec=np.zeros((nz, ny, nx, 3), dtype='f4')
+                Avec[:,:,:,0]=Ax
+                Avec[:,:,:,1]=Ay
+                Avec[:,:,:,2]=Az
+            else: 
+                if np.array(Ax).shape != (nz, ny, nx, 3):
+                    raise Exception('Something is wrong with the additional field')
+                Avec=np.array(Ax, dtype='f4', order='C')
+            AfieldFlag=True
+        else: AfieldFlag=False
 # ------------------------------------------------------------
     # understand the output grid
     # provide qsl.seed even sFlag is False
@@ -187,6 +200,20 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     loopB_out       = loopB_out and path_out
     loopCurlB_out   = loopCurlB_out and path_out
 
+    # string array with 1-10 elements
+    int_private_name=['length', 'twist', 'int_CurlB2', 'int_CurlBoB']
+    nprivate= len(int_private_name)
+    # int array with 10 elements
+    int_private_out=np.zeros(10, dtype='i4')
+    int_private_out[0]= (maxsteps != 0) and length_out
+    int_private_out[1]= (maxsteps != 0) and twist_out
+    int_private_out[2]= (maxsteps != 0) and int_CurlB2_out
+    int_private_out[3]= (maxsteps != 0) and int_CurlBoB_out
+    # int_private_out[4]= (maxsteps != 0) and line_helicity_out and AfieldFlag
+
+    curlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out \
+    or int_private_out[1] or int_private_out[2] or int_private_out[3]
+
     verbose         = not silent
     magnetogram_out = preview and ((BtmpFlag and not os.path.exists(tmp_dir+'magnetogram.bin')) or stretchFlag)
 # ------------------------------------------------------------
@@ -198,14 +225,29 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
         os.makedirs(odir, exist_ok=True)
 # ------------------------------------------------------------   
     # transmit data to fastqsl.x
+    if not BtmpFlag:
+        with open(tmp_dir+'bfield.bin','wb') as file:
+            file.write(np.array([nx, ny, nz, stretchFlag, spherical, \
+            xperiod, yperiod, zperiod, curlB_field_Flag, AfieldFlag], dtype='i4'))
+            if stretchFlag:
+                file.write(np.array(xa, dtype='f4'))
+                file.write(np.array(ya, dtype='f4'))
+                file.write(np.array(za, dtype='f4'))
+            file.write(np.array(Bvec, dtype='f4', order='C'))
+            del Bvec
+            if AfieldFlag: 
+                file.write(np.array(Avec, dtype='f4', order='C'))
+                del Avec
+
     with open(tmp_dir+'head.bin','wb') as file:
         file.write(np.array([step, tol, r_local], dtype='f4'))
         file.write(np.array([maxsteps, RK4Flag, inclineFlag, \
-        launch_out, B_out, CurlB_out, length_out, twist_out, \
+        launch_out, B_out, CurlB_out, \
 		rF_out, targetB_out, targetCurlB_out, \
 		path_out, loopB_out, loopCurlB_out, \
 		sFlag, bFlag, cFlag, vFlag, nthreads, scottFlag, \
         verbose, keep_tmp, magnetogram_out], dtype='i4'))
+        file.write(int_private_out)
 
     if sFlag:
         with open(tmp_dir+'dim_seed.bin','wb') as file: file.write(np.array([nq1,nq2,nq3], dtype='i4'))
@@ -221,8 +263,8 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
 
     # please specify the path
     # the following r can avoid the potential problem of '\n' from os.sep ='\' in Windows
-    # subprocess.run(r'/path/of/fastqsl.x', shell=True)
-    subprocess.run(r'~/Desktop/QSLS/update/fastqsl.x', shell=True)
+    subprocess.run(r'/path/of/fastqsl.x', shell=True)
+    # subprocess.run(r'~/Desktop/QSLS/update/fastqsl.x', shell=True)
     os.chdir(cdir)
 # ################################### retrieving results ######################################
 # make the dictionary qsl
@@ -273,8 +315,6 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     ['q_local',    'f4', dim], \
     ['rboundary',  'i1', dim], \
     ['sign2d',     'i2', (nq2, nq1)], \
-    ['length',     'f4', dim], \
-    ['twist',      'f4', dim], \
     ['B',          'f4', dim3], \
     ['CurlB',      'f4', dim3], \
     ['rFs',        'f4', dim3], \
@@ -287,6 +327,13 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     ['loopB',      'f4', (-1,3)], \
     ['loopCurlB',  'f4', (-1,3)], \
     ['index_seed', 'i4', dim]]
+
+    for i in range(nprivate):
+        file_orig=tmp_dir+'int_private'+f'{round(i):d}'+'.bin'
+        if os.path.exists(file_orig):
+            if 'int_private'+f'{round(i):d}' is not int_private_name[i]:
+                os.rename(file_orig, tmp_dir+int_private_name[i]+'.bin')
+            qsl_data0.append([int_private_name[i], 'f4', dim])
 
     qsl_data=[str3 for str3 in qsl_data0 if os.path.exists(tmp_dir+str3[0]+'.bin')]    
     if path_out:
@@ -532,23 +579,34 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
                 if verbose: print(odir+fname+'_lg_Bnr.png')
             # end if targetB_out
 
-            if length_out and out_dim == 2:
-                length_top=2.*(nz-1) if not stretchFlag else 2.*(za[nz-1]-za[0])
-                length_tmp=qsl['length'].copy()
-                length_tmp[np.isnan(length_tmp)]=0. # 0. for black color
-                length_tmp[np.isinf(length_tmp)]=0.
-                plt.imsave(odir+fname+'_length.png', length_tmp, \
-                    vmin=0., vmax=length_top, origin='lower', cmap='gray')
-                print(odir+fname+'_length.png')
+            if out_dim ==2:
+                for int_name in int_private_name:
+                    if int_name in qsl.keys():
+                        int_tmp=qsl[int_name].copy()
+                        int_tmp[np.isnan(int_tmp)]=0. # 0. for black color
+                        int_tmp[np.isinf(int_tmp)]=0.
+                        png_file=odir+fname+'_'+int_name+'.png'
+                        if int_name =='length':
+                            int_top=2.*(nz-1) if not stretchFlag else 2.*(za[nz-1]-za[0])
+                            doppler_Flag=False
+                        elif int_name =='twist':
+                            int_top=2.
+                            doppler_Flag=True
+                        elif np.min(int_tmp) < 0. :
+                            int_top=max([np.min(int_tmp),max(np.int_tmp)])/2.
+                            doppler_Flag=True
+                        else:
+                            int_top=np.max(int_tmp)/2.
+                            doppler_Flag=False
+                        
+                        if doppler_Flag:
+                            plt.imsave(png_file, int_tmp, \
+                            vmin=-int_top, vmax=int_top, origin='lower', cmap='bwr')
+                        else:
+                            plt.imsave(png_file, int_tmp, \
+                            vmin=0., vmax=int_top, origin='lower', cmap='gray')
 
-            if twist_out and out_dim == 2:
-                twist_tmp=qsl['twist'].copy() #*(-1.)
-                twist_tmp[np.isnan(twist_tmp)]=0. # 0. for white color
-                twist_tmp[np.isinf(twist_tmp)]=0.
-                plt.imsave(odir+fname+'_twist.png', twist_tmp, \
-                    vmin=-2., vmax=2, origin='lower', cmap='bwr')
-                print(odir+fname+'_twist.png')
-
+                        print(png_file)  
         # end if maxsteps != 0 and (out_dim ==2 or plot_bottom)
     # end if preview
 # ------------------------------------------------------------

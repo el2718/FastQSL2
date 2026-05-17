@@ -3,7 +3,7 @@ import pickle, os
 from fastqsl import fastqsl 
 from convert_coordinate import convert_coordinate
 
-def bfield_charge4_cartersian(bfile, ixh=45, nz=61, xmax=2.5):
+def bfield_charge4_cartersian(bfile, ixh=45, nz=61, xmax=2.25):
     nx=ixh*2+1
     xa=np.linspace(-xmax, xmax, nx)
     B_delta=xmax/ixh

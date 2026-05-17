@@ -1,12 +1,13 @@
 module fields
 implicit none
 logical:: curlB_field_Flag, dbdc_field_Flag, stretchFlag, &
-spherical, periodFlag(0:2), period_lon, south_pole, north_pole, &
+spherical, periodFlag(0:2), period_lon, south_pole, north_pole, AfieldFlag, &
 keep_tmp, magnetogram_out ! thest two are inputed in fastqsl.f90
 integer:: binary_index_top, pend(0:2), dend(0:2)
 integer, allocatable:: binary_values(:)
 real:: pi, half_pi, two_pi, NaN, lat_pole, lat_pole2, pmin(0:2), pmax(0:2), period(0:2)
-real, allocatable, target:: Bfield(:, :, :, :), CurlB_field(:, :, :, :), dbdc_field(:, :, :, :, :)
+real, allocatable, target:: Bfield(:, :, :, :), CurlB_field(:, :, :, :), &
+dbdc_field(:, :, :, :, :), Afield(:, :, :, :)
 real, allocatable:: cos_lat_tmp(:)
 
 type axis_stretch
@@ -18,7 +19,7 @@ endtype axis_stretch
 type(axis_stretch), target :: axis(0:2)
 
 type pole_field
-	real, allocatable:: bfield(:,:,:,:), curlB_field(:,:,:,:), dbdc_field(:,:,:,:,:)
+	real, allocatable:: bfield(:,:,:,:), curlB_field(:,:,:,:), dbdc_field(:,:,:,:,:), Afield(:,:,:,:)
     real:: darc, over2darc, pmin(0:1), pmax(0:1), origin(0:1)
     integer:: aend
 endtype pole_field
@@ -26,9 +27,9 @@ type(pole_field), target:: south, north
 
 ! interface can't use this type if site_info is defined in module trace
 type site_info
-	real:: v(0:8), dvds(0:8), B(0:2), CurlB(0:2), alpha, ds_factor, &
-	v_yin(0:8), dvds_yin(0:8), B_yin(0:2), CurlB_yin(0:2)
-	logical:: alphaFlag, yinFlag, scottFlag, scottLaunch
+	real:: v(0:8), dvds(0:8), B(0:2), CurlB(0:2), ds_factor, &
+	v_yin(0:8), dvds_yin(0:8), B_yin(0:2), CurlB_yin(0:2), private(0:9)
+	logical:: intFlag, curlBFlag, yinFlag, scottFlag, scottLaunch
 endtype site_info
 
 procedure(), pointer:: round_weight
@@ -37,17 +38,17 @@ contains
 
 subroutine readB
 implicit none
-logical:: southFlag, B3flag
-integer:: i, j, k, s, nx, ny, nz, nx_mag, ny_mag, aend1, round(0:1,0:2), j1, j2
+logical:: southFlag
+integer:: i, j, k, s, t, nx, ny, nz, nx_mag, ny_mag, aend1, round(0:1,0:2), j1, j2
 real:: weight(0:1,0:1,0:1), mag_delta, clat_pole, dlast, dperiod, &
-vp_yin(0:2), vp(0:2), bp_yin(0:2), bp(0:2), e_yin(0:2, 0:1), e_yang(0:2, 0:1), fj2
+vp_yin(0:2), vp(0:2), bp_yin(0:2), bp(0:2), ap_yin(0:2), ap(0:2), e_yin(0:2, 0:1), e_yang(0:2, 0:1), fj2
 real, allocatable:: field_tmp(:, :, :, :), magnetogram(:, :), lon_tmp(:), lat_tmp(:)
 real, pointer:: ax_tmp(:)
 type(pole_field), pointer:: pole
 !------------------------------------------------------------
 ! read Bx, By, Bz
 open(1, file='bfield.bin', access='stream', status='old')
-read(1) nx, ny, nz, stretchFlag, spherical, B3flag, periodFlag
+read(1) nx, ny, nz, stretchFlag, spherical, periodFlag, curlB_field_Flag, AfieldFlag
 
 pend = [nx, ny, nz] - 1
 dend = pend - 1
@@ -123,34 +124,30 @@ period_lon = periodFlag(0) .and. spherical
 
 if (.not. spherical) forall(s=0:2, periodFlag(s)) period(s)=pmax(i)-pmin(i)
 !------------------------------------------------------------
-if (B3flag) then
-	allocate(field_tmp(0:nx-1, 0:ny-1, 0:nz-1, 0:2))
-else
-	allocate(field_tmp(0:2, 0:nx-1, 0:ny-1, 0:nz-1))
-endif
+allocate(field_tmp(0:2, 0:nx-1, 0:ny-1, 0:nz-1))
 read(1) field_tmp
+!------------------------------------------------------------
+allocate(Bfield(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
+Bfield(:, 0:nx-1, 0:ny-1, 0:nz-1)=field_tmp
+if (periodFlag(0)) Bfield(:,pend(0),:,:)=Bfield(:,0,:,:)
+if (periodFlag(1)) Bfield(:,:,pend(1),:)=Bfield(:,:,0,:)
+if (periodFlag(2)) Bfield(:,:,:,pend(2))=Bfield(:,:,:,0)
+!------------------------------------------------------------
+if (AfieldFlag) then
+	read(1) field_tmp
+	allocate(Afield(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
+	Afield(:, 0:nx-1, 0:ny-1, 0:nz-1)=field_tmp
+	if (periodFlag(0)) Afield(:,pend(0),:,:)=Afield(:,0,:,:)
+	if (periodFlag(1)) Afield(:,:,pend(1),:)=Afield(:,:,0,:)
+	if (periodFlag(2)) Afield(:,:,:,pend(2))=Afield(:,:,:,0)
+endif
+!------------------------------------------------------------
+deallocate(field_tmp)
 if (keep_tmp) then
 	close(1, status='keep')
 else
 	close(1, status='delete')
 endif
-!------------------------------------------------------------
-allocate(Bfield(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
-
-if (B3flag) then
-! switch the indexes order for a better efficiency in subroutine interpolate
-!$OMP PARALLEL DO PRIVATE(s), schedule(DYNAMIC)
-	do s=0, 2
-		Bfield(s, 0:nx-1, 0:ny-1, 0:nz-1)=field_tmp(:,:,:,s)
-	enddo
-!$OMP END PARALLEL DO
-else
-	Bfield(:, 0:nx-1, 0:ny-1, 0:nz-1)=field_tmp
-endif
-deallocate(field_tmp)
-if (periodFlag(0)) Bfield(:,pend(0),:,:)=Bfield(:,0,:,:)
-if (periodFlag(1)) Bfield(:,:,pend(1),:)=Bfield(:,:,0,:)
-if (periodFlag(2)) Bfield(:,:,:,pend(2))=Bfield(:,:,:,0)
 !------------------------------------------------------------
 if (curlB_field_Flag) then
 	allocate(curlB_field(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
@@ -186,7 +183,7 @@ endif
 ! interpolate magnetogram on uniformed grids from the stretched input
 if (magnetogram_out) then
 
-	if (stretchFlag) then 
+	if (stretchFlag) then
 		mag_delta=minval([axis(0)%da(0:dend(0)-1), axis(1)%da])
 
 		nx_mag=nint((pmax(0)-pmin(0))/mag_delta)+1
@@ -245,6 +242,8 @@ do s=0, 1
 	aend1=pole%aend+1
 
 	allocate(pole%Bfield(0:2, -aend1:aend1, -aend1:aend1, 0:pend(2)))
+	if (AfieldFlag) &
+	allocate(pole%Afield(0:2, -aend1:aend1, -aend1:aend1, 0:pend(2)))
 	allocate(lon_tmp(-aend1:aend1))
 	allocate(lat_tmp(-aend1:aend1))
 
@@ -259,24 +258,49 @@ do s=0, 1
 	do k= 0, pend(2)
 	do j= - aend1, aend1
 	do i= - aend1, aend1
-		if (abs(lat_tmp(j)) .le. half_pi-dlast) &
-		call initializeB_yin([lon_tmp(i), lat_tmp(j), axis(2)%pa(k)], pole%Bfield(:,i,j,k))
+		if (abs(lat_tmp(j)) .le. half_pi-dlast) then
+			vp_yin=[lon_tmp(i), lat_tmp(j), axis(2)%pa(k)]
+			call vp_yinyang(vp_yin, vp, .true., e_yin, e_yang)
+			call round_weight(vp, round, weight)
+			forall(t=0:2) bp(t)=sum(weight*Bfield(t, round(:,0), round(:,1), round(:,2)))
+			forall(t=0:1) bp_yin(t)=bp(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
+									bp(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
+			bp_yin(2)=bp(2)
+			pole%Bfield(:,i,j,k)=bp_yin
+			if (AfieldFlag) then
+				forall(t=0:2) ap(t)=sum(weight*Afield(t, round(:,0), round(:,1), round(:,2)))
+				forall(t=0:1) ap_yin(t)=ap(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
+										ap(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
+				ap_yin(2)=ap(2)
+				pole%Afield(:,i,j,k)=ap_yin
+			endif
+		endif
 	enddo
 	enddo
 	enddo
 
 	do k= 0, pend(2)
 		pole%Bfield(:,0,0,k)=0.
+		if (AfieldFlag) pole%Afield(:,0,0,k)=0.
 		do i= 0, pend(0)
 			vp=[axis(0)%pa(i), axis(1)%pa(j1), axis(2)%pa(k)]
-			bp=Bfield(:,i,j1,k)
 			call vp_yinyang(vp_yin, vp, .false., e_yin, e_yang)
-			forall(s=0:1) bp_yin(s)=bp(0)*dot_product(e_yang(:, 0), e_yin(:, s))+&
-                                    bp(1)*dot_product(e_yang(:, 1), e_yin(:, s))
+			bp=Bfield(:,i,j1,k)
+			forall(t=0:1) bp_yin(t)=bp(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
+			                        bp(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
 			              bp_yin(2)=bp(2)
 			pole%Bfield(:,0,0,k)= pole%Bfield(:,0,0,k)+ bp_yin
+			if (AfieldFlag) then 
+				ap=Afield(:,i,j1,k)
+				forall(t=0:1) ap_yin(t)=ap(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
+										ap(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
+							  ap_yin(2)=ap(2)
+				pole%Afield(:,0,0,k)= pole%Afield(:,0,0,k)+ ap_yin
+			endif
 		enddo
 		pole%Bfield(:,0,0,k)= pole%Bfield(:,0,0,k)/(pend(0)+1)
+		if (AfieldFlag) &
+		pole%Afield(:,0,0,k)= pole%Afield(:,0,0,k)/(pend(0)+1)
 	enddo
 
 	do k= 0, pend(2)
@@ -290,9 +314,13 @@ do s=0, 1
 		enddo
 		do j= -j2+1, -1
 			pole%Bfield(:,i,j,k)= pole%Bfield(:,0,0,k)* (-j)/fj2+ pole%Bfield(:,0,-j2,k)* (j2+j)/fj2
+			if (AfieldFlag) &
+			pole%Afield(:,i,j,k)= pole%Afield(:,0,0,k)* (-j)/fj2+ pole%Afield(:,0,-j2,k)* (j2+j)/fj2
 		enddo
 		do j= 1, j2-1
 			pole%Bfield(:,i,j,k)= pole%Bfield(:,0,0,k)*   j /fj2+ pole%Bfield(:,0, j2,k)* (j2-j)/fj2
+			if (AfieldFlag) &
+			pole%Afield(:,i,j,k)= pole%Afield(:,0,0,k)*   j /fj2+ pole%Afield(:,0, j2,k)* (j2-j)/fj2
 		enddo
 	enddo
 	enddo
@@ -775,22 +803,6 @@ endif
 end subroutine vp_yinyang
 
 
-subroutine initializeB_yin(vp_yin, bp_yin)
-implicit none
-integer:: i, round(0:1,0:2)
-real:: vp(0:2), vp_yin(0:2), bp(0:2), bp_yin(0:2), weight(0:1,0:1,0:1), &
-e_yang(0:2, 0:1), e_yin(0:2,0:1)
-!------------------------------------------------------------
-call vp_yinyang(vp_yin, vp, .true., e_yin, e_yang)
-call round_weight(vp, round, weight)
-forall(i=0:2) bp(i)=sum(weight*Bfield(i, round(:,0), round(:,1), round(:,2)))
-forall(i=0:1) bp_yin(i)=bp(0)*dot_product(e_yang(:, 0), e_yin(:, i))+&
-                        bp(1)*dot_product(e_yang(:, 1), e_yin(:, i))     
-bp_yin(2)=bp(2)
-
-end subroutine initializeB_yin
-
-
 subroutine round_weight_pole(vp, round, weight, southflag)
 implicit none
 real:: w(0:1,0:2), vp(0:2), weight(0:1,0:1,0:1), p_lonlat(0:1)
@@ -857,16 +869,15 @@ module trace
 use fields
 implicit none
 integer:: maxsteps, maxsteps_foot, normal_index
-logical:: RK4flag, diff_flag, inclineFlag, traceflag, &
-twist_out, length_out, B_out, CurlB_out, rf_out, targetB_out, targetCurlB_out
+logical:: RK4flag, diff_flag, inclineFlag, traceflag, int_private_out(0:9), privateFlag, &
+B_out, CurlB_out, rf_out, targetB_out, targetCurlB_out
 real:: a21, a31, a32, a41, a42, a43, a51, a52, a53, a54, a61, a62, a63, a64, a65, &
 b1, b3, b4, b5, b6, ce1, ce3, ce4, ce5, ce6, &                   ! for RKF45
-step, min_step, max_step, min_step_foot, tol, min_incline, over8pi, r_local, r_local_square
-
+step, min_step, max_step, min_step_foot, tol, min_incline, &
+over8pi, r_local, r_local_square
 ! r: remote; b:boundary, F:foot; s/e: start/end, where B vector points to inside/outside
 ! rbs/rbe: boundary mark for start/end point of the field line, see subroutine trim_size
 ! rFs/rFe: coordinates of the start/end point of the field line
-! length/twist: length/twist of the field line
 ! bs/bp/be: B at rFs/vp/rFe
 ! curlBs/curlBp/curlBe: curlB at rFs/vp/rFe
 ! bnp, normal component of B to the surface
@@ -874,9 +885,9 @@ step, min_step, max_step, min_step_foot, tol, min_incline, over8pi, r_local, r_l
 ! q/q_perp: value of q/q_perp given by Scott (2017)
 ! label: label of exporting fieldlines
 type line_info
-	real:: length, twist, rFs(0:2), rFe(0:2), ev3(0:2), bp(0:2), bnp, &
+	real:: rFs(0:2), rFe(0:2), ev3(0:2), bp(0:2), bnp, &
 	bs(0:2), be(0:2), curlBp(0:2), curlBs(0:2), curlBe(0:2), &
-	q, q_perp, q_local, brn_s, brn_e, rFs_yin(0:2), rFe_yin(0:2)
+	q, q_perp, q_local, brn_s, brn_e, rFs_yin(0:2), rFe_yin(0:2), int_private(0:9)
 	logical:: tangent, get, scottFlag, path_out, loopB_out, loopCurlB_out, &
 	q_local_Flag, local_s_flag, local_e_flag, s_yinflag, e_yinflag
 	integer:: rbs, rbe, its, ite
@@ -894,6 +905,8 @@ end interface
 procedure(interpolate_site), pointer:: interpolate
 
 contains
+
+include 'privates.f90'
 
 subroutine cal_yinyang(site, toyang, dvdsflag)
 implicit none
@@ -965,7 +978,7 @@ if (present(dvdsflag)) then
 		forall(i=0:1) site%B(i)=dot_product(site%B_yin(0:1), matrix0(:, i))
 		site%B(2)=site%B_yin(2)
 
-		if (site%alphaFlag) then
+		if (site%intFlag) then
 			forall(i=0:1) site%CurlB(i)=dot_product(site%CurlB_yin(0:1), matrix0(:, i))
 			site%CurlB(2)=site%CurlB_yin(2)
 		endif
@@ -1341,9 +1354,9 @@ logical, optional:: rk_first
 logical:: southflag, yinflag
 integer:: round(0:1,0:2), i, j, k
 real:: weight(0:1,0:1,0:1), r, sin_lat, cos_lat, &
-dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2)
+dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2), Ap(0:2)
 real, pointer:: bp(:), vector(:), dvds(:), curlBp(:), &
-b3d(:,:,:,:), curlb3d(:,:,:,:), dbdc3d(:,:,:,:,:)
+b3d(:,:,:,:), curlb3d(:,:,:,:), dbdc3d(:,:,:,:,:), A3d(:,:,:,:)
 !------------------------------------------------------------
 if (present(rk_first)) then
 	yinflag = (south_pole .and. (-site%v(1) .gt. lat_pole) .and. (-site%v(1) .le. lat_pole2)) &
@@ -1394,7 +1407,7 @@ cos_lat=cos(vector(1))
 dvds(0:2)= normalize(bp)/[r*cos_lat, r, 1.]
 !------------------------------------------------------------
 if (present(rk_first)) then
-	if(site%alphaFlag) then
+	if (site%curlBFlag) then
 		if (yinflag) then
 			curlB3d => pole%curlB_field
 			curlbp  => site%curlb_yin
@@ -1403,9 +1416,21 @@ if (present(rk_first)) then
 			curlbp  => site%curlb
 		endif
 		forall(i=0:2) CurlBp(i)=sum(weight*CurlB3d(i, round(:,0), round(:,1), round(:,2)))
-		site%alpha=dot_product(CurlBp, bp)/dot_product(bp, bp)
+	else
+		CurlBp => site%curlb ! give a target for privates(bp, CurlBp, Ap); no affect to the value
 	endif
-
+	if(site%intFlag) then
+		if (AfieldFlag) then
+			if (yinflag) then
+				A3d => pole%Afield
+			else
+				A3d => Afield
+			endif
+			forall(i=0:2) Ap(i)=sum(weight*A3d(i, round(:,0), round(:,1), round(:,2)))
+		endif
+		site%private=privates(bp, CurlBp, Ap)
+	endif
+	
 	if (site%scottLaunch) call set_u_v(bp, vector(3:5), vector(6:8))
 
 	! provide site%B/CurlB
@@ -1479,16 +1504,17 @@ implicit none
 type(site_info), target:: site
 logical, optional:: rk_first
 integer:: round(0:1,0:2), i, j, k
-real:: weight(0:1,0:1,0:1), dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2)
+real:: weight(0:1,0:1,0:1), dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2), Ap(0:2)
 !------------------------------------------------------------
 call round_weight(site%v(0:2), round, weight)
 forall(i=0:2) site%B(i)=sum(weight* Bfield(i, round(:,0), round(:,1), round(:,2)))
 site%dvds(0:2)=normalize(site%b)
 !------------------------------------------------------------
 if (present(rk_first)) then
-	if(site%alphaFlag) then
-		forall(i=0:2) site%CurlB(i)=sum(weight*curlB_field(i, round(:,0), round(:,1), round(:,2)))
-		site%alpha=dot_product(site%CurlB, site%b)/dot_product(site%b, site%b)
+	if(site%intFlag) then
+		if (curlB_field_Flag) forall(i=0:2) site%CurlB(i)=sum(weight*curlB_field(i, round(:,0), round(:,1), round(:,2)))
+		if (AfieldFlag) forall(i=0:2) Ap(i)=sum(weight*Afield(i, round(:,0), round(:,1), round(:,2)))
+		site%private=privates(site%b, site%CurlB, Ap)
 	endif
 
 	if (rk_first) return ! interpolate_foot is true
@@ -1540,8 +1566,8 @@ type(site_info), pointer:: site, site1, site_tmp
 site_a=site0
 site_b=site_r
 
-site_a%alphaFlag=.false.
-site_b%alphaFlag=.false.
+site_a%intFlag=.false.
+site_b%intFlag=.false.
 
 site => site_a
 site1=> site_b
@@ -1621,9 +1647,9 @@ end subroutine locate_path_r
 subroutine trace_bline(vp, info)
 ! vp: vector position of the launch point
 implicit none
-logical:: alphaFlag, sum_line, identical, repeat_flag, interpolate_foot, exist_vr
+logical:: intFlag, curlBFlag, identical, repeat_flag, interpolate_foot, exist_vr
 integer:: i, sign_down, sign_up, sign_forward, it, sign_dt, rb, e_index, s_index
-real:: vp(0:2), dt, dt_executed, step_this, tol_this, dL, int2alpha, &
+real:: vp(0:2), dt, dt_executed, step_this, tol_this, dL, int2private(0:9), &
 Bn_s, Bn_e, us(0:2), ue(0:2), vs(0:2), ve(0:2), us1(0:2), ue1(0:2), vs1(0:2), ve1(0:2), &
 bs2(0:2), be2(0:2), us2(0:2), ue2(0:2), vs2(0:2), ve2(0:2), &
 b_car(0:2), cos_p(0:1), sin_p(0:1), incline, vr2vp(0:2), vr(0:2), brn
@@ -1632,10 +1658,9 @@ type(line_info), target:: info
 type(site_info), target:: site_a, site_b, site_p, site_s, site_e, site_r
 type(site_info), pointer:: site, site1, site_tmp
 !------------------------------------------------------------
-alphaFlag = info%get .and. (twist_out .or. info%loopCurlB_out)
-sum_line = info%get .and. (length_out .or. alphaFlag)
-if (alphaFlag) int2alpha=0.
-if (length_out) info%length=0.
+intFlag = info%get .and. privateFlag
+if (intFlag) int2private=0.
+curlBFlag = info%get .and. curlB_field_Flag
 if (info%q_local_Flag) then
 	info%local_s_flag=.false.
 	info%local_e_flag=.false.
@@ -1644,22 +1669,22 @@ endif
 site_p%v(0:2)=vp
 site_p%scottFlag=info%scottFlag
 site_p%scottLaunch=info%scottFlag
-site_p%alphaFlag = alphaFlag .or. CurlB_out .or. (lie_boundary(vp) .and. targetCurlB_out)
+site_p%intFlag = intFlag
+site_p%curlBFlag= curlBFlag
 site_p%yinFlag=.false. ! this would be changed by the following command
 call interpolate(site_p, .false.)
 bp => info%bp
 bs => info%bs
 be => info%be
 bp =  site_p%b
-if (info%get .and. curlb_out) info%curlBp=site_p%CurlB
+if (site_p%curlBFlag) info%curlBp=site_p%CurlB
 !------------------------------------------------------------
 if (.not. inside(vp)) then
 	info%rbs=7; info%rFs=NaN
 	info%rbe=7; info%rFe=NaN
 	
 	if (info%get) then
-		info%length=NaN
-		info%twist =NaN
+		info%int_private=NaN
 		bs =NaN
 		be =NaN
 	endif
@@ -1788,11 +1813,13 @@ site_a%scottLaunch=.false.
 site_a%scottFlag=info%scottFlag
 site_b%scottLaunch=.false.
 site_b%scottFlag=info%scottFlag
+site_a%intFlag=intFlag
+site_b%intFlag=intFlag
+site_a%curlBFlag= curlBFlag
+site_b%curlBFlag= curlBFlag
 
 do sign_dt = sign_down, sign_up, 2
 
-	site_a%alphaFlag=alphaFlag
-	site_b%alphaFlag=alphaFlag
 	it= 0
 	dt= step_this*sign_dt
 	site  => site_p
@@ -1818,7 +1845,6 @@ do sign_dt = sign_down, sign_up, 2
 			! if rb .eq. 8, NaN found in site1%v(0:2), then site1 should not be interpolated
 			! if key_trace4, other 4 lines don't need this interpolation at foots
 			interpolate_foot= rb .ne. 8 .and. .not. identical .and. (info%get .or. info%scottFlag)
-			if (interpolate_foot) site1%alphaFlag = alphaFlag .or. targetCurlB_out
 		endif
 
 		if (repeat_flag .or. interpolate_foot) then
@@ -1833,10 +1859,9 @@ do sign_dt = sign_down, sign_up, 2
 				if (info%loopCurlB_out) info%loopCurlB(:,it)=site1%CurlB
 			endif
 
-			if (sum_line) then
+			if (intFlag) then
 				dL = distance(site%v(0:2), site1%v(0:2))
-				if (length_out) info%length = info%length + dL
-				if (alphaFlag) int2alpha = int2alpha + (site%alpha+site1%alpha)*dL
+				int2private = int2private+ (site%private+site1%private)*dL
 			endif
 
 			if (info%q_local_Flag .and. (.not. exist_vr)) then
@@ -1915,7 +1940,7 @@ info%e_yinflag=site_e%yinflag
 if (site_e%yinflag) info%rFe_yin=site_e%v_yin(0:2)
 
 if (info%get) then
-	if (alphaFlag) info%twist = int2alpha * over8pi
+	if (privateFlag) info%int_private= int2private * 0.5
 	if (targetCurlB_out) then
 		info%curlBs=site_s%curlB
 		info%curlBe=site_e%curlB
@@ -2002,7 +2027,7 @@ integer(1), target, allocatable:: rbs(:, :), rbe(:, :)
 integer(1), allocatable:: rboundary(:, :)
 integer(2), allocatable:: sign2d(:, :)! IDL do not have the type of 8-bit signed integer
 real:: deltas(-1:2), delta_i, delta_j, xreg(0:1), yreg(0:1), zreg(0:1), ev3(0:2)
-real, allocatable:: q(:, :), q_perp(:, :), length(:, :), twist(:, :), &
+real, allocatable:: q(:, :), q_perp(:, :), int_private(:, :, :), &
 seed(:, :, :), b_layer(:, :, :), curlb_layer(:, :, :), bnp2d(:, :), &
 bs_layer(:, :, :), be_layer(:, :, :), curlbs_layer(:, :, :), curlbe_layer(:, :, :), &
 q_local(:, :), brn_s(:,:), brn_e(:,:)
@@ -2022,10 +2047,9 @@ contains
 
 subroutine q_bridge(i, j)
 implicit none
-integer:: i, j, ip, its, ite
+integer:: i, j, id, its, ite
 logical:: pole_j
 type(line_info):: info
-character(len=4) ::i_str, j_str
 real:: weight(0:1,0:1,0:1)
 integer:: round(0:1, 0:2)
 !------------------------------------------------------------
@@ -2038,7 +2062,7 @@ info%loopCurlB_out= loopCurlB_out
 info%q_local_Flag= q_local_Flag
 
 if (info%path_out) then
-	ip=i+j*nq1
+	id=i+j*nq1
 	allocate(info%path(0:2,-maxsteps:maxsteps))
 	if (info%loopB_out) allocate(info%loopB(0:2,-maxsteps:maxsteps))
 	if (info%loopCurlB_out) allocate(info%loopCurlB(0:2,-maxsteps:maxsteps))
@@ -2059,19 +2083,19 @@ call trace_bline(seed(:,i,j), info)
 if (info%path_out) then
 	its=info%its
 	ite=info%ite
-	index_seed(ip)= -its
-	loop_size(ip)= ite-its+1
-	allocate(lines(ip)%path(0:2, 0:ite-its))
-	lines(ip)%path = info%path(:, its:ite)
+	index_seed(id)= -its
+	loop_size(id)= ite-its+1
+	allocate(lines(id)%path(0:2, 0:ite-its))
+	lines(id)%path = info%path(:, its:ite)
 	deallocate(info%path)
 	if (info%loopB_out) then 
-		allocate(lines(ip)%loopB(0:2, 0:ite-its))
-		lines(ip)%loopB = info%loopB(:, its:ite)
+		allocate(lines(id)%loopB(0:2, 0:ite-its))
+		lines(id)%loopB = info%loopB(:, its:ite)
 		deallocate(info%loopB)
 	endif
 	if (info%loopCurlB_out) then
-		allocate(lines(ip)%loopCurlB(0:2, 0:ite-its))
-		lines(ip)%loopCurlB = info%loopCurlB(:, its:ite)
+		allocate(lines(id)%loopCurlB(0:2, 0:ite-its))
+		lines(id)%loopCurlB = info%loopCurlB(:, its:ite)
 		deallocate(info%loopCurlB)
 	endif
 endif
@@ -2087,10 +2111,8 @@ if (targetB_flag) then
 	be_layer(:, i, j)=info%be
 endif
 
-if (length_out) length(i, j)=info%length
-if (twist_out) twist(i, j)=info%twist
 if (curlb_out) curlb_layer(:, i, j)=info%curlBp
-
+if (privateFlag) int_private(i, j, :)=info%int_private
 if (targetCurlB_out) then 
 	CurlBs_layer(:, i, j)=info%CurlBs
 	CurlBe_layer(:, i, j)=info%CurlBe
@@ -2145,7 +2167,7 @@ implicit none
 logical:: key_rb16, key_nB, key_trace4, key_diff, local_trace4, local_diff, local_launch, exist_vr
 logical, pointer:: yinFlag(:,:)
 integer:: i, j, k, sign_dt, it, it_end, s_index, e_index, &
-i_dim, i_diff, ip4(1:4), ij(1:2), diff_index(0:2,1:2)
+i_dim, i_diff, id4(1:4), ij(1:2), diff_index(0:2,1:2)
 integer, pointer:: dims(:)
 integer, target :: dims_s(1:2), dims_e(1:2)
 real:: delta_diff(1:2), bn_square, Bn_s, Bn_e, Dmatrix(1:2, 1:2),  &
@@ -2244,10 +2266,10 @@ if (q_local_flag) then
 	local_trace4 =     key_nB .and. (local_s_flag(i,j) .or. local_e_flag(i,j))
 	local_diff = .not. key_nB .and. (local_s_flag(i,j) .or. local_e_flag(i,j)) &
     .and. ((i .ne. 0) .and. (i .ne. iend) .and. (j .ne. 0) .and. (j .ne. jend))
-	site  %alphaFlag=.false.
+	site  %intFlag=.false.
 	site  %scottFlag=.false.
 	site  %scottLaunch=.false.
-	site_r%alphaFlag=.false.
+	site_r%intFlag=.false.
 	site_r%scottFlag=.false.
 	site_r%scottLaunch=.false.
 else
@@ -2523,9 +2545,9 @@ if (key_diff .or. local_diff) then
 	endif
 !------------------------------------------------------------
 	if (local_diff) then
-		ip4= i + j*nq1 + [-1, -nq1, 1, nq1]
+		id4= i + j*nq1 + [-1, -nq1, 1, nq1]
 		do k = 1, 4
-			if (distance(lines(ip4(k))%path(:, index_seed(ip4(k))), vp) .gt. r_local) then
+			if (distance(lines(id4(k))%path(:, index_seed(id4(k))), vp) .gt. r_local) then
 				 local_diff  = .false.
 				 local_launch= .false.
 				 exit
@@ -2536,15 +2558,15 @@ if (key_diff .or. local_diff) then
 					it_end= 0
 				else
 					if (.not. local_e_flag(i,j)) cycle
-					it_end= loop_size(ip4(k))-1
+					it_end= loop_size(id4(k))-1
 				endif
 
-				do it = index_seed(ip4(k))+sign_dt, it_end, sign_dt
+				do it = index_seed(id4(k))+sign_dt, it_end, sign_dt
 
-					exist_vr= distance(lines(ip4(k))%path(:, it), vp) .ge. r_local
+					exist_vr= distance(lines(id4(k))%path(:, it), vp) .ge. r_local
 					if (exist_vr) then
-						site  %v(0:2)= lines(ip4(k))%path(:, it-sign_dt)
-						site_r%v(0:2)= lines(ip4(k))%path(:, it)
+						site  %v(0:2)= lines(id4(k))%path(:, it-sign_dt)
+						site_r%v(0:2)= lines(id4(k))%path(:, it)
 						site%yinFlag=.false.
 						call interpolate(site, .false.)
 						call locate_path_r(vp, site, site_r, sign_dt, vr2vp)
@@ -2696,8 +2718,7 @@ do j= 0, jend, jend
 		rFe(:, i, j)=rFe(:, 0, j)
 		rboundary(i, j)=rboundary(0, j)
 		b_layer(:, i, j)=b_layer(:, 0, j)
-		if (length_out) length(i, j)=length(0, j)
-		if (twist_out) twist(i, j)=twist(0, j)
+		if (privateFlag) int_private(i, j, :)=int_private(0, j, :)
 		if (curlb_out) curlb_layer(:, i, j)=curlb_layer(:, 0, j)
 		
 		if (targetB_flag) then 
@@ -3015,14 +3036,16 @@ logical:: qflag, verbose, launch_out
 real:: tcalc
 integer:: i, k, nthreads, i2end, OMP_GET_NUM_PROCS, tnow, tend
 integer(8), allocatable:: indexes(:)
+integer(1):: ip
+character(len=1) ::str_ip
 !------------------------------------------------------------
 open(1, file='head.bin', access='stream', status='old')
 read(1) step, tol, r_local, maxsteps, RK4Flag, inclineFlag, &
-        launch_out, B_out, CurlB_out, length_out, twist_out, &
+        launch_out, B_out, CurlB_out, &
 		rF_out, targetB_out, targetCurlB_out, &
 		path_out, loopB_out, loopCurlB_out, &
 		sflag, bflag, cflag, vflag, nthreads, scottFlag, &
-		verbose, keep_tmp, magnetogram_out
+		verbose, keep_tmp, magnetogram_out, int_private_out
 close(1, status='delete')
 !------------------------------------------------------------
 if (verbose) call system_clock(tnow)
@@ -3059,8 +3082,8 @@ if (nthreads .gt. OMP_GET_NUM_PROCS()) nthreads=OMP_GET_NUM_PROCS()
 if (nthreads .eq. 0) nthreads=OMP_GET_NUM_PROCS()-2
 CALL OMP_set_num_threads(nthreads)
 
+privateFlag=any(int_private_out)
 traceflag = maxsteps .ne. 0
-curlB_field_Flag = twist_out .or. curlB_out .or. targetCurlB_out .or. loopCurlB_out
 dbdc_field_Flag  = traceflag .and. .not. (sflag .and. scottFlag .and. nq1 .le. 1000)
 
 call readB
@@ -3124,9 +3147,8 @@ if (targetB_flag) then
 	allocate(bs_layer(0:2, 0:iend, 0:jend))
 	allocate(be_layer(0:2, 0:iend, 0:jend))
 endif
-if (length_out) allocate(length(0:iend, 0:jend))
-if (twist_out)  allocate( twist(0:iend, 0:jend))
-if (scottFlag) 	allocate(q_perp(0:iend, 0:jend))
+if (privateFlag) allocate(int_private(0:iend, 0:jend, 0:9))
+if (scottFlag) allocate(q_perp(0:iend, 0:jend))
 if (diff_flag) then
 	allocate(rbs(0:iend, 0:jend))
 	allocate(rbe(0:iend, 0:jend))
@@ -3162,16 +3184,14 @@ if (verbose) then
 endif
 !------------------------------------------------------------
 ! Fortran use unit 0 for error, unit 5 for input (keyboard) and unit 6 for output (screen), these units should not be used
-! unit 1 is used in compute_layer
-! if traceflag is .false., scottFlag, twist_out, length_out, rF_out are already set to .false. in fastqsl.pro
+! unit 1 is used in compute_layer, if traceflag is .false., scottFlag, int_private_out, rF_out 
+! are already set to .false. in fastqsl.pro/fastqsl.py
 
 qflag= traceflag .and. (diff_flag .or. scottFlag)
 
 if (traceflag)       open(2,  file='rboundary.bin', access='stream', status='replace')
 if (qflag)           open(3,  file='q.bin',         access='stream', status='replace')
 if (scottFlag)       open(4,  file='q_perp.bin',    access='stream', status='replace')
-if (twist_out)       open(7,  file='twist.bin',     access='stream', status='replace')
-if (length_out)      open(8,  file='length.bin',    access='stream', status='replace')
 if (rF_out)          open(9,  file='rFs.bin',       access='stream', status='replace')
 if (rF_out)          open(10, file='rFe.bin',       access='stream', status='replace')
 if (b_out)           open(11, file='B.bin',         access='stream', status='replace')
@@ -3187,12 +3207,19 @@ if (sflag)           open(17, file='seed.bin',      access='stream', status='old
 if (q_local_Flag)    open(18, file='q_local.bin',   access='stream', status='replace')
 
 if (path_out) then
-                     open(19, file='index_seed.bin',access='stream', status='replace')
-                     open(20, file='indexes.bin',   access='stream', status='replace')
-                     open(21, file='path.bin',      access='stream', status='replace')
-if (loopB_out)       open(22, file='loopB.bin',     access='stream', status='replace')
-if (loopCurlB_out)   open(23, file='loopCurlB.bin', access='stream', status='replace')
+                     open(20, file='index_seed.bin',access='stream', status='replace')
+                     open(21, file='indexes.bin',   access='stream', status='replace')
+                     open(22, file='path.bin',      access='stream', status='replace')
+if (loopB_out)       open(23, file='loopB.bin',     access='stream', status='replace')
+if (loopCurlB_out)   open(24, file='loopCurlB.bin', access='stream', status='replace')
 endif
+
+do ip=0, 9
+	if (int_private_out(ip)) then
+		write(str_ip,"(i0)") ip
+		open(30+ip, file='int_private'//trim(str_ip)//'.bin', access='stream', status='replace')
+	endif
+enddo
 
 do k=0, nq3-1
 	if (verbose .and. mod(k, nthreads) .eq. 0) call show_time(float(k)/nq3*100.0)
@@ -3212,8 +3239,6 @@ do k=0, nq3-1
 	if (traceflag)       write(2)  rboundary
 	if (qflag)           write(3)  q
 	if (scottFlag)       write(4)  q_perp
-	if (twist_out)       write(7)  twist
-	if (length_out)      write(8)  length
 	if (rF_out)          write(9)  rFs
 	if (rF_out)          write(10) rFe
 	if (b_out)           write(11) b_layer
@@ -3226,25 +3251,25 @@ do k=0, nq3-1
     if (q_local_Flag)    write(18) q_local
 
 	if (path_out) then
-		write(19) index_seed
+		write(20) index_seed
 
 		do i=1, i2end
 			indexes(i)=indexes(i-1)+loop_size(i-1)
 		enddo
-		write(20) indexes
+		write(21) indexes
 		indexes(0)=indexes(i2end)+loop_size(i2end)
 
 		do i=0, i2end
-			write(21) lines(i)%path
+			write(22) lines(i)%path
 		enddo
 		if (loopB_out) then
 			do i=0, i2end
-				write(22) lines(i)%loopB
+				write(23) lines(i)%loopB
 			enddo
 		endif
 		if (loopCurlB_out) then
 			do i=0, i2end
-				write(23) lines(i)%loopCurlB
+				write(24) lines(i)%loopCurlB
 			enddo
 		endif
 	endif
@@ -3256,13 +3281,16 @@ do k=0, nq3-1
 			if (loopCurlB_out) deallocate(lines(i)%loopCurlB)
 		enddo
 	endif
+	
+	do ip=0, 9
+		if (int_private_out(ip)) write(30+ip) int_private(:,:,ip)
+	enddo
+	
 enddo
 
 if (traceflag)             close(2)
 if (qflag)                 close(3)
 if (scottFlag)             close(4)
-if (twist_out)             close(7)
-if (length_out)            close(8)
 if (rF_out)                close(9)
 if (rF_out)                close(10)
 if (b_out)                 close(11)
@@ -3272,16 +3300,20 @@ if (targetB_out)           close(14)
 if (targetCurlB_out)       close(15)
 if (targetCurlB_out)       close(16)
 if (launch_out .or. sflag) close(17)
-if (q_local_Flag)          close(18)
+if (q_local_Flag)          close(18) 
 
 if (path_out) then
-                           close(19)
-write(20) indexes(0)
                            close(20)
+write(21) indexes(0)
                            close(21)
-if (loopB_out)             close(22)
-if (loopCurlB_out)         close(23)
+                           close(22)
+if (loopB_out)             close(23)
+if (loopCurlB_out)         close(24)
 endif
+
+do ip=0, 9
+	if (int_private_out(ip)) close(30+ip)
+enddo
 !------------------------------------------------------------
 ! house keeping
 deallocate(q, rboundary, rFs, rFe, b_layer, seed, Bfield)
@@ -3297,8 +3329,7 @@ if (q_local_Flag) then
 	deallocate(q_local)
 	if (diff_flag) deallocate(local_s_flag, local_e_flag, brn_s, brn_e)
 endif
-if (twist_out) deallocate(twist)
-if (length_out) deallocate(length)
+if (privateFlag) deallocate(int_private)
 if ( dbdc_field_Flag) deallocate( dbdc_field)
 if (curlB_field_Flag) deallocate(curlB_field)
 if (stretchFlag) then

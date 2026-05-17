@@ -1,15 +1,16 @@
-PRO fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, spherical=spherical,                $
-            xperiod=xperiod, yperiod=yperiod, zperiod=zperiod,                    $
-            xreg=xreg, yreg=yreg, zreg=zreg, csFlag=csFlag,                       $
-            factor=factor, delta=delta, lon_delta=lon_delta, lat_delta=lat_delta, $
-            r_delta=r_delta, arc_delta=arc_delta, seed=seed,                      $
-            RK4Flag=RK4Flag, step=step, tol=tol, maxsteps=maxsteps,               $
-            scottFlag=scottFlag, inclineFlag=inclineFlag, r_local=r_local,        $
-            silent=silent, nthreads=nthreads, B_out=B_out, CurlB_out=CurlB_out,   $
-            length_out=length_out, twist_out=twist_out, rF_out=rF_out,            $
-            targetB_out=targetB_out, targetCurlB_out=targetCurlB_out,             $
-            path_out=path_out, loopB_out=loopB_out, loopCurlB_out=loopCurlB_out,  $
-            odir=odir, fname=fname, save_file=save_file, compress=compress,       $
+PRO fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, spherical=spherical,                  $
+            xperiod=xperiod, yperiod=yperiod, zperiod=zperiod,                      $
+            xreg=xreg, yreg=yreg, zreg=zreg, csFlag=csFlag,                         $
+            factor=factor, delta=delta, lon_delta=lon_delta, lat_delta=lat_delta,   $
+            r_delta=r_delta, arc_delta=arc_delta, seed=seed,                        $
+            RK4Flag=RK4Flag, step=step, tol=tol, maxsteps=maxsteps,                 $
+            scottFlag=scottFlag, inclineFlag=inclineFlag, r_local=r_local,          $
+            silent=silent, nthreads=nthreads, B_out=B_out, CurlB_out=CurlB_out,     $
+            rF_out=rF_out, targetB_out=targetB_out, targetCurlB_out=targetCurlB_out,$
+            path_out=path_out, loopB_out=loopB_out, loopCurlB_out=loopCurlB_out,    $
+			Ax=Ax, Ay=Ay, Az=Az, length_out=length_out, twist_out=twist_out,        $
+			int_curlB2_out=int_curlB2_out, int_curlBoB_out=int_curlBoB_out,         $
+            odir=odir, fname=fname, save_file=save_file, compress=compress,         $
             preview=preview, tmp_dir=tmp_dir, keep_tmp=keep_tmp, qsl=qsl
 ;------------------------------------------------------------
 ; the temporary directory for the data transmission between fastqsl.x and fastqsl.pro
@@ -46,9 +47,9 @@ endif else file_mkdir, tmp_dir
 ; magnetic field
 get_lun, unit
 if BtmpFlag then begin
-	nx=0L & ny=0L & nz=0L & spherical=0L & B3flag=0L & xperiod=0L & yperiod=0L & zperiod=0L
+	nx=0L & ny=0L & nz=0L & spherical=0L & dummy=lonarr(5)
 	openr, unit, tmp_dir+'bfield.bin'
-	readu, unit, nx, ny, nz, stretchFlag, spherical, B3flag, xperiod, yperiod, zperiod
+	readu, unit, nx, ny, nz, stretchFlag, spherical, dummy
 	if stretchFlag then begin
 		xa= fltarr(nx) & ya= fltarr(ny) & za= fltarr(nz)
 		readu, unit, xa, ya, za
@@ -62,13 +63,19 @@ endif else begin
 		sby=size(By) & sbz=size(Bz)
 		if sbx[0] ne 3 or sby[0] ne 3 or sbz[0] ne 3 then message, 'Bx, By and Bz must be 3D arrays!'
 		if sbx[1] ne sby[1] or sbx[1] ne sbz[1] or $
-		sbx[2] ne sby[2] or sbx[2] ne sbz[2] or $
-		sbx[3] ne sby[3] or sbx[3] ne sbz[3] then message, 'Bx, By and Bz must have the same dimensions!'
+		   sbx[2] ne sby[2] or sbx[2] ne sbz[2] or $
+		   sbx[3] ne sby[3] or sbx[3] ne sbz[3] then message, 'Bx, By and Bz must have the same dimensions!'
 		nx=sbz[1] & ny=sbz[2] & nz=sbz[3]
+
+		Bvec=fltarr(3, nx, ny, nz)
+		Bvec[0,*,*,*]=Bx
+		Bvec[1,*,*,*]=By
+		Bvec[2,*,*,*]=Bz
 	endif else begin 
 		; the dimensions of Bx are (3,nx,ny,nz)
 		if sbx[0] ne 4 or sbx[1] ne 3 then message, 'Something is wrong with the magnetic field'
 		nx=sbx[2] & ny=sbx[3] & nz=sbx[4]
+		Bvec=float(Bx)
 	endelse
 
 	stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
@@ -96,12 +103,27 @@ endif else begin
 		endelse
 	endelse
 
-	openw,  unit, tmp_dir+'bfield.bin'
-	writeu, unit, long([nx, ny, nz, stretchFlag, spherical, B3Flag, xperiod, yperiod, zperiod])
-	if stretchFlag then writeu, unit, float(xa), float(ya), float(za)
-	writeu, unit, float(Bx)
-	if B3Flag then writeu, unit, float(By), float(Bz)
-	close,  unit
+	if keyword_set(Ax) then begin
+		sax=size(Ax)
+		if keyword_set(Ay) and keyword_set(Az) then begin
+			say=size(Ay) & saz=size(Az)
+			if sax[0] ne 3 or say[0] ne 3 or saz[0] ne 3 then message, 'Ax, Ay and Az must be 3D arrays!'
+			if sax[1] ne nx or sax[2] ne ny or sax[3] ne nz or $
+			   say[1] ne nx or say[2] ne ny or say[3] ne nz or $
+			   saz[1] ne nx or saz[2] ne ny or saz[3] ne nz then message, 'Ax, Ay and Az must have the same dimensions!'
+			Avec=fltarr(3, nx, ny, nz)
+			Avec[0,*,*,*]=Ax
+			Avec[1,*,*,*]=Ay
+			Avec[2,*,*,*]=Az
+		endif else begin
+			if sax[0] ne 4 or sax[1] ne 3 then $
+			message, 'Something is wrong with the additional field'
+			if sax[1] ne nx or sax[2] ne ny or sax[3] ne nz then $
+			message, 'Something is wrong with the additional field'
+			Avec=float(Ax)
+		endelse
+		AfieldFlag=1L
+	endif else AfieldFlag=0L
 endelse
 ;------------------------------------------------------------
 ; understand the output grid
@@ -227,8 +249,6 @@ B_out           = keyword_set(B_out)
 CurlB_out       = keyword_set(CurlB_out)
 
 scottFlag       = keyword_set(scottFlag)   and (maxsteps ne 0)
-twist_out       = keyword_set(twist_out)   and (maxsteps ne 0)
-length_out      = keyword_set(length_out)  and (maxsteps ne 0)
 
 rF_out          = keyword_set(rF_out)      and (maxsteps ne 0)
 targetB_out     = keyword_set(targetB_out) and (maxsteps ne 0)
@@ -241,6 +261,21 @@ path_out        = keyword_set(path_out) and (maxsteps ne 0) and out_dim lt 3
 loopB_out       = keyword_set(loopB_out) and path_out
 loopCurlB_out   = keyword_set(loopCurlB_out) and path_out
 
+; string array with 1-10 elements
+int_private_name=['length', 'twist', 'int_curlB2', 'int_curlBoB']
+nprivate=n_elements(int_private_name)
+
+; int array with 10 elements
+int_private_out=lonarr(10)
+int_private_out[0]= (maxsteps ne 0) and keyword_set(length_out)
+int_private_out[1]= (maxsteps ne 0) and keyword_set(twist_out)
+int_private_out[2]= (maxsteps ne 0) and keyword_set(int_curlB2_out)
+int_private_out[3]= (maxsteps ne 0) and keyword_set(int_curlBoB_out)
+; int_private_out[4]= (maxsteps ne 0) and keyword_set(line_helicity_out) and AfieldFlag
+
+curlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out $
+or int_private_out[1] or int_private_out[2] or int_private_out[3]
+
 preview         = keyword_set(preview)
 save_file       = keyword_set(save_file)
 verbose         =~keyword_set(silent)
@@ -248,14 +283,25 @@ keep_tmp        = keyword_set(keep_tmp)
 magnetogram_out = preview and ((BtmpFlag and ~file_test(tmp_dir+'magnetogram.bin')) or stretchFlag)
 ;------------------------------------------------------------
 ;  transmit the configure of computation to fastqsl.x
+if ~BtmpFlag then begin
+	openw,  unit, tmp_dir+'bfield.bin'
+	writeu, unit, long([nx, ny, nz, stretchFlag, spherical, $
+	xperiod, yperiod, zperiod, curlB_field_Flag, AfieldFlag])
+	if stretchFlag then writeu, unit, float(xa), float(ya), float(za)
+	writeu, unit, temporary(Bvec)
+	if AfieldFlag then $
+	writeu, unit, temporary(Avec)
+	close,  unit
+endif
+
 openw,  unit, tmp_dir+'head.bin'
 writeu, unit, float([step, tol, r_local]), $
               long([maxsteps, RK4Flag, inclineFlag, $
-              launch_out, B_out, CurlB_out, length_out, twist_out, $
+              launch_out, B_out, CurlB_out, $
 		      rF_out, targetB_out, targetCurlB_out, $
 			  path_out, loopB_out, loopCurlB_out, $
 			  sFlag, bFlag, cFlag, vFlag, nthreads, scottFlag, $
-			  verbose, keep_tmp, magnetogram_out])
+			  verbose, keep_tmp, magnetogram_out, int_private_out])
 close,  unit
 
 if sFlag then begin
@@ -277,9 +323,8 @@ endelse
 ; computed by fastqsl.x
 cd, tmp_dir
 ; please specify the path
-spawn, '~/Desktop/QSLS/update/fastqsl.x'
-; spawn, '/data/QSLS/update/fastqsl.x'
-; spawn, '/path/of/fastqsl.x'
+; spawn, '~/Desktop/QSLS/update/fastqsl.x'
+spawn, '/path/of/fastqsl.x'
 cd, cdir
 ; ################################### retrieving results ######################################
 ; make the structure QSL
@@ -305,10 +350,6 @@ qsl_data0=[ $
 ['q_local', array_float], $
 ['rboundary', array_byte], $
 ['sign2d', 'intarr(nq1, nq2)'], $
-['length', array_float], $
-['twist', array_float], $
-['Int_CurlB2', array_float], $
-['Int_CurlBoB', array_float], $
 ['B', array_vfloat], $
 ['CurlB', array_vfloat], $
 ['rFs', array_vfloat], $
@@ -321,6 +362,15 @@ qsl_data0=[ $
 ['loopB', array_ptr], $
 ['loopCurlB', array_ptr], $
 ['index_seed', array_long]]
+
+for i=0, nprivate-1 do begin
+	file_orig=tmp_dir+'int_private'+string(i, '(i0)')+'.bin'
+	if file_test(file_orig) then begin
+		if int_private_name[i] ne 'int_private'+string(i, '(i0)') then $
+		file_move, file_orig, tmp_dir+int_private_name[i]+'.bin'
+		qsl_data0=[[qsl_data0], [int_private_name[i], array_float]]
+	endif
+endfor
 
 if ~sFlag then begin
 	nq1=0L & nq2=0L & nq3=0L & normal_index=0L
@@ -397,6 +447,8 @@ cd, cdir
 
 qsl_structure, QSL, nq1, nq2, nq3, xreg, yreg, zreg, $
 delta, arc_delta, lon_delta, lat_delta, r_delta, step, tol, r_local
+
+qsl_tags=tag_names(qsl)
 ;------------------------------------------------------------
 ; the directory for output
 if preview or save_file then begin
@@ -580,7 +632,7 @@ set_plot, cur_device
 
 if verbose then print, odir+fname+'_magnetogram.png'
 ;------------------------------------------------------------
-; preview q/q_perp, length, twist
+; preview q/q_perp, int_private
 
 ; if vFlag and the bottom plane is included, 'sign2d.bin' also can be found
 plot_bottom=file_test(tmp_dir+'sign2d.bin')
@@ -705,20 +757,47 @@ if (maxsteps ne 0 and (out_dim eq 2 or plot_bottom)) then begin
 		if verbose then print, odir+fname+'_lg_Bnr.png'
 	endif
 
-	if length_out and out_dim eq 2 then begin
-		if stretchFlag then length_top=2.*(za[nz-1]-za[0]) else length_top=2.*(nz-1)
-		im=bytscl(qsl.length, min=0, max=length_top, /nan)
-		write_png, odir+fname+'_length.png', im
-		if verbose then print, odir+fname+'_length.png'
-	endif
+	if out_dim eq 2 then begin
+	for j=0, nprivate-1 do begin
+		if int_private_out[j] then begin
 
-	if twist_out and out_dim eq 2 then begin
-		twist_tmp=qsl.twist
-		abnormal=WHERE(~FINITE(twist_tmp))
-		if (abnormal[0] ne -1) then twist_tmp[abnormal]=0. ; 0. for white color
-		im=bytscl(twist_tmp, min=-2, max=2)
-		write_png, odir+fname+'_twist.png', im, r_doppler, g_doppler, b_doppler
-		if verbose then print, odir+fname+'_twist.png'
+			int_name=int_private_name[j]
+			png_file=odir+fname+'_'+int_name+'.png'
+
+			for i=0, n_tags(qsl)-1 do begin
+				if strlowcase(qsl_tags[i]) eq strlowcase(int_name) then begin
+					int_tmp=qsl.(i)
+					abnormal=WHERE(~FINITE(int_tmp))
+					if (abnormal[0] ne -1) then int_tmp[abnormal]=0.
+					
+					if int_name eq 'length' then begin
+						if stretchFlag then int_top=2.*(za[nz-1]-za[0]) else int_top=2.*(nz-1)
+						doppler_Flag=0
+					endif else if int_name eq 'twist' then begin
+						int_top=2.
+						doppler_Flag=1
+					endif else if min(qsl.(i)) lt 0. then begin
+						int_top=max(abs(min(qsl.(i))), max(qsl.(i)))/2.
+						doppler_Flag=1
+					endif else begin
+						int_top=max(qsl.(i))/2.
+						doppler_Flag=0
+					endelse
+
+					if doppler_Flag then begin
+						im=bytscl(int_tmp, min=-int_top, max=int_top)
+						write_png, png_file, im, r_doppler, g_doppler, b_doppler
+					endif else begin
+						im=bytscl(int_tmp, min=0., max=int_top)
+						write_png, png_file, im
+					endelse
+
+					if verbose then print, png_file
+				break
+				endif
+			endfor
+		endif
+	endfor
 	endif
 endif
 endif ; preview
@@ -738,7 +817,6 @@ endif
 if (verbose) then begin
 	print, ''
 	print, 'Elements in qsl:'
-	names=tag_names(qsl)
 	for i=0, n_tags(qsl)-1 do begin
 		tname_i=size(qsl.(i),/tname)
 		type_tail=string('', '(A'+string(8-strlen(tname_i),'(A)')+')')
@@ -749,8 +827,8 @@ if (verbose) then begin
 			for j=1, sz_i[0]-1 do content=content+string(sz_i[j], '(i0)')+', '
 			content=content+string(sz_i(sz_i[0]), '(i0)')+']'
 		endif else content=qsl.(i)
-		name_tail=string('', '(A'+string(15-strlen(names[i]),'(A)')+')')
-		print, 'qsl.'+strlowcase(names[i])+name_tail+tname_i+type_tail, content
+		name_tail=string('', '(A'+string(15-strlen(qsl_tags[i]),'(A)')+')')
+		print, 'qsl.'+strlowcase(qsl_tags[i])+name_tail+tname_i+type_tail, content
 	endfor
 	if save_file then begin
 		print, "Try:"
