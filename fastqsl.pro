@@ -323,8 +323,8 @@ endelse
 ; computed by fastqsl.x
 cd, tmp_dir
 ; please specify the path
-; spawn, '~/Desktop/QSLS/update/fastqsl.x'
-spawn, '/path/of/fastqsl.x'
+spawn, '~/Desktop/QSLS/update/fastqsl.x'
+; spawn, '/path/of/fastqsl.x'
 cd, cdir
 ; ################################### retrieving results ######################################
 ; make the structure QSL
@@ -776,14 +776,14 @@ if (maxsteps ne 0 and (out_dim eq 2 or plot_bottom)) then begin
 					endif else if int_name eq 'twist' then begin
 						int_top=2.
 						doppler_Flag=1
-					endif else if min(qsl.(i)) lt 0. then begin
-						int_top=max(abs(min(qsl.(i))), max(qsl.(i)))/2.
+					endif else if min(int_tmp) lt 0. then begin
+						int_top=max(abs(min(int_tmp)), max(int_tmp))/2.
 						doppler_Flag=1
 					endif else begin
-						int_top=max(qsl.(i))/2.
+						int_top=max(int_tmp)/2.
 						doppler_Flag=0
 					endelse
-
+					
 					if doppler_Flag then begin
 						im=bytscl(int_tmp, min=-int_top, max=int_top)
 						write_png, png_file, im, r_doppler, g_doppler, b_doppler
