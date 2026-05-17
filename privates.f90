@@ -12,8 +12,7 @@ privates(1)= sum(CurlBp*Bp)/(4.*pi*sum(Bp*Bp))
 privates(2)= sum(CurlBp*CurlBp)
 
 ! |CurlB|/|B|; norm2s() is faster than norm2()
-! privates(3)= norm2s(CurlBp)/norm2s(Bp) 
-privates(3)= norm2s(CurlBp)/norm2s(Ap)
+privates(3)= norm2s(CurlBp)/norm2s(Bp) 
 
 ! A \ cdot b
 ! privates(4) = sum (Ap*Bp/ norm2s (Bp))
