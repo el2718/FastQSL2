@@ -777,7 +777,7 @@ if (maxsteps ne 0 and (out_dim eq 2 or plot_bottom)) then begin
 						int_top=2.
 						doppler_Flag=1
 					endif else if min(int_tmp) lt 0. then begin
-						int_top=max(abs(min(int_tmp)), max(int_tmp))/2.
+						int_top=max([abs(min(int_tmp)), max(int_tmp)])/2.
 						doppler_Flag=1
 					endif else begin
 						int_top=max(int_tmp)/2.
