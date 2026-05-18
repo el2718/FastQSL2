@@ -873,8 +873,7 @@ logical:: RK4flag, diff_flag, inclineFlag, traceflag, int_private_out(0:9), priv
 B_out, CurlB_out, rf_out, targetB_out, targetCurlB_out
 real:: a21, a31, a32, a41, a42, a43, a51, a52, a53, a54, a61, a62, a63, a64, a65, &
 b1, b3, b4, b5, b6, ce1, ce3, ce4, ce5, ce6, &                   ! for RKF45
-step, min_step, max_step, min_step_foot, tol, min_incline, &
-over8pi, r_local, r_local_square
+step, min_step, max_step, min_step_foot, tol, min_incline, r_local, r_local_square
 ! r: remote; b:boundary, F:foot; s/e: start/end, where B vector points to inside/outside
 ! rbs/rbe: boundary mark for start/end point of the field line, see subroutine trim_size
 ! rFs/rFe: coordinates of the start/end point of the field line
@@ -1811,11 +1810,11 @@ endif
 !------------------------------------------------------------
 site_a%scottLaunch=.false.
 site_a%scottFlag=info%scottFlag
+site_a%intFlag=intFlag
+site_a%curlBFlag= curlBFlag
 site_b%scottLaunch=.false.
 site_b%scottFlag=info%scottFlag
-site_a%intFlag=intFlag
 site_b%intFlag=intFlag
-site_a%curlBFlag= curlBFlag
 site_b%curlBFlag= curlBFlag
 
 do sign_dt = sign_down, sign_up, 2
@@ -1861,7 +1860,7 @@ do sign_dt = sign_down, sign_up, 2
 
 			if (intFlag) then
 				dL = distance(site%v(0:2), site1%v(0:2))
-				int2private = int2private+ (site%private+site1%private)*dL
+				int2private = int2private + (site%private+site1%private)*dL
 			endif
 
 			if (info%q_local_Flag .and. (.not. exist_vr)) then
@@ -3051,7 +3050,6 @@ close(1, status='delete')
 if (verbose) call system_clock(tnow)
 NaN = transfer(2143289344, 1.0)
 pi = 3.141592653589793
-over8pi = 1./(8.0*pi)
 half_pi=pi/2.
 two_pi =pi*2.
 !------------------------------------------------------------
