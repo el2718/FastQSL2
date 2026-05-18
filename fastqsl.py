@@ -186,8 +186,6 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     if maxsteps is None: maxsteps=int(4*(nx+ny+nz)/step) if RK4Flag else 4*(nx+ny+nz)
 
     scottFlag       = scottFlag and (maxsteps != 0)
-    twist_out       = twist_out and (maxsteps != 0)
-    length_out      = length_out and (maxsteps != 0)
 
     rF_out          = rF_out and (maxsteps != 0)
     targetB_out     = targetB_out and (maxsteps != 0)
@@ -264,7 +262,7 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     # please specify the path
     # the following r can avoid the potential problem of '\n' from os.sep ='\' in Windows
     subprocess.run(r'/path/of/fastqsl.x', shell=True)
-    # subprocess.run(r'~/Desktop/QSLS/update/fastqsl.x', shell=True)
+    
     os.chdir(cdir)
 # ################################### retrieving results ######################################
 # make the dictionary qsl
