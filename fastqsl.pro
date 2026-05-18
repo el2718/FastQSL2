@@ -8,8 +8,9 @@ PRO fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, spherical=spherical,              
             silent=silent, nthreads=nthreads, B_out=B_out, CurlB_out=CurlB_out,     $
             rF_out=rF_out, targetB_out=targetB_out, targetCurlB_out=targetCurlB_out,$
             path_out=path_out, loopB_out=loopB_out, loopCurlB_out=loopCurlB_out,    $
-			Ax=Ax, Ay=Ay, Az=Az, length_out=length_out, twist_out=twist_out,        $
-			int_curlB2_out=int_curlB2_out, int_curlBoB_out=int_curlBoB_out,         $
+            Ax=Ax, Ay=Ay, Az=Az, length_out=length_out, twist_out=twist_out,        $
+            int_curlB2_out=int_curlB2_out, int_curlBoB_out=int_curlBoB_out,         $
+            kt_twist_out=kt_twist_out, $
             odir=odir, fname=fname, save_file=save_file, compress=compress,         $
             preview=preview, tmp_dir=tmp_dir, keep_tmp=keep_tmp, qsl=qsl
 ;------------------------------------------------------------
@@ -262,7 +263,7 @@ loopB_out       = keyword_set(loopB_out) and path_out
 loopCurlB_out   = keyword_set(loopCurlB_out) and path_out
 
 ; string array with 1-10 elements
-int_private_name=['length', 'twist', 'int_curlB2', 'int_curlBoB']
+int_private_name=['length', 'twist', 'int_curlB2', 'int_curlBoB', 'kt_twist']
 nprivate=n_elements(int_private_name)
 
 ; int array with 10 elements
@@ -271,10 +272,11 @@ int_private_out[0]= (maxsteps ne 0) and keyword_set(length_out)
 int_private_out[1]= (maxsteps ne 0) and keyword_set(twist_out)
 int_private_out[2]= (maxsteps ne 0) and keyword_set(int_curlB2_out)
 int_private_out[3]= (maxsteps ne 0) and keyword_set(int_curlBoB_out)
+int_private_out[4]= (maxsteps ne 0) and keyword_set(kt_twist_out)
 ; int_private_out[4]= (maxsteps ne 0) and keyword_set(line_helicity_out) and AfieldFlag
 
 curlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out $
-or int_private_out[1] or int_private_out[2] or int_private_out[3]
+or int_private_out[1] or int_private_out[2] or int_private_out[3] or int_private_out[4]
 
 preview         = keyword_set(preview)
 save_file       = keyword_set(save_file)
@@ -417,24 +419,25 @@ printf, unit, 'free_lun, unit, /force'
 strs='QSL={ $'
 
 if maxsteps ne 0 then $
-if rk4Flag then strs=[strs, 'step:float(step), $'] else strs=[strs, 'tol:float(tol), $'] 
+if rk4Flag then strs=[strs, 'step:float(step)'] else strs=[strs, 'tol:float(tol)'] 
 
 if ~sFlag then begin
 	if spherical then begin
-		strs=[strs, 'lon_reg:xreg, $','lat_reg:yreg, $','r_reg:zreg, $']
-		if normal_index eq -1 then strs=[strs, 'arc_delta:float(arc_delta), $']
-		if normal_index eq 0 or normal_index eq 2 then strs=[strs, 'lat_delta:float(lat_delta), $']
-		if normal_index eq 1 or normal_index eq 2 then strs=[strs, 'lon_delta:float(lon_delta), $']
-		if (normal_index ne 2) or vFlag then strs=[strs, 'r_delta:float(r_delta), $']
-	endif else strs=[strs, 'xreg:xreg, $','yreg:yreg, $','zreg:zreg, $','delta:float(delta), $']
+		strs=[strs, 'lon_reg:xreg','lat_reg:yreg','r_reg:zreg']
+		if normal_index eq -1 then strs=[strs, 'arc_delta:float(arc_delta)']
+		if normal_index eq 0 or normal_index eq 2 then strs=[strs, 'lat_delta:float(lat_delta)']
+		if normal_index eq 1 or normal_index eq 2 then strs=[strs, 'lon_delta:float(lon_delta)']
+		if (normal_index ne 2) or vFlag then strs=[strs, 'r_delta:float(r_delta)']
+	endif else strs=[strs, 'xreg:xreg','yreg:yreg','zreg:zreg','delta:float(delta)']
 endif
 
-if file_test(tmp_dir+'q_local.bin') then strs=[strs,'r_local:float(r_local), $']
+if file_test(tmp_dir+'q_local.bin') then strs=[strs,'r_local:float(r_local)']
 
-for i=0, n_data-1 do strs=[strs, qsl_data[i]+':'+qsl_data[i]+', $']
+for i=0, n_data-1 do strs=[strs, qsl_data[i]+':'+qsl_data[i]]
 
 n_strs=n_elements(strs)
-strs[n_strs-1]=(strsplit(strs[n_strs-1],',',/extract))[0]+'}'
+for i=1, n_strs-2 do strs[i]=strs[i]+', $'
+strs[n_strs-1]=strs[n_strs-1]+'}'
 for i=0, n_strs-1 do printf, unit, strs[i]
 
 printf, unit, 'end'
