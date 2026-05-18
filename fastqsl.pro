@@ -436,9 +436,9 @@ if file_test(tmp_dir+'q_local.bin') then strs=[strs,'r_local:float(r_local)']
 for i=0, n_data-1 do strs=[strs, qsl_data[i]+':'+qsl_data[i]]
 
 n_strs=n_elements(strs)
-for i=1, n_strs-2 do strs[i]=strs[i]+', $'
-strs[n_strs-1]=strs[n_strs-1]+'}'
-for i=0, n_strs-1 do printf, unit, strs[i]
+printf, unit, strs[0]
+for i=1, n_strs-2 do printf, unit, strs[i]+', $'
+printf, unit, strs[n_strs-1]+'}'
 
 printf, unit, 'end'
 close,  unit
