@@ -8,9 +8,9 @@ PRO fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, spherical=spherical,              
             silent=silent, nthreads=nthreads, B_out=B_out, CurlB_out=CurlB_out,     $
             rF_out=rF_out, targetB_out=targetB_out, targetCurlB_out=targetCurlB_out,$
             path_out=path_out, loopB_out=loopB_out, loopCurlB_out=loopCurlB_out,    $
-            Ax=Ax, Ay=Ay, Az=Az, length_out=length_out, twist_out=twist_out,        $
+            CurlBx=CurlBx, CurlBy=CurlBy, CurlBz=CurlBz, Ax=Ax, Ay=Ay, Az=Az,       $
+			length_out=length_out, twist_out=twist_out,                             $
             int_curlB2_out=int_curlB2_out, int_curlBoB_out=int_curlBoB_out,         $
-            kt_twist_out=kt_twist_out, $
             odir=odir, fname=fname, save_file=save_file, compress=compress,         $
             preview=preview, tmp_dir=tmp_dir, keep_tmp=keep_tmp, qsl=qsl
 ;------------------------------------------------------------
@@ -28,7 +28,7 @@ if keyword_set(tmp_dir) then begin
 endif else tmp_dir= cdir+'tmpFastQSL'+os_sep
 
 if N_PARAMS() eq 0 then begin
-	BtmpFlag=file_test(tmp_dir+'bfield.bin')
+	BtmpFlag=file_test(tmp_dir+'field.bin')
 	if ~BtmpFlag then message, 'please provde a magnetic field'
 endif else BtmpFlag=0
 
@@ -38,7 +38,7 @@ if old_tmp_dir then begin
 	dummy=file_search(tmp_dir, '*.bin', count=nf)
 	if BtmpFlag then begin
 		for i=0, nf-1 do begin
-			if dummy[i] ne tmp_dir+'bfield.bin' and  $
+			if dummy[i] ne tmp_dir+'field.bin' and  $
 			   dummy[i] ne tmp_dir+'magnetogram.bin' $
 			   then file_delete, dummy[i]
 		endfor
@@ -49,7 +49,7 @@ endif else file_mkdir, tmp_dir
 get_lun, unit
 if BtmpFlag then begin
 	nx=0L & ny=0L & nz=0L & spherical=0L & dummy=lonarr(5)
-	openr, unit, tmp_dir+'bfield.bin'
+	openr, unit, tmp_dir+'field.bin'
 	readu, unit, nx, ny, nz, stretchFlag, spherical, dummy
 	if stretchFlag then begin
 		xa= fltarr(nx) & ya= fltarr(ny) & za= fltarr(nz)
@@ -104,27 +104,49 @@ endif else begin
 		endelse
 	endelse
 
+	if keyword_set(CurlBx) then begin
+		szx=size(CurlBx)
+		if keyword_set(CurlBy) and keyword_set(CurlBz) then begin
+			szy=size(CurlBy) & szz=size(CurlBz)
+			if szx[0] ne 3 or szy[0] ne 3 or szz[0] ne 3 then message, 'Ax, Ay and Az must be 3D arrays!'
+			if szx[1] ne nx or szx[2] ne ny or szx[3] ne nz or $
+			   szy[1] ne nx or szy[2] ne ny or szy[3] ne nz or $
+			   szz[1] ne nx or szz[2] ne ny or szz[3] ne nz then message, 'Ax, Ay and Az must have the same dimensions!'
+			CurlBvec=fltarr(3, nx, ny, nz)
+			CurlBvec[0,*,*,*]=CurlBx
+			CurlBvec[1,*,*,*]=CurlBy
+			CurlBvec[2,*,*,*]=CurlBz
+		endif else begin
+			if szx[0] ne 4 or szx[1] ne 3 then $
+			message, 'Something is wrong with the CurlB field'
+			if szx[2] ne nx or szx[3] ne ny or szx[4] ne nz then $
+			message, 'Something is wrong with the CurlB field'
+			CurlBvec=float(CurlBx)
+		endelse
+		CurlB_input=1L
+	endif else CurlB_input=0L
+
 	if keyword_set(Ax) then begin
-		sax=size(Ax)
+		szx=size(Ax)
 		if keyword_set(Ay) and keyword_set(Az) then begin
-			say=size(Ay) & saz=size(Az)
-			if sax[0] ne 3 or say[0] ne 3 or saz[0] ne 3 then message, 'Ax, Ay and Az must be 3D arrays!'
-			if sax[1] ne nx or sax[2] ne ny or sax[3] ne nz or $
-			   say[1] ne nx or say[2] ne ny or say[3] ne nz or $
-			   saz[1] ne nx or saz[2] ne ny or saz[3] ne nz then message, 'Ax, Ay and Az must have the same dimensions!'
+			szy=size(Ay) & szz=size(Az)
+			if szx[0] ne 3 or szy[0] ne 3 or szz[0] ne 3 then message, 'Ax, Ay and Az must be 3D arrays!'
+			if szx[1] ne nx or szx[2] ne ny or szx[3] ne nz or $
+			   szy[1] ne nx or szy[2] ne ny or szy[3] ne nz or $
+			   szz[1] ne nx or szz[2] ne ny or szz[3] ne nz then message, 'Ax, Ay and Az must have the same dimensions!'
 			Avec=fltarr(3, nx, ny, nz)
 			Avec[0,*,*,*]=Ax
 			Avec[1,*,*,*]=Ay
 			Avec[2,*,*,*]=Az
 		endif else begin
-			if sax[0] ne 4 or sax[1] ne 3 then $
+			if szx[0] ne 4 or szx[1] ne 3 then $
 			message, 'Something is wrong with the additional field'
-			if sax[1] ne nx or sax[2] ne ny or sax[3] ne nz then $
+			if szx[2] ne nx or szx[3] ne ny or szx[4] ne nz then $
 			message, 'Something is wrong with the additional field'
 			Avec=float(Ax)
 		endelse
-		AfieldFlag=1L
-	endif else AfieldFlag=0L
+		A_input=1L
+	endif else A_input=0L
 endelse
 ;------------------------------------------------------------
 ; understand the output grid
@@ -273,10 +295,7 @@ int_private_out[1]= (maxsteps ne 0) and keyword_set(twist_out)
 int_private_out[2]= (maxsteps ne 0) and keyword_set(int_curlB2_out)
 int_private_out[3]= (maxsteps ne 0) and keyword_set(int_curlBoB_out)
 int_private_out[4]= (maxsteps ne 0) and keyword_set(kt_twist_out)
-; int_private_out[4]= (maxsteps ne 0) and keyword_set(line_helicity_out) and AfieldFlag
-
-curlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out $
-or int_private_out[1] or int_private_out[2] or int_private_out[3] or int_private_out[4]
+; int_private_out[4]= (maxsteps ne 0) and keyword_set(line_helicity_out) and A_input
 
 preview         = keyword_set(preview)
 save_file       = keyword_set(save_file)
@@ -286,12 +305,15 @@ magnetogram_out = preview and ((BtmpFlag and ~file_test(tmp_dir+'magnetogram.bin
 ;------------------------------------------------------------
 ;  transmit the configure of computation to fastqsl.x
 if ~BtmpFlag then begin
-	openw,  unit, tmp_dir+'bfield.bin'
+	openw,  unit, tmp_dir+'field.bin'
 	writeu, unit, long([nx, ny, nz, stretchFlag, spherical, $
-	xperiod, yperiod, zperiod, curlB_field_Flag, AfieldFlag])
+	xperiod, yperiod, zperiod, CurlB_input, A_input])
 	if stretchFlag then writeu, unit, float(xa), float(ya), float(za)
 	writeu, unit, temporary(Bvec)
-	if AfieldFlag then $
+	if CurlB_input then $
+	writeu, unit, temporary(CurlBvec)
+	close,  unit
+	if A_input then $
 	writeu, unit, temporary(Avec)
 	close,  unit
 endif
@@ -325,6 +347,7 @@ endelse
 ; computed by fastqsl.x
 cd, tmp_dir
 ; please specify the path
+spawn, '~/Desktop/QSLS/update/fastqsl.x'
 spawn, '/path/of/fastqsl.x'
 cd, cdir
 ; ################################### retrieving results ######################################

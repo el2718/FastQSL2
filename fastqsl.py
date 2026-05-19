@@ -11,8 +11,8 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
             scottFlag=False, inclineFlag=False, r_local=0., nthreads=0, silent=False, \
             B_out=False, CurlB_out=False, rF_out=False, targetB_out=False, targetCurlB_out=False, \
             path_out=False, loopB_out=False, loopCurlB_out=False, \
-			Ax=None, Ay=None, Az=None, length_out=False, twist_out=False, \
-			int_CurlB2_out=False, int_CurlBoB_out=False, \
+			CurlBx=None, CurlBy=None, CurlBz=None, Ax=None, Ay=None, Az=None, \
+            length_out=False, twist_out=False, int_CurlB2_out=False, int_CurlBoB_out=False, \
             odir=None, fname=None, save_file=False, preview=False, tmp_dir=None, keep_tmp=False):
 # ------------------------------------------------------------
     # the temporary directory for the data transmission between fastqsl.x and fastqsl.py 
@@ -24,20 +24,20 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     else: tmp_dir= cdir+'tmpFastQSL'+os.sep
 
     if Bx is None and By is None and Bz is None:
-        BtmpFlag= os.path.exists(tmp_dir+'bfield.bin')
+        BtmpFlag= os.path.exists(tmp_dir+'field.bin')
         if not BtmpFlag:  raise Exception('please provde a magnetic field')
     else: BtmpFlag=False
 
     old_tmp_dir=os.path.exists(tmp_dir)
     if old_tmp_dir:
         for file in os.listdir(tmp_dir): 
-            if file[-4:] == '.bin' and file != 'bfield.bin' \
+            if file[-4:] == '.bin' and file != 'field.bin' \
             and file != 'magnetogram.bin': os.remove(tmp_dir+file)
     else: os.makedirs(tmp_dir, exist_ok=True)
 # ------------------------------------------------------------
     # magnetic field
     if BtmpFlag:
-        with open(tmp_dir+'bfield.bin','rb') as file:
+        with open(tmp_dir+'field.bin','rb') as file:
             nx, ny, nz = np.fromfile(file, dtype='i4', count=3)
             stretchFlag, spherical= np.array(np.fromfile(file, dtype='i4', count=2), dtype='b1')
             dummy=np.fromfile(file, dtype='i4', count=5)
@@ -80,6 +80,21 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
             Bvec[:,:,:,2]=Bz
         else: Bvec=np.array(Bx, dtype='f4', order='C')
 
+        if CurlBx is not None:
+            if CurlBy is not None and CurlBz is not None:
+                if sBx != np.array(CurlBx).shape or sBx != np.array(CurlBy).shape or sBx != np.array(CurlBz).shape:
+                    raise Exception('CurlBx, CurlBy, and CurlBz must have the same dimensions!')
+                CurlBvec=np.zeros((nz, ny, nx, 3), dtype='f4')
+                CurlBvec[:,:,:,0]=CurlBx
+                CurlBvec[:,:,:,1]=CurlBy
+                CurlBvec[:,:,:,2]=CurlBz
+            else: 
+                if np.array(CurlBx).shape != (nz, ny, nx, 3):
+                    raise Exception('Something is wrong with the CurlB field')
+                CurlBvec=np.array(CurlBx, dtype='f4', order='C')
+            CurlB_input=True
+        else: CurlB_input=False
+
         if Ax is not None:
             if Ay is not None and Az is not None:
                 if sBx != np.array(Ax).shape or sBx != np.array(Ay).shape or sBx != np.array(Az).shape:
@@ -92,8 +107,8 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
                 if np.array(Ax).shape != (nz, ny, nx, 3):
                     raise Exception('Something is wrong with the additional field')
                 Avec=np.array(Ax, dtype='f4', order='C')
-            AfieldFlag=True
-        else: AfieldFlag=False
+            A_input=True
+        else: A_input=False
 # ------------------------------------------------------------
     # understand the output grid
     # provide qsl.seed even sFlag is False
@@ -207,9 +222,9 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     int_private_out[1]= (maxsteps != 0) and twist_out
     int_private_out[2]= (maxsteps != 0) and int_CurlB2_out
     int_private_out[3]= (maxsteps != 0) and int_CurlBoB_out
-    # int_private_out[4]= (maxsteps != 0) and line_helicity_out and AfieldFlag
+    # int_private_out[4]= (maxsteps != 0) and line_helicity_out and A_input
 
-    curlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out \
+    CurlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out \
     or int_private_out[1] or int_private_out[2] or int_private_out[3]
 
     verbose         = not silent
@@ -224,16 +239,19 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
 # ------------------------------------------------------------   
     # transmit data to fastqsl.x
     if not BtmpFlag:
-        with open(tmp_dir+'bfield.bin','wb') as file:
+        with open(tmp_dir+'field.bin','wb') as file:
             file.write(np.array([nx, ny, nz, stretchFlag, spherical, \
-            xperiod, yperiod, zperiod, curlB_field_Flag, AfieldFlag], dtype='i4'))
+            xperiod, yperiod, zperiod, CurlB_input, A_input], dtype='i4'))
             if stretchFlag:
                 file.write(np.array(xa, dtype='f4'))
                 file.write(np.array(ya, dtype='f4'))
                 file.write(np.array(za, dtype='f4'))
             file.write(np.array(Bvec, dtype='f4', order='C'))
             del Bvec
-            if AfieldFlag: 
+            if CurlB_input: 
+                file.write(np.array(CurlBvec, dtype='f4', order='C'))
+                del CurlBvec
+            if A_input: 
                 file.write(np.array(Avec, dtype='f4', order='C'))
                 del Avec
 
@@ -262,7 +280,7 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     # please specify the path
     # the following r can avoid the potential problem of '\n' from os.sep ='\' in Windows
     subprocess.run(r'/path/of/fastqsl.x', shell=True)
-    
+    subprocess.run(r'~/Desktop/QSLS/update/fastqsl.x', shell=True)
     os.chdir(cdir)
 # ################################### retrieving results ######################################
 # make the dictionary qsl

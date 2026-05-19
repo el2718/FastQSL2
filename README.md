@@ -137,7 +137,7 @@ The following introductions are written for fastqsl\.pro. The case is similar fo
 
 The IDL language is case-insensitive, and the name of a keyword parameter can be abbreviated to the shortest unambiguous string https://www.nv5geospatialsoftware.com/docs/Using_Keyword_Parameters.html . For example, **B_out** can be invoked in fastqsl\.pro by any one of `,B_out=1`, `,/b_OUT`, `,B=1`, `,/b`. **Bx, By, Bz** are positional parameters (arguments) but not keyword parameters, therefore setting `,B=1` doesn't make it unambiguous. Please do not apply these features to fastqsl\.py
 
-### Magnetic field
+### Field
   * **Bx, By, Bz**: 
     * For fastqsl\.pro, the typical dimensions of Bx, By and Bz are (nx,ny,nz). The dimensions of Bx can also be (3,nx,ny,nz), and then By and Bz should not be presented. For example, the last two lines of the following code produce identical images
       ```
@@ -154,6 +154,9 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
       ```
     * will be forcibly converted to 4-byte float arrays while writing 'bfield.bin'
     * It does not matter if some NaN values or magnetic nulls (where $\vec{B}=\vec{0}$) exist on grid
+  * **CurlBx, CurlBy, CurlBz**:
+    * by default, $\nabla \times \vec{B}$ is given by a finite difference of $\vec{B}$. Sometimes this finite difference is not perfectly accurate, and then users can input their calculated $\nabla \times \vec{B}$ here if some products need $\nabla \times \vec{B}$
+    * their forms are similar to **Bx, By, Bz**
 ### Coordinates
 
   * **xa, ya, za**: axis coordinates of magnetic field in 1D arrays
@@ -169,7 +172,7 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
     $y=r \cos \vartheta \sin \varphi,$
     $z=r \sin \vartheta.$
     * Default is 0 (Cartesian coordinates). If invoked, these keywords have such meanings:
-      * **Bx, By, Bz**: longitudinal, latitudinal, radial components of the magnetic field, $B_\varphi, B_\vartheta, B_r$. 
+      * **Bx, By, Bz**: longitudinal, latitudinal, radial components of the magnetic field, $B_\varphi, B_\vartheta, B_r$. The case is similar for **CurlBx, CurlBy, CurlBz**
         * **Be careful**: the index order of these arrays is `[i_longitude, i_latitude, i_radius]` for fastqsl\.pro, and is `[i_radius, i_latitude, i_longitude]` for fastqsl\.py.
       * **xa, ya, za**: axis coordinates of $\varphi, \vartheta, r$
       * **xreg, yreg, zreg**: output ranges of $\varphi, \vartheta, r$
@@ -430,17 +433,17 @@ Users can define their private line integrals of the form $\int_\textrm{path} \m
   int_private_name=['length', 'twist', 'int_curlB2', 'int_curlBoB']
   ```
 * The corresponding keywords for invoking these line integrals should be added to the input 
-* Please append the corresponding lines to the following block:
+* Please append the corresponding lines to the following block in fastqsl\.pro (similar in fastqsl\.py):
   ```
   int_private_out[0]= (maxsteps ne 0) and keyword_set(length_out)
   int_private_out[1]= (maxsteps ne 0) and keyword_set(twist_out)
   int_private_out[2]= (maxsteps ne 0) and keyword_set(int_curlB2_out)
   int_private_out[3]= (maxsteps ne 0) and keyword_set(int_curlBoB_out)
   ```
-* If the function needs $\nabla \times \vec{B}$, please also modify the line
+* If the function needs $\nabla \times \vec{B}$, please also modify the line in fastqsl\.f90
   ```
-  curlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out $
-  or int_private_out[1] or int_private_out[2] or int_private_out[3]
+  CurlB_vec_Flag = CurlB_out .or. targetCurlB_out .or. loopCurlB_out &
+  .or. int_private_out(1) .or. int_private_out(2) .or. int_private_out(3)
   ```
 * If an additional field $\vec{A}$ is necessary for the integrals, the field can be assigned to the keywords **Ax**, **Ay**, and **Az**. The forms are similar to **Bx**, **By**, and **Bz**
 -----------------------------
@@ -562,3 +565,4 @@ If you need this derived code, please visit https://github.com/el2718/slipq
 * Jan, 24, 2026 Jun Chen, add keywords of xperiod, yperiod, zperiod
 * Feb,  8, 2026 Jun Chen, add a keyword of r_local
 * May, 17, 2026 Jun Chen, User-defined line integrals
+* Feb, 19, 2026 Jun Chen, add keywords of CurlBx, CurlBy, CurlBz
