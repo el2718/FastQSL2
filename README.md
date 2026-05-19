@@ -155,7 +155,7 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
     * will be forcibly converted to 4-byte float arrays while writing 'bfield.bin'
     * It does not matter if some NaN values or magnetic nulls (where $\vec{B}=\vec{0}$) exist on grid
   * **CurlBx, CurlBy, CurlBz**:
-    * by default, $\nabla \times \vec{B}$ is given by a finite difference of $\vec{B}$. Sometimes this finite difference is not perfectly accurate, and then users can input their calculated $\nabla \times \vec{B}$ here if some products need $\nabla \times \vec{B}$
+    * by default, $\nabla \times \vec{B}$ is given by a second-order finite difference of $\vec{B}$. Sometimes this finite difference is not perfectly accurate, and then users can input their calculated $\nabla \times \vec{B}$ here if some products need $\nabla \times \vec{B}$
     * their forms are similar to **Bx, By, Bz**
 ### Coordinates
 
