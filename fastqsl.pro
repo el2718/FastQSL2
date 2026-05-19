@@ -347,8 +347,9 @@ endelse
 ; computed by fastqsl.x
 cd, tmp_dir
 ; please specify the path
+; spawn, '/path/of/fastqsl.x'
+; spawn, '~/Desktop/FastQSL2/fastqsl.x'
 spawn, '~/Desktop/QSLS/update/fastqsl.x'
-spawn, '/path/of/fastqsl.x'
 cd, cdir
 ; ################################### retrieving results ######################################
 ; make the structure QSL

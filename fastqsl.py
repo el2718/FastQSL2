@@ -279,7 +279,8 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
 
     # please specify the path
     # the following r can avoid the potential problem of '\n' from os.sep ='\' in Windows
-    subprocess.run(r'/path/of/fastqsl.x', shell=True)
+    # subprocess.run(r'/path/of/fastqsl.x', shell=True)
+    # subprocess.run(r'~/Desktop/FastQSL2/fastqsl.x', shell=True)
     subprocess.run(r'~/Desktop/QSLS/update/fastqsl.x', shell=True)
     os.chdir(cdir)
 # ################################### retrieving results ######################################

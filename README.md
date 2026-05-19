@@ -428,22 +428,19 @@ Possible elements in **qsl** are:
 ## User-defined line integrals
 Users can define their private line integrals of the form $\int_\textrm{path} \mathrm{privates}(\vec{B}, \nabla \times \vec{B}, \vec{A} )\ \textrm{d}s$
 * In `privates.f90`, which is included in `fastqsl.f90`, `privates(0)`, `privates(1)`, `privates(2)`, and `privates(3)` are the functions for **length**, **twist**, $\int_\textrm{path} |\nabla \times \vec{B}|^2\ \textrm{d}s$, and $\int_\textrm{path} |\nabla \times \vec{B}|/|\vec{B}|\ \textrm{d}s$. At most 10 different functions can be defined
-* The names of the line integrals should be added to the line in fastqsl\.pro/fastqsl\.py
+* If the function needs $\nabla \times \vec{B}$, please also modify the line in `privates.f90`
+  ```
+  CurlB_vec_Flag = CurlB_out .or. targetCurlB_out .or. loopCurlB_out &
+  .or. int_private_out(1) .or. int_private_out(2) .or. int_private_out(3)
+  ```
+* The names of the line integrals should be added to the line in `fastqsl.pro/fastqsl.py`
   ```
   int_private_name=['length', 'twist', 'int_curlB2', 'int_curlBoB']
   ```
 * The corresponding keywords for invoking these line integrals should be added to the input 
-* Please append the corresponding lines to the following block in fastqsl\.pro (similar in fastqsl\.py):
+* Please append the corresponding lines to the following line in `fastqsl.pro`(similar in `fastqsl.py`):
   ```
-  int_private_out[0]= (maxsteps ne 0) and keyword_set(length_out)
-  int_private_out[1]= (maxsteps ne 0) and keyword_set(twist_out)
-  int_private_out[2]= (maxsteps ne 0) and keyword_set(int_curlB2_out)
   int_private_out[3]= (maxsteps ne 0) and keyword_set(int_curlBoB_out)
-  ```
-* If the function needs $\nabla \times \vec{B}$, please also modify the line in fastqsl\.f90
-  ```
-  CurlB_vec_Flag = CurlB_out .or. targetCurlB_out .or. loopCurlB_out &
-  .or. int_private_out(1) .or. int_private_out(2) .or. int_private_out(3)
   ```
 * If an additional field $\vec{A}$ is necessary for the integrals, the field can be assigned to the keywords **Ax**, **Ay**, and **Az**. The forms are similar to **Bx**, **By**, and **Bz**
 -----------------------------

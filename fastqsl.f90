@@ -894,7 +894,7 @@ use fields
 implicit none
 integer:: maxsteps, maxsteps_foot, normal_index
 logical:: RK4flag, diff_flag, inclineFlag, traceflag, int_private_out(0:9), privateFlag, &
-B_out, CurlB_out, rf_out, targetB_out, targetCurlB_out
+B_out, CurlB_out, rf_out, targetB_out, targetCurlB_out, loopCurlB_out
 real:: a21, a31, a32, a41, a42, a43, a51, a52, a53, a54, a61, a62, a63, a64, a65, &
 b1, b3, b4, b5, b6, ce1, ce3, ce4, ce5, ce6, &                   ! for RKF45
 step, min_step, max_step, min_step_foot, tol, min_incline, r_local, r_local_square
@@ -2056,7 +2056,7 @@ bs_layer(:, :, :), be_layer(:, :, :), CurlBs_layer(:, :, :), CurlBe_layer(:, :, 
 q_local(:, :), brn_s(:,:), brn_e(:,:)
 real, allocatable, target:: rFs(:, :, :), rFe(:, :, :), rFs_yin(:, :, :), rFe_yin(:, :, :)
 logical:: vflag, bflag, cflag, sFlag, scottFlag, diff_seed, pole_j0, pole_jend, &
-targetB_flag, sign2dFlag, allocate_path, path_out, loopB_out, loopCurlB_out, q_local_Flag
+targetB_flag, sign2dFlag, allocate_path, path_out, loopB_out, q_local_Flag
 logical, allocatable:: tangent(:, :), local_s_flag(:, :), local_e_flag(:, :)
 logical, allocatable, target:: s_yinFlag(:, :), e_yinFlag(:, :)
 type line
@@ -3107,8 +3107,7 @@ CALL OMP_set_num_threads(nthreads)
 privateFlag=any(int_private_out)
 traceflag = maxsteps .ne. 0
 
-CurlBvec_Flag = CurlB_out .or. targetCurlB_out .or. loopCurlB_out &
-.or. int_private_out(1) .or. int_private_out(2) .or. int_private_out(3)
+call set_CurlBvec_Flag
 
 dbdc_field_Flag  = traceflag .and. .not. (sflag .and. scottFlag .and. nq1 .le. 1000)
 
