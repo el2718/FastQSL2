@@ -1,22 +1,39 @@
-function privates(Bp, CurlBp, Ap)
+subroutine privates(site)
 implicit none
-real:: privates(0:9), Bp(0:2), CurlBp(0:2), Ap(0:2)
+type(site_info), target:: site
+real:: vp(0:2)            ! vector position, i.e. the coordinates
+real, pointer:: Bp(:)     ! magnetic field at vp
+real, pointer:: CurlBp(:) ! CurlB field at vp
+real, pointer:: Ap(:)     ! the additional field at vp
+!------------------------------------------------------------
+if (site%yinFlag) Then
+! if spherical, and |latitude=site%v(1)| .ge. lat_pole
+    vp=site%v_yin(0:2)
+    Bp =>site%B_yin
+    if (site%CurlBFlag) CurlBp =>site%CurlB_yin
+    if (site%AFlag) Ap =>site%A_yin
+else
+    vp=site%v(0:2)
+    Bp =>site%B
+    if (site%CurlBFlag) CurlBp =>site%CurlB
+    if (site%AFlag) Ap =>site%A
+endif
 !------------------------------------------------------------
 ! for length
-privates(0)= 1.
+site%private(0)= 1.
 
 ! CurlB \cdot B / (4*\pi*B^2); for twist
-privates(1)= dot_product(CurlBp, Bp)/(4.*pi*dot_product(Bp, Bp))
+site%private(1)= dot_product(CurlBp, Bp)/(4.*pi*dot_product(Bp, Bp))
 
  ! |CurlB|^2
-privates(2)= dot_product(CurlBp, CurlBp)
+site%private(2)= dot_product(CurlBp, CurlBp)
 
 ! |CurlB|/|B|; norm2s() is faster than norm2()
-privates(3)= norm2s(CurlBp)/norm2s(Bp)
+site%private(3)= norm2s(CurlBp)/norm2s(Bp)
 
 ! A \cdot b
-! privates(4) = dot_product(Ap, Bp/norm2s(Bp))
-end function privates
+! site%private(4) = dot_product(Ap, Bp/norm2s(Bp))
+end subroutine privates
 
 
 subroutine set_CurlBvec_Flag

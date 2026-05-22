@@ -27,9 +27,9 @@ type(pole_field), target:: south, north
 
 ! interface can't use this type if site_info is defined in module trace
 type site_info
-	real:: v(0:8), dvds(0:8), B(0:2), CurlB(0:2), ds_factor, &
-	v_yin(0:8), dvds_yin(0:8), B_yin(0:2), CurlB_yin(0:2), private(0:9)
-	logical:: intFlag, CurlBFlag, yinFlag, scottFlag, scottLaunch
+	real:: v(0:8), dvds(0:8), B(0:2), CurlB(0:2), A(0:2), ds_factor, &
+	v_yin(0:8), dvds_yin(0:8), B_yin(0:2), CurlB_yin(0:2), A_yin(0:2), private(0:9)
+	logical:: CurlBFlag, Aflag, yinFlag, scottFlag, scottLaunch
 endtype site_info
 
 procedure(), pointer:: round_weight
@@ -1000,10 +1000,13 @@ if (present(dvdsflag)) then
 	else ! if dvdsflag is .false., toyang is .true. already
 		forall(i=0:1) site%B(i)=dot_product(site%B_yin(0:1), matrix0(:, i))
 		site%B(2)=site%B_yin(2)
-
-		if (site%intFlag) then
+		if (site%CurlBFlag) then
 			forall(i=0:1) site%CurlB(i)=dot_product(site%CurlB_yin(0:1), matrix0(:, i))
 			site%CurlB(2)=site%CurlB_yin(2)
+		endif
+		if (site%Aflag) then
+			forall(i=0:1) site%A(i)=dot_product(site%A_yin(0:1), matrix0(:, i))
+			site%A(2)=site%A_yin(2)
 		endif
 	endif
 endif
@@ -1378,8 +1381,7 @@ logical:: southflag, yinflag
 integer:: round(0:1,0:2), i, j, k
 real:: weight(0:1,0:1,0:1), r, sin_lat, cos_lat, &
 dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2), Ap(0:2)
-real, pointer:: bp(:), vector(:), dvds(:), CurlBp(:), &
-b3d(:,:,:,:), CurlB3d(:,:,:,:), dbdc3d(:,:,:,:,:), A3d(:,:,:,:)
+real, pointer:: bp(:), vector(:), dvds(:), CurlBp(:)
 !------------------------------------------------------------
 if (present(rk_first)) then
 	yinflag = (south_pole .and. (-site%v(1) .gt. lat_pole) .and. (-site%v(1) .le. lat_pole2)) &
@@ -1411,20 +1413,19 @@ if (yinflag) then
 	else
 		pole => north
 	endif
-	b3d    => pole%Bvec
 	vector => site%v_yin
 	dvds   => site%dvds_yin
 	bp     => site%b_yin
 	call round_weight_pole(site%v_yin(0:2), round, weight, southflag)
+	forall(i=0:2) Bp(i)=sum(weight* pole%Bvec(i, round(:,0), round(:,1), round(:,2)))
 else
-	b3d    => Bvec
 	vector => site%v
 	dvds   => site%dvds
 	bp     => site%b
 	call round_weight(site%v(0:2), round, weight)
+	forall(i=0:2) Bp(i)=sum(weight* Bvec(i, round(:,0), round(:,1), round(:,2)))
 endif
 !------------------------------------------------------------
-forall(i=0:2) Bp(i)=sum(weight* b3d(i, round(:,0), round(:,1), round(:,2)))
 r=vector(2)
 cos_lat=cos(vector(1))
 dvds(0:2)= normalize(bp)/[r*cos_lat, r, 1.]
@@ -1432,31 +1433,22 @@ dvds(0:2)= normalize(bp)/[r*cos_lat, r, 1.]
 if (present(rk_first)) then
 	if (site%CurlBFlag) then
 		if (yinflag) then
-			CurlB3d => pole%CurlBvec
-			CurlBp  => site%CurlB_yin
+			forall(i=0:2) site%CurlB_yin(i)=sum(weight*pole%CurlBvec(i, round(:,0), round(:,1), round(:,2)))
 		else
-			CurlB3d => CurlBvec
-			CurlBp  => site%CurlB
+			forall(i=0:2) site%CurlB(i)=sum(weight*CurlBvec(i, round(:,0), round(:,1), round(:,2)))
 		endif
-		forall(i=0:2) CurlBp(i)=sum(weight*CurlB3d(i, round(:,0), round(:,1), round(:,2)))
-	else
-		CurlBp => site%CurlB ! give a target for privates(bp, CurlBp, Ap); no affect to the value
 	endif
-	if(site%intFlag) then
-		if (A_input) then
-			if (yinflag) then
-				A3d => pole%Avec
-			else
-				A3d => Avec
-			endif
-			forall(i=0:2) Ap(i)=sum(weight*A3d(i, round(:,0), round(:,1), round(:,2)))
+	if(site%AFlag) then
+		if (yinflag) then
+			forall(i=0:2) site%A_yin(i)=sum(weight*pole%Avec(i, round(:,0), round(:,1), round(:,2)))
+		else
+			forall(i=0:2) site%A(i)=sum(weight*Avec(i, round(:,0), round(:,1), round(:,2)))
 		endif
-		site%private=privates(bp, CurlBp, Ap)
 	endif
 	
 	if (site%scottLaunch) call set_u_v(bp, vector(3:5), vector(6:8))
 
-	! provide site%B/CurlB
+	! provide site%B/CurlB/A
 	if (site%yinFlag) call cal_yinyang(site, .true., .false.)
 
 	if (rk_first) return ! interpolate_foot is true
@@ -1474,12 +1466,12 @@ endif
 if (site%scottFlag) then
 	if (dbdc_field_Flag) then
 		if (yinflag) then
-			dbdc3d => pole%dbdc_field
+			forall(i=0:2, j=0:2) &
+			dbdcp(i,j)=sum(weight*pole%dbdc_field(i, j, round(:,0), round(:,1), round(:,2)))
 		else
-			dbdc3d => dbdc_field
+			forall(i=0:2, j=0:2) &
+			dbdcp(i,j)=sum(weight*dbdc_field(i, j, round(:,0), round(:,1), round(:,2)))
 		endif
-
-		forall(i=0:2, j=0:2) dbdcp(i,j)=sum(weight*dbdc3d(i, j, round(:,0), round(:,1), round(:,2)))
 	else
 	!this output is identical as the upper, it don't require dbdc_field while takes more time
 		do k=0,1
@@ -1534,11 +1526,10 @@ forall(i=0:2) site%B(i)=sum(weight* Bvec(i, round(:,0), round(:,1), round(:,2)))
 site%dvds(0:2)=normalize(site%b)
 !------------------------------------------------------------
 if (present(rk_first)) then
-	if(site%intFlag) then
-		if (CurlBvec_Flag) forall(i=0:2) site%CurlB(i)=sum(weight*CurlBvec(i, round(:,0), round(:,1), round(:,2)))
-		if (A_input) forall(i=0:2) Ap(i)=sum(weight*Avec(i, round(:,0), round(:,1), round(:,2)))
-		site%private=privates(site%b, site%CurlB, Ap)
-	endif
+	if (CurlBvec_Flag) &
+	forall(i=0:2) site%CurlB(i)=sum(weight*CurlBvec(i, round(:,0), round(:,1), round(:,2)))
+	if (A_input) &
+	forall(i=0:2) site%A(i)=sum(weight*Avec(i, round(:,0), round(:,1), round(:,2)))
 
 	if (rk_first) return ! interpolate_foot is true
 
@@ -1589,8 +1580,10 @@ type(site_info), pointer:: site, site1, site_tmp
 site_a=site0
 site_b=site_r
 
-site_a%intFlag=.false.
-site_b%intFlag=.false.
+site_a%Aflag=.false.
+site_a%CurlBFlag=.false.
+site_b%Aflag=.false.
+site_b%CurlBFlag=.false.
 
 site => site_a
 site1=> site_b
@@ -1670,7 +1663,7 @@ end subroutine locate_path_r
 subroutine trace_bline(vp, info)
 ! vp: vector position of the launch point
 implicit none
-logical:: intFlag, CurlBFlag, identical, repeat_flag, interpolate_foot, exist_vr
+logical:: intFlag, CurlBFlag, AFlag, identical, repeat_flag, interpolate_foot, exist_vr
 integer:: i, sign_down, sign_up, sign_forward, it, sign_dt, rb, e_index, s_index
 real:: vp(0:2), dt, dt_executed, step_this, tol_this, dL, int2private(0:9), &
 Bn_s, Bn_e, us(0:2), ue(0:2), vs(0:2), ve(0:2), us1(0:2), ue1(0:2), vs1(0:2), ve1(0:2), &
@@ -1684,6 +1677,7 @@ type(site_info), pointer:: site, site1, site_tmp
 intFlag = info%get .and. privateFlag
 if (intFlag) int2private=0.
 CurlBFlag = info%get .and. CurlBvec_Flag
+AFlag = info%get .and. A_input
 if (info%q_local_Flag) then
 	info%local_s_flag=.false.
 	info%local_e_flag=.false.
@@ -1692,10 +1686,11 @@ endif
 site_p%v(0:2)=vp
 site_p%scottFlag=info%scottFlag
 site_p%scottLaunch=info%scottFlag
-site_p%intFlag = intFlag
+site_p%AFlag = AFlag
 site_p%CurlBFlag= CurlBFlag
 site_p%yinFlag=.false. ! this would be changed by the following command
 call interpolate(site_p, .false.)
+if (intFlag) call privates(site_p)
 bp => info%bp
 bs => info%bs
 be => info%be
@@ -1834,11 +1829,11 @@ endif
 !------------------------------------------------------------
 site_a%scottLaunch=.false.
 site_a%scottFlag=info%scottFlag
-site_a%intFlag=intFlag
+site_a%AFlag=AFlag
 site_a%CurlBFlag= CurlBFlag
 site_b%scottLaunch=.false.
 site_b%scottFlag=info%scottFlag
-site_b%intFlag=intFlag
+site_b%AFlag=AFlag
 site_b%CurlBFlag= CurlBFlag
 
 do sign_dt = sign_down, sign_up, 2
@@ -1884,6 +1879,10 @@ do sign_dt = sign_down, sign_up, 2
 
 			if (intFlag) then
 				dL = distance(site%v(0:2), site1%v(0:2))
+				! dL = dt_executed/site%ds_factor, this is actually better than the upper,
+				! while is is more difficult to explain to the public
+
+				call privates(site1)
 				int2private = int2private + (site%private+site1%private)*dL
 			endif
 
@@ -1963,7 +1962,7 @@ info%e_yinflag=site_e%yinflag
 if (site_e%yinflag) info%rFe_yin=site_e%v_yin(0:2)
 
 if (info%get) then
-	if (privateFlag) info%int_private= int2private * 0.5
+	if (intFlag) info%int_private= int2private * 0.5
 	if (targetCurlB_out) then
 		info%CurlBs=site_s%CurlB
 		info%CurlBe=site_e%CurlB
@@ -2289,10 +2288,8 @@ if (q_local_flag) then
 	local_trace4 =     key_nB .and. (local_s_flag(i,j) .or. local_e_flag(i,j))
 	local_diff = .not. key_nB .and. (local_s_flag(i,j) .or. local_e_flag(i,j)) &
     .and. ((i .ne. 0) .and. (i .ne. iend) .and. (j .ne. 0) .and. (j .ne. jend))
-	site  %intFlag=.false.
 	site  %scottFlag=.false.
 	site  %scottLaunch=.false.
-	site_r%intFlag=.false.
 	site_r%scottFlag=.false.
 	site_r%scottLaunch=.false.
 else
