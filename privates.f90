@@ -6,7 +6,7 @@ real, pointer:: Bp(:)     ! magnetic field at vp
 real, pointer:: CurlBp(:) ! CurlB field at vp
 real, pointer:: Ap(:)     ! the additional field at vp
 !------------------------------------------------------------
-if (site%yinFlag) Then
+if (site%yinFlag) then
 ! if spherical, and |latitude=site%v(1)| .ge. lat_pole
     vp=site%v_yin(0:2)
     Bp =>site%B_yin

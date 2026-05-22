@@ -312,7 +312,6 @@ if ~BtmpFlag then begin
 	writeu, unit, temporary(Bvec)
 	if CurlB_input then $
 	writeu, unit, temporary(CurlBvec)
-	close,  unit
 	if A_input then $
 	writeu, unit, temporary(Avec)
 	close,  unit
