@@ -11,7 +11,7 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
             scottFlag=False, inclineFlag=False, r_local=0., nthreads=0, silent=False, \
             B_out=False, CurlB_out=False, rF_out=False, targetB_out=False, targetCurlB_out=False, \
             path_out=False, loopB_out=False, loopCurlB_out=False, \
-			CurlBx=None, CurlBy=None, CurlBz=None, Ax=None, Ay=None, Az=None, \
+            CurlBx=None, CurlBy=None, CurlBz=None, Ax=None, Ay=None, Az=None, \
             length_out=False, twist_out=False, int_CurlB2_out=False, int_CurlBoB_out=False, \
             odir=None, fname=None, save_file=False, preview=False, tmp_dir=None, keep_tmp=False):
 # ------------------------------------------------------------
@@ -223,9 +223,6 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
     int_private_out[2]= (maxsteps != 0) and int_CurlB2_out
     int_private_out[3]= (maxsteps != 0) and int_CurlBoB_out
     # int_private_out[4]= (maxsteps != 0) and line_helicity_out and A_input
-
-    CurlB_field_Flag = CurlB_out or targetCurlB_out or loopCurlB_out \
-    or int_private_out[1] or int_private_out[2] or int_private_out[3]
 
     verbose         = not silent
     magnetogram_out = preview and ((BtmpFlag and not os.path.exists(tmp_dir+'magnetogram.bin')) or stretchFlag)
@@ -478,7 +475,6 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
         scale_top=  np.max(np.abs(magnetogram))/4.0 
         if scale_top > 1000.: scale_top=1000.
 
-        # scale_top=100.
         plt.imshow(magnetogram,extent=extent,origin='lower',vmin=-scale_top,vmax=scale_top,cmap='gray')
         # plt.colorbar()
         plt.axis('off')
