@@ -6,8 +6,8 @@ keep_tmp, magnetogram_out ! thest two are inputed in fastqsl.f90
 integer:: binary_index_top, pend(0:2), dend(0:2)
 integer, allocatable:: binary_values(:)
 real:: pi, half_pi, two_pi, NaN, lat_pole, lat_pole2, pmin(0:2), pmax(0:2), period(0:2)
-real, allocatable, target:: Bvec(:, :, :, :), CurlBvec(:, :, :, :), &
-dbdc_field(:, :, :, :, :), Avec(:, :, :, :)
+real, allocatable, target:: Bvec(:,:,:,:), CurlBvec(:,:,:,:), &
+dbdc_field(:,:,:,:,:), Avec(:,:,:,:)
 real, allocatable:: cos_lat_tmp(:)
 
 type axis_stretch
@@ -43,7 +43,7 @@ integer:: i, j, k, s, t, nx, ny, nz, nx_mag, ny_mag, aend1, round(0:1,0:2), j1, 
 real:: weight(0:1,0:1,0:1), mag_delta, clat_pole, dlast, dperiod, &
 e_yin(0:2, 0:1), e_yang(0:2, 0:1), fj2, vp_yin(0:2), vp(0:2), &
 bp_yin(0:2), bp(0:2), ap_yin(0:2), ap(0:2), curlbp_yin(0:2), curlbp(0:2)
-real, allocatable:: field_tmp(:, :, :, :), magnetogram(:, :), lon_tmp(:), lat_tmp(:)
+real, allocatable:: field_tmp(:,:,:,:), magnetogram(:,:), lon_tmp(:), lat_tmp(:)
 real, pointer:: ax_tmp(:)
 type(pole_field), pointer:: pole
 !------------------------------------------------------------
@@ -78,7 +78,7 @@ if (stretchFlag) then
 				dend(0)=pend(0)-1
 				allocate(axis(0)%pa(0:pend(0)))
 				axis(0)%pa(0:pend(0)-1)=lon_tmp
-				deallocate(lon_tmp)				
+				deallocate(lon_tmp)
 			endif
 			axis(0)%pa(pend(0))= axis(0)%pa(0) + period(0)
 		endif
@@ -202,7 +202,7 @@ if (magnetogram_out) then
 		do j=0, ny_mag-1
 		do i=0, nx_mag-1
 			call round_weight(pmin + mag_delta * [i, j, 0], round, weight)
-			magnetogram(i, j)=sum(weight(:, :, 0)*Bvec(2, round(:,0), round(:,1), 0))
+			magnetogram(i, j)=sum(weight(:,:, 0)*Bvec(2, round(:,0), round(:,1), 0))
 		enddo
 		enddo
 	else
@@ -500,7 +500,7 @@ else
 endif
 
 ! this is a mathematical identity
-coef(1, :) = - coef(0, :) - coef(2, :)
+coef(1,:) = - coef(0,:) - coef(2,:)
 
 END subroutine diff_coefficent
 
@@ -914,7 +914,7 @@ type line_info
 	logical:: tangent, get, scottFlag, path_out, loopB_out, loopCurlB_out, &
 	q_local_Flag, local_s_flag, local_e_flag, s_yinflag, e_yinflag
 	integer:: rbs, rbe, its, ite
-	real, allocatable:: path(:, :), loopB(:, :), loopCurlB(:, :)
+	real, allocatable:: path(:,:), loopB(:,:), loopCurlB(:,:)
 endtype line_info
 
 interface
@@ -935,7 +935,7 @@ subroutine cal_yinyang(site, toyang, dvdsflag)
 implicit none
 type(site_info), target :: site
 real, target:: e_yang(0:2, 0:1), e_yin(0:2, 0:1)
-real, pointer:: vector1(:), vector2(:), e1(:, :), e2(:, :), dvds1(:), dvds2(:)
+real, pointer:: vector1(:), vector2(:), e1(:,:), e2(:,:), dvds1(:), dvds2(:)
 real:: matrix0(0:1, 0:1), matrix1(0:1, 0:1), matrix2(0:1, 0:1), &
 matrix3(0:1, 0:1), matrix4(0:1, 0:1)
 integer:: i, j
@@ -1946,7 +1946,7 @@ do sign_dt = sign_down, sign_up, 2
 				info%ite=it
 				site_e=site1
 				info%rbe=rb
-			endif		
+			endif
 		endif
 	enddo
 enddo
@@ -2045,21 +2045,21 @@ module compute
 use trace
 implicit none
 integer:: iend, jend, nq1, nq2, nq3, ijend(1:2)
-integer(1), target, allocatable:: rbs(:, :), rbe(:, :)
-integer(1), allocatable:: rboundary(:, :)
-integer(2), allocatable:: sign2d(:, :)! IDL do not have the type of 8-bit signed integer
+integer(1), target, allocatable:: rbs(:,:), rbe(:,:)
+integer(1), allocatable:: rboundary(:,:)
+integer(2), allocatable:: sign2d(:,:)! IDL do not have the type of 8-bit signed integer
 real:: deltas(-1:2), delta_i, delta_j, xreg(0:1), yreg(0:1), zreg(0:1), ev3(0:2)
-real, allocatable:: q(:, :), q_perp(:, :), int_private(:, :, :), &
-seed(:, :, :), b_layer(:, :, :), CurlB_layer(:, :, :), bnp2d(:, :), &
-bs_layer(:, :, :), be_layer(:, :, :), CurlBs_layer(:, :, :), CurlBe_layer(:, :, :), &
-q_local(:, :), brn_s(:,:), brn_e(:,:)
-real, allocatable, target:: rFs(:, :, :), rFe(:, :, :), rFs_yin(:, :, :), rFe_yin(:, :, :)
+real, allocatable:: q(:,:), q_perp(:,:), int_private(:,:,:), &
+seed(:,:,:), b_layer(:,:,:), CurlB_layer(:,:,:), bnp2d(:,:), &
+bs_layer(:,:,:), be_layer(:,:,:), CurlBs_layer(:,:,:), CurlBe_layer(:,:,:), &
+q_local(:,:), brn_s(:,:), brn_e(:,:)
+real, allocatable, target:: rFs(:,:,:), rFe(:,:,:), rFs_yin(:,:,:), rFe_yin(:,:,:)
 logical:: vflag, bflag, cflag, sFlag, scottFlag, diff_seed, pole_j0, pole_jend, &
 targetB_flag, sign2dFlag, allocate_path, path_out, loopB_out, q_local_Flag
-logical, allocatable:: tangent(:, :), local_s_flag(:, :), local_e_flag(:, :)
-logical, allocatable, target:: s_yinFlag(:, :), e_yinFlag(:, :)
+logical, allocatable:: tangent(:,:), local_s_flag(:,:), local_e_flag(:,:)
+logical, allocatable, target:: s_yinFlag(:,:), e_yinFlag(:,:)
 type line
-	real, allocatable:: path(:, :), loopB(:, :), loopCurlB(:, :)
+	real, allocatable:: path(:,:), loopB(:,:), loopCurlB(:,:)
 endtype line
 type(line), allocatable :: lines(:)
 
@@ -2197,7 +2197,7 @@ rF4_s(1:2, 1:4), rF4_e(1:2, 1:4), u0(0:2), v0(0:2), &
 g_e(1:2), g_s(1:2), g_e0(0:2), g_s0(0:2), gh, cos_p(0:1), sin_p(0:1), &
 cos_tmp, sin_tmp, rF4_s_local(0:2, 1:4), rF4_e_local(0:2, 1:4), vr2vp(0:2), &
 rf3(1:2, 0:2), seed3(0:2, 0:2), coef(0:2,1:2), d0, d1, arrow_seed(0:2, 1:2), vp_yin(0:2)
-real, pointer:: bp_car(:), vp_car(:), vp4_car(:,:), rF_tmp(:, :, :), diff(:, :), rF_yin(:, :, :)
+real, pointer:: bp_car(:), vp_car(:), vp4_car(:,:), rF_tmp(:,:,:), diff(:,:), rF_yin(:,:,:)
 real, target :: diff_s(1:2, 1:2), diff_e(1:2, 1:2), bp(0:2), bp_car_tmp(0:2), &
 vp(0:2), vp_car_tmp(0:2), vp4(0:2, 1:4), vp4_car_tmp(0:2, 1:4)
 type(line_info):: info
@@ -2722,10 +2722,10 @@ enddo
 enddo
 !$OMP END PARALLEL DO
 !------------------------------------------------------------
+if (pole_j0 .or. pole_jend) then
 do j= 0, jend, jend
 	if (j .eq.    0 .and. .not. pole_j0  ) cycle
 	if (j .eq. jend .and. .not. pole_jend) cycle
-
 	if (allocate_path) then
 		label0= j*nq1
 		index_seed(label0+1:label0+iend)= index_seed(label0)
@@ -2785,6 +2785,7 @@ do j= 0, jend, jend
 		endif
 	enddo
 enddo
+endif
 !------------------------------------------------------------
 if (sign2dFlag) then
 	open(1, file='sign2d.bin', access='stream', status='replace')
@@ -2894,7 +2895,7 @@ implicit none
 integer:: i, j, nqx, nqy, nqz
 real:: ev1(0:2), ev2(0:2), point0(0:2), point1(0:2), point2(0:2), &
 p0(0:2), p1(0:2), p2_spherical(0:2), arc, sin_arc, max_da(0:2)
-real, allocatable:: axis1(:, :)
+real, allocatable:: axis1(:,:)
 logical:: csFlag, preset_xreg, preset_yreg
 !------------------------------------------------------------
 ! receive information from fastqsl.pro
@@ -3053,8 +3054,8 @@ program fastqsl
 use compute
 implicit none
 logical:: qflag, verbose, launch_out
-real:: tcalc
-integer:: i, k, nthreads, i2end, OMP_GET_NUM_PROCS, tnow, tend
+real(8):: tcalc, tnow, tend, omp_get_wtime
+integer:: i, k, nthreads, i2end, OMP_GET_NUM_PROCS
 integer(8), allocatable:: indexes(:)
 integer(1):: ip
 character(len=1) ::str_ip
@@ -3068,7 +3069,8 @@ read(1) step, tol, r_local, maxsteps, RK4Flag, inclineFlag, &
 		verbose, keep_tmp, magnetogram_out, int_private_out
 close(1, status='delete')
 !------------------------------------------------------------
-if (verbose) call system_clock(tnow)
+! if (verbose) call system_clock(tnow)
+if (verbose) tnow=omp_get_wtime()
 NaN = transfer(2143289344, 1.0)
 pi = 3.141592653589793
 half_pi=pi/2.
@@ -3368,14 +3370,15 @@ if (verbose) then
 	! when 100.00% is printed, everything is done in fastqsl.x
 	call show_time(100.0)
 
-	call system_clock(tend)
-	tcalc=tend-tnow !ms
-	if (tcalc .ge. 3.6e6) then
-		print '(F7.2,   " hours elapsed in fastqsl.x")', tcalc/3.6e6
+	tend=omp_get_wtime()
+	
+	tcalc=tend-tnow !s
+	if (tcalc .ge. 3.6e3) then
+		print '(F7.2,   " hours elapsed in fastqsl.x")', tcalc/3.6e3
 	else if (tcalc .ge. 6.e4) then
-		print '(F7.2, " minutes elapsed in fastqsl.x")', tcalc/6.e4
+		print '(F7.2, " minutes elapsed in fastqsl.x")', tcalc/6.e1
 	else
-		print '(F7.2, " seconds elapsed in fastqsl.x")', tcalc/1.e3
+		print '(F7.2, " seconds elapsed in fastqsl.x")', tcalc
 	endif
 endif
 !------------------------------------------------------------
