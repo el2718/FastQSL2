@@ -294,7 +294,6 @@ int_private_out[0]= (maxsteps ne 0) and keyword_set(length_out)
 int_private_out[1]= (maxsteps ne 0) and keyword_set(twist_out)
 int_private_out[2]= (maxsteps ne 0) and keyword_set(int_curlB2_out)
 int_private_out[3]= (maxsteps ne 0) and keyword_set(int_curlBoB_out)
-int_private_out[4]= (maxsteps ne 0) and keyword_set(kt_twist_out)
 ; int_private_out[4]= (maxsteps ne 0) and keyword_set(line_helicity_out) and A_input
 
 preview         = keyword_set(preview)
