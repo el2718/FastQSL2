@@ -3373,10 +3373,10 @@ if (verbose) then
 	tend=omp_get_wtime()
 	
 	tcalc=tend-tnow !s
-	if (tcalc .ge. 3.6e3) then
-		print '(F7.2,   " hours elapsed in fastqsl.x")', tcalc/3.6e3
-	else if (tcalc .ge. 6.e4) then
-		print '(F7.2, " minutes elapsed in fastqsl.x")', tcalc/6.e1
+	if (tcalc .ge. 3600.) then
+		print '(F7.2,   " hours elapsed in fastqsl.x")', tcalc/3600.
+	else if (tcalc .ge. 60.) then
+		print '(F7.2, " minutes elapsed in fastqsl.x")', tcalc/60.
 	else
 		print '(F7.2, " seconds elapsed in fastqsl.x")', tcalc
 	endif
