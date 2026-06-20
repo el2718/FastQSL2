@@ -1,7 +1,7 @@
 ; coordinate: the array of coordinate to be tranformed, 
 ; its dimesions can be (3) or (3, n1) or (3, n1, n2) or (3, n1, n2, n3) 
 
-; v1, v2, v3: the array of vectors to be tranformed, 
+; v1, v2, v3, v4: the array of vectors to be tranformed, 
 ; their dimesions should be the same as coordinate
 
 ; mode:
