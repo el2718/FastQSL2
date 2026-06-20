@@ -285,7 +285,7 @@ loopB_out       = keyword_set(loopB_out) and path_out
 loopCurlB_out   = keyword_set(loopCurlB_out) and path_out
 
 ; string array with 1-10 elements
-int_private_name=['length', 'twist', 'int_curlB2', 'int_curlBoB', 'kt_twist']
+int_private_name=['length', 'twist', 'int_curlB2', 'int_curlBoB']
 nprivate=n_elements(int_private_name)
 
 ; int array with 10 elements
