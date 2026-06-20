@@ -17,7 +17,7 @@ coordinate_out, v1out, v2out = convert_coordinate(coordinate, v1, v2, mode='lon_
 """
 
 import numpy as np
-def convert_coordinate(coordinate, v1=None, v2=None, v3=None, *, mode=0):
+def convert_coordinate(coordinate, v1=None, v2=None, v3=None, v4=None, *, mode=0):
     # -----------------------------------------------------
     if (isinstance(mode, str)):
         if   mode == 'xyz_to_lon_lat_r': 
@@ -35,7 +35,6 @@ def convert_coordinate(coordinate, v1=None, v2=None, v3=None, *, mode=0):
     coor_shape=np.array(coordinate).shape
     if coor_shape[-1] != 3: raise Exception('Something is wrong with coordinate')
 
-    coor_dim=np.array(coordinate).ndim
     ngrid=coordinate.size//3
     coor1d=np.array(coordinate).reshape((ngrid,3))
     coor1d_out=coor1d.copy()
@@ -44,25 +43,24 @@ def convert_coordinate(coordinate, v1=None, v2=None, v3=None, *, mode=0):
     present1= v1 is not None
     present2= v2 is not None
     present3= v3 is not None
+    present4= v4 is not None
 
     if present1: 
-        v_shape=np.array(v1).shape
-        if coor_dim   != np.array(v1).ndim : raise Exception('Something is wrong with v1')
         if coor_shape != np.array(v1).shape: raise Exception('Something is wrong with v1')
         v1_1d=np.array(v1).reshape((ngrid,3))
         v1_out1d=v1_1d.copy()
     if present2: 
-        v_shape=np.array(v2).shape
-        if coor_dim   != np.array(v2).ndim : raise Exception('Something is wrong with v2')
         if coor_shape != np.array(v2).shape: raise Exception('Something is wrong with v2')
         v2_1d=np.array(v2).reshape((ngrid,3))
         v2_out1d=v2_1d.copy()
     if present3: 
-        v_shape=np.array(v3).shape
-        if coor_dim   != np.array(v3).ndim : raise Exception('Something is wrong with v3')
         if coor_shape != np.array(v3).shape: raise Exception('Something is wrong with v3')
         v3_1d=np.array(v3).reshape((ngrid,3))
         v3_out1d=v3_1d.copy()
+    if present4:
+        if coor_shape != np.array(v4).shape: raise Exception('Something is wrong with v4')
+        v4_1d=np.array(v4).reshape((ngrid,3))
+        v4_out1d=v4_1d.copy()
     # -----------------------------------------------------
     for i in range(ngrid):
         coor_in=coor1d[i,:]
@@ -97,18 +95,13 @@ def convert_coordinate(coordinate, v1=None, v2=None, v3=None, *, mode=0):
 
         if present2: v2_out1d[i,:]= np.dot(matrix, v2_1d[i,:])
         if present3: v3_out1d[i,:]= np.dot(matrix, v3_1d[i,:])
-    
+        if present4: v4_out1d[i,:]= np.dot(matrix, v4_1d[i,:])
 
     trans_return= coor1d_out.reshape(coor_shape)
-    # print(coor1d_out.shape, coor_shape, trans_return.v_shape)
     if present1: trans_return=(trans_return,).__add__((v1_out1d.reshape(coor_shape),))
     if present2: trans_return=   trans_return.__add__((v2_out1d.reshape(coor_shape),))
     if present3: trans_return=   trans_return.__add__((v3_out1d.reshape(coor_shape),))
+    if present4: trans_return=   trans_return.__add__((v4_out1d.reshape(coor_shape),))
 
     # return coor1d_out.reshape(coor_shape)
     return trans_return
-        
-
-
-
-    

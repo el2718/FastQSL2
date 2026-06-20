@@ -15,8 +15,8 @@
 ; coordinate_out = convert_coordinate(coordinate, v1, v2, v1out=v1out, v2out=v2out, mode='lon_lat_r_to_xyz')
 
 
-function convert_coordinate, coordinate, v1, v2, v3, mode=mode, $
-v1out=v1out, v2out=v2out, v3out=v3out
+function convert_coordinate, coordinate, v1, v2, v3, v4, mode=mode, $
+v1out=v1out, v2out=v2out, v3out=v3out, v4out=v4out
 ;-----------------------------------------------------
 if ~keyword_set(mode) then mode=0
 if size(mode,/tname) eq 'STRING' then begin
@@ -40,6 +40,7 @@ ngrid=sz_coor[n_elements(sz_coor)-1]/3
 present1= N_PARAMS() ge 2
 present2= N_PARAMS() ge 3
 present3= N_PARAMS() ge 4
+present4= N_PARAMS() ge 5
 
 if present1 then begin
     sz_v=size(v1)
@@ -63,6 +64,14 @@ if present3 then begin
     dummy=where(sz_v ne sz_coor, count)
     if count ne 0 then message, 'Something is wrong with v3'
     v3out=v3
+endif
+
+if present4 then begin
+    sz_v=size(v4)
+    if sz_v[0] ne sz_coor[0]     then message, 'Something is wrong with v4'
+    dummy=where(sz_v ne sz_coor, count)
+    if count ne 0 then message, 'Something is wrong with v4'
+    v4out=v4
 endif
 ;-----------------------------------------------------
 coordinate_out=coordinate
@@ -111,6 +120,7 @@ for i=0LL, ngrid-1LL do begin
 
     if present2 then v2out[i*3:i*3+2]= reform(matrix ## v2[i*3:i*3+2])
     if present3 then v3out[i*3:i*3+2]= reform(matrix ## v3[i*3:i*3+2])
+    if present4 then v4out[i*3:i*3+2]= reform(matrix ## v4[i*3:i*3+2])
 endfor
 
 return, coordinate_out
