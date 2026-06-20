@@ -97,11 +97,11 @@ def convert_coordinate(coordinate, v1=None, v2=None, v3=None, v4=None, *, mode=0
         if present3: v3_out1d[i,:]= np.dot(matrix, v3_1d[i,:])
         if present4: v4_out1d[i,:]= np.dot(matrix, v4_1d[i,:])
 
+    # -----------------------------------------------------
     trans_return= coor1d_out.reshape(coor_shape)
     if present1: trans_return=(trans_return,).__add__((v1_out1d.reshape(coor_shape),))
     if present2: trans_return=   trans_return.__add__((v2_out1d.reshape(coor_shape),))
     if present3: trans_return=   trans_return.__add__((v3_out1d.reshape(coor_shape),))
     if present4: trans_return=   trans_return.__add__((v4_out1d.reshape(coor_shape),))
 
-    # return coor1d_out.reshape(coor_shape)
     return trans_return
