@@ -12,8 +12,8 @@ mode:
 3 or 'lon2_lat2_r_to_lon_lat_r' ; not finished
 
 usage:
-coordinate_out = trans_coordinate(coordinate, v1, mode='lon_lat_r_to_xyz')
-coordinate_out, v1out, v2out = trans_coordinate(coordinate, v1, v2, mode='lon_lat_r_to_xyz')
+coordinate_out = convert_coordinate(coordinate, v1, mode='lon_lat_r_to_xyz')
+coordinate_out, v1out, v2out = convert_coordinate(coordinate, v1, v2, mode='lon_lat_r_to_xyz')
 """
 
 import numpy as np

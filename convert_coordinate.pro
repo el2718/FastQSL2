@@ -10,11 +10,14 @@
 ; 2 or 'lon_lat_r_to_lon2_lat2_r' ; not finished
 ; 3 or 'lon2_lat2_r_to_lon_lat_r' ; not finished
 
+; usage:
+; coordinate_out = convert_coordinate(coordinate, mode='lon_lat_r_to_xyz')
+; coordinate_out = convert_coordinate(coordinate, v1, v2, v1out=v1out, v2out=v2out, mode='lon_lat_r_to_xyz')
+
 
 function convert_coordinate, coordinate, v1, v2, v3, mode=mode, $
 v1out=v1out, v2out=v2out, v3out=v3out
 ;-----------------------------------------------------
-; print, mode, size(mode,/tname) eq 'STRING', mode eq 'xyz_to_lon_lat_r'
 if ~keyword_set(mode) then mode=0
 if size(mode,/tname) eq 'STRING' then begin
     case mode of
@@ -65,7 +68,7 @@ endif
 coordinate_out=coordinate
 coor_out=fltarr(3)
 
-for i=0, ngrid-1 do begin
+for i=0LL, ngrid-1LL do begin
     coor_in=coordinate[i*3:i*3+2]
     if mode eq 0 then begin ; 'xyz_to_lon_lat_r'
         ; coor_out[2]=norm(coor_in) ; This approach is three times slower.
