@@ -44,7 +44,7 @@ present4= N_PARAMS() ge 5
 
 if present1 then begin
     sz_v=size(v1)
-    if sz_v[0] ne sz_coor[0]     then message, 'Something is wrong with v1'
+    if sz_v[0] ne sz_coor[0] then message, 'Something is wrong with v1'
     dummy=where(sz_v ne sz_coor, count)
     if count ne 0 then message, 'Something is wrong with v1'
     v1out=v1
@@ -52,7 +52,7 @@ endif
 
 if present2 then begin
     sz_v=size(v2)
-    if sz_v[0] ne sz_coor[0]     then message, 'Something is wrong with v2'
+    if sz_v[0] ne sz_coor[0] then message, 'Something is wrong with v2'
     dummy=where(sz_v ne sz_coor, count)
     if count ne 0 then message, 'Something is wrong with v2'
     v2out=v2
@@ -60,7 +60,7 @@ endif
 
 if present3 then begin
     sz_v=size(v3)
-    if sz_v[0] ne sz_coor[0]     then message, 'Something is wrong with v3'
+    if sz_v[0] ne sz_coor[0] then message, 'Something is wrong with v3'
     dummy=where(sz_v ne sz_coor, count)
     if count ne 0 then message, 'Something is wrong with v3'
     v3out=v3
@@ -68,7 +68,7 @@ endif
 
 if present4 then begin
     sz_v=size(v4)
-    if sz_v[0] ne sz_coor[0]     then message, 'Something is wrong with v4'
+    if sz_v[0] ne sz_coor[0] then message, 'Something is wrong with v4'
     dummy=where(sz_v ne sz_coor, count)
     if count ne 0 then message, 'Something is wrong with v4'
     v4out=v4
