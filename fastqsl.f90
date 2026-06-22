@@ -2922,22 +2922,27 @@ if (csflag) then
 	
 	nq2=int(abs(zreg(1)-zreg(0))/delta_j)+1
 else
-	nqx= int((xreg(1)-xreg(0))/deltas(0))+1
-	nqz= int((zreg(1)-zreg(0))/deltas(2))+1
+	if (-xreg(0) .eq. xreg(1)) then
+		! make the symmetry around x=0
+		nqx= int(xreg(1)/deltas(0))*2+1
+		xreg(0)=-(nqx-1)/2*deltas(0)
+	else
+		nqx= int((xreg(1)-xreg(0))/deltas(0))+1
+	endif
 
 	if (spherical) then
 		if (south_pole .and. .not. preset_yreg) yreg(0)= -half_pi
 		if (north_pole .and. .not. preset_yreg) yreg(1)=  half_pi
-		if (-yreg(0) .eq. yreg(1)) then
-			! make the symmetry around latitude=0
-			nqy= int(yreg(1)/deltas(1))*2+1
-			yreg(0)=-(nqy-1)/2*deltas(1)
-		else
-			nqy= int((yreg(1)-yreg(0))/deltas(1))+1
-		endif
+	endif
+	if (-yreg(0) .eq. yreg(1)) then
+		! make the symmetry around y=0
+		nqy= int(yreg(1)/deltas(1))*2+1
+		yreg(0)=-(nqy-1)/2*deltas(1)
 	else
 		nqy= int((yreg(1)-yreg(0))/deltas(1))+1
 	endif
+	
+	nqz= int((zreg(1)-zreg(0))/deltas(2))+1
 	
 	if (xreg(1) .eq. xreg(0)) then
 		normal_index=0; nq1=nqy; nq2=nqz; delta_i=deltas(1); delta_j=deltas(2)
