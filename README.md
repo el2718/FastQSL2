@@ -357,7 +357,7 @@ For fastqsl\.pro, the result is given by the structure **qsl**, and can be retur
 For fastqsl\.py, the result is given by the [dictionary](https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries) **qsl**, and can be returned by the return of the function fastqsl, or can be saved as `odir+fname+'.pkl'`. The names of its elements can be found in `qsl.keys()`. For example, the element **q** can be accessed by `qsl['q']`
 
 Possible elements in **qsl** are:
-  * **csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
+  * **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
   * **seed**:    the coordinates of the output grid for the launch of tracing; its units are the same as **xa, ya, za** if stretchFlag
   * **axis1**:  the coordinates $x, y$ ($\varphi, \vartheta$, if **spherical** is invoked) from point0 to point1
     * only appears when **csFlag** is invoked, then **axis1** is same as `qsl.seed[0:1, *, 0]`
