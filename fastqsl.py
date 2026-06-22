@@ -321,6 +321,8 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
         dim =(nq3,nq2,nq1)
         dim3=(nq3,nq2,nq1,3)
 
+    qsl.update({'dim':np.array(dim,'i4')})
+
     qsl_data0=[ \
     ['axis1',      'f4', (nq1, 2)], \
     ['seed',       'f4', dim3], \

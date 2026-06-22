@@ -359,6 +359,7 @@ For fastqsl\.py, the result is given by the [dictionary](https://docs.python.org
 Possible elements in **qsl** are:
   * **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
   * **seed**:    the coordinates of the output grid for the launch of tracing; its units are the same as **xa, ya, za** if stretchFlag
+  * **dim** dimensions of the output region
   * **axis1**:  the coordinates $x, y$ ($\varphi, \vartheta$, if **spherical** is invoked) from point0 to point1
     * only appears when **csFlag** is invoked, then **axis1** is same as `qsl.seed[0:1, *, 0]`
   * **length**: $L= \int_\textrm{path} \textrm{d}s$, length of field lines launched from **seed**
