@@ -9,7 +9,7 @@ PRO fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, spherical=spherical,              
             rF_out=rF_out, targetB_out=targetB_out, targetCurlB_out=targetCurlB_out,$
             path_out=path_out, loopB_out=loopB_out, loopCurlB_out=loopCurlB_out,    $
             CurlBx=CurlBx, CurlBy=CurlBy, CurlBz=CurlBz, Ax=Ax, Ay=Ay, Az=Az,       $
-			length_out=length_out, twist_out=twist_out,                             $
+            length_out=length_out, twist_out=twist_out,                             $
             int_curlB2_out=int_curlB2_out, int_curlBoB_out=int_curlBoB_out,         $
             odir=odir, fname=fname, save_file=save_file, compress=compress,         $
             preview=preview, tmp_dir=tmp_dir, keep_tmp=keep_tmp, qsl=qsl
@@ -454,6 +454,12 @@ if ~sFlag then begin
 endif
 
 if file_test(tmp_dir+'q_local.bin') then strs=[strs,'r_local:float(r_local)']
+
+if nq2 eq 1 then begin
+	strs=[strs,'dim: nq1'] 
+endif else if nq3 eq 1 then begin
+	strs=[strs,'dim: [nq1, nq2]']
+endif else strs=[strs,'dim: [nq1, nq2, nq3]']
 
 for i=0, n_data-1 do strs=[strs, qsl_data[i]+':'+qsl_data[i]]
 
