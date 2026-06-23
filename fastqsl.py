@@ -441,8 +441,8 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                         plt.plot(x_path, qsl['path'][i][:,1], '.g', markersize=1)
 
                 if out_dim ==0:
-                     x_seed=np.array(seed[0],'f4')
-                     y_seed=np.array(seed[1],'f4')
+                    x_seed=np.array(seed[0],'f4')
+                    y_seed=np.array(seed[1],'f4')
                 else: 
                     x_seed=np.array(seed[:,0],'f4')
                     y_seed=np.array(seed[:,1],'f4')
