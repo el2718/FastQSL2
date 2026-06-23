@@ -185,7 +185,7 @@ fastqsl, Bx, By, Bz, xreg=[ixh/2,ixh], yreg=[ixh/4,ixh], zreg=[kend/4, kend/2], 
 delta=0.8, tol=1.0e-3, odir= 'fastqsl', nthreads=12, /preview
 
 ; only exporting curlB
-fastqsl, Bx, By, Bz, /curlB_out, maxsteps=0, seed='original', fname='CurlB', odir= 'fastqsl', qsl=qsl, /save_file
+fastqsl, Bx, By, Bz, /curlB, maxsteps=0, seed='original', fname='CurlB', odir= 'fastqsl', qsl=qsl, /save_file
 
 ; compute twist with the input qsl.CurlB
 fastqsl, Bvec, qsl.CurlB, odir= 'fastqsl', /twist, fname='input_CurlB', /preview
