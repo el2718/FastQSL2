@@ -46,7 +46,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                 xa=np.fromfile(file, dtype='f4', count=nx)
                 ya=np.fromfile(file, dtype='f4', count=ny)
                 za=np.fromfile(file, dtype='f4', count=nz)
-    else:   
+    else:
         # check input
         B3Flag = Bz is not None
         Bx_ndim= np.array(Bx).ndim
@@ -85,7 +85,9 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 
         if CurlBx is not None:
             if CurlBz is None: raise Exception('Something is wrong with the CurlB field')
-            if sBx != np.array(CurlBx).shape or sBx != np.array(CurlBy).shape or sBx != np.array(CurlBz).shape:
+            if np.array(CurlBx).shape != (nz, ny, nx) or \
+               np.array(CurlBy).shape != (nz, ny, nx) or \
+               np.array(CurlBz).shape != (nz, ny, nx):
                 raise Exception('CurlBx, CurlBy, and CurlBz must have the same dimensions!')
             CurlBvec=np.zeros((nz, ny, nx, 3), dtype='f4')
             CurlBvec[:,:,:,0]=CurlBx
@@ -99,7 +101,9 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 
         if Ax is not None:
             if Ay is not None and Az is not None:
-                if sBx != np.array(Ax).shape or sBx != np.array(Ay).shape or sBx != np.array(Az).shape:
+                if np.array(Ax).shape != (nz, ny, nx) or \
+                   np.array(Ay).shape != (nz, ny, nx) or \
+                   np.array(Az).shape != (nz, ny, nx):
                     raise Exception('Ax, Ay, and Az must have the same dimensions!')
                 Avec=np.zeros((nz, ny, nx, 3), dtype='f4')
                 Avec[:,:,:,0]=Ax
