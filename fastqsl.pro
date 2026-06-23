@@ -1,5 +1,5 @@
-PRO fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, spherical=spherical,                  $
-            xperiod=xperiod, yperiod=yperiod, zperiod=zperiod,                      $
+PRO fastqsl, Bx, By, Bz, CurlBx, CurlBy, CurlBz, xa=xa, ya=ya, za=za,               $
+            spherical=spherical, xperiod=xperiod, yperiod=yperiod, zperiod=zperiod, $
             xreg=xreg, yreg=yreg, zreg=zreg, csFlag=csFlag,                         $
             factor=factor, delta=delta, lon_delta=lon_delta, lat_delta=lat_delta,   $
             r_delta=r_delta, arc_delta=arc_delta, seed=seed,                        $
@@ -8,8 +8,7 @@ PRO fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, spherical=spherical,              
             silent=silent, nthreads=nthreads, B_out=B_out, CurlB_out=CurlB_out,     $
             rF_out=rF_out, targetB_out=targetB_out, targetCurlB_out=targetCurlB_out,$
             path_out=path_out, loopB_out=loopB_out, loopCurlB_out=loopCurlB_out,    $
-            CurlBx=CurlBx, CurlBy=CurlBy, CurlBz=CurlBz, Ax=Ax, Ay=Ay, Az=Az,       $
-            length_out=length_out, twist_out=twist_out,                             $
+            Ax=Ax, Ay=Ay, Az=Az, length_out=length_out, twist_out=twist_out,        $
             int_curlB2_out=int_curlB2_out, int_curlBoB_out=int_curlBoB_out,         $
             odir=odir, fname=fname, save_file=save_file, compress=compress,         $
             preview=preview, tmp_dir=tmp_dir, keep_tmp=keep_tmp, qsl=qsl
@@ -26,12 +25,47 @@ IF STRMID(cdir, STRLEN(cdir)-1) NE os_sep THEN cdir=cdir+os_sep
 if keyword_set(tmp_dir) then begin
 	IF STRMID(tmp_dir, STRLEN(tmp_dir)-1) NE os_sep THEN tmp_dir=tmp_dir+os_sep
 endif else tmp_dir= cdir+'tmpFastQSL'+os_sep
+;------------------------------------------------------------
+; check input
+get_lun, unit
 
-if N_PARAMS() eq 0 then begin
-	BtmpFlag=file_test(tmp_dir+'field.bin')
-	if ~BtmpFlag then message, 'please provde a magnetic field'
-endif else BtmpFlag=0
+case N_PARAMS() of
+	0: begin
+		BtmpFlag=file_test(tmp_dir+'field.bin')
+		if ~BtmpFlag then message, 'please provde a magnetic field'
 
+		nx=0L & ny=0L & nz=0L & spherical=0L & dummy=lonarr(5)
+		openr, unit, tmp_dir+'field.bin'
+		readu, unit, nx, ny, nz, stretchFlag, spherical, dummy
+		if stretchFlag then begin
+			xa= fltarr(nx) & ya= fltarr(ny) & za= fltarr(nz)
+			readu, unit, xa, ya, za
+		endif
+		close, unit
+	end
+	1: begin ; Bvec
+		BtmpFlag=0
+		B3Flag=0
+		CurlB_input=0
+	end
+	2: begin ; Bvec, CurlBvec
+		BtmpFlag=0
+		B3Flag=0
+		CurlB_input=1
+	end
+	3: begin ; Bx, By, Bz
+		BtmpFlag=0
+		B3Flag=1
+		CurlB_input=0
+	end
+	6: begin ; Bx, By, Bz, CurlBx, CurlBy, CurlBz
+		BtmpFlag=0
+		B3Flag=1
+		CurlB_input=1
+	end
+	ELSE: message, 'Something is wrong with the magnetic field'
+endcase
+;------------------------------------------------------------
 old_tmp_dir=file_test(tmp_dir)
 
 if old_tmp_dir then begin
@@ -46,19 +80,7 @@ if old_tmp_dir then begin
 endif else file_mkdir, tmp_dir
 ;------------------------------------------------------------
 ; magnetic field
-get_lun, unit
-if BtmpFlag then begin
-	nx=0L & ny=0L & nz=0L & spherical=0L & dummy=lonarr(5)
-	openr, unit, tmp_dir+'field.bin'
-	readu, unit, nx, ny, nz, stretchFlag, spherical, dummy
-	if stretchFlag then begin
-		xa= fltarr(nx) & ya= fltarr(ny) & za= fltarr(nz)
-		readu, unit, xa, ya, za
-	endif
-	close, unit
-endif else begin
-	; check input
-	B3Flag = N_PARAMS() eq 3
+if ~BtmpFlag then begin	
 	sbx=size(Bx)
 	if B3Flag then begin
 		sby=size(By) & sbz=size(Bz)
@@ -104,27 +126,27 @@ endif else begin
 		endelse
 	endelse
 
-	if keyword_set(CurlBx) then begin
-		szx=size(CurlBx)
-		if keyword_set(CurlBy) and keyword_set(CurlBz) then begin
-			szy=size(CurlBy) & szz=size(CurlBz)
-			if szx[0] ne 3 or szy[0] ne 3 or szz[0] ne 3 then message, 'Ax, Ay and Az must be 3D arrays!'
+	if CurlB_input then begin
+		if B3Flag then begin
+			szx=size(CurlBx) & szy=size(CurlBy) & szz=size(CurlBz)
+			if szx[0] ne 3 or szy[0] ne 3 or szz[0] ne 3 then message, 'CurlBx, CurlBy and CurlBz must be 3D arrays!'
 			if szx[1] ne nx or szx[2] ne ny or szx[3] ne nz or $
 			   szy[1] ne nx or szy[2] ne ny or szy[3] ne nz or $
-			   szz[1] ne nx or szz[2] ne ny or szz[3] ne nz then message, 'Ax, Ay and Az must have the same dimensions!'
+			   szz[1] ne nx or szz[2] ne ny or szz[3] ne nz then message, 'CurlBx, CurlBy and CurlBz must have the same dimensions!'
 			CurlBvec=fltarr(3, nx, ny, nz)
 			CurlBvec[0,*,*,*]=CurlBx
 			CurlBvec[1,*,*,*]=CurlBy
 			CurlBvec[2,*,*,*]=CurlBz
 		endif else begin
-			if szx[0] ne 4 or szx[1] ne 3 then $
+			; for this case, CurlBvec is input by By
+			sCurlBvec=size(By) 
+			if sCurlBvec[0] ne 4 or sCurlBvec[1] ne 3 then $
 			message, 'Something is wrong with the CurlB field'
-			if szx[2] ne nx or szx[3] ne ny or szx[4] ne nz then $
+			if sCurlBvec[2] ne nx or sCurlBvec[3] ne ny or sCurlBvec[4] ne nz then $
 			message, 'Something is wrong with the CurlB field'
-			CurlBvec=float(CurlBx)
+			CurlBvec=float(By)
 		endelse
-		CurlB_input=1L
-	endif else CurlB_input=0L
+	endif
 
 	if keyword_set(Ax) then begin
 		szx=size(Ax)
@@ -147,7 +169,7 @@ endif else begin
 		endelse
 		A_input=1L
 	endif else A_input=0L
-endelse
+endif
 ;------------------------------------------------------------
 ; understand the output grid
 csFlag=keyword_set(csFlag)

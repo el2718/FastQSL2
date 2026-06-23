@@ -169,7 +169,7 @@ ixh=(nx-1)/2
 kend=n_elements(za)-1
 
 ;images of Figure 4 in Zhang, P., Chen, J.*, Liu, R. and Wang, C., 2022, ApJ, 937, 26
-fastqsl, Bx, By, Bz, fname='method1_z0', /preview,factor=1,qsl=qsl,/b,/seed
+fastqsl, Bx, By, Bz, fname='method1_z0', /preview,factor=1,qsl=qsl,/b,/seed;, delta=0.05
 fastqsl, Bx, By, Bz, fname='method2_z0', /scottFlag, /rk4, /preview
 fastqsl, Bvec, xreg=[0,nx-1], yreg=[ixh,ixh], zreg=[0,kend/2], fname='method1_y0', /preview
 fastqsl, Bvec, xreg=[0,nx-1], yreg=[ixh,ixh], zreg=[0,kend/2], fname='method2_y0', /scott, /preview
@@ -187,6 +187,9 @@ delta=0.8, tol=1.0e-3, odir= 'fastqsl', nthreads=12, /preview
 ; only exporting curlB
 fastqsl, Bx, By, Bz, /curlB_out, maxsteps=0, seed='original', fname='CurlB', odir= 'fastqsl', qsl=qsl, /save_file
 
+; compute twist with the input qsl.CurlB
+fastqsl, Bvec, qsl.CurlB, odir= 'fastqsl', /twist, fname='input_CurlB', /preview
+
 ; Figure 4 of Chen (2026), see fname+'_logq_local.png'
 fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, $
 xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], /preview, r_local=2, fname='r_local2'
@@ -202,16 +205,15 @@ bfile='charge4_spherical.sav'
 if ~file_test(bfile) then bfield_charge4_spherical, bfile
 restore, bfile
 
-; Q at r=1
+; Q  and length at r=1
 fastqsl, b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, /spherical, $
-factor=4, /preview, /keep_tmp, $
-xreg=[0.,2*!Pi], yreg=[-!pi/2, !pi/2]
+factor=4, /preview, /keep_tmp, qsl=qsl, $
+xreg=[0.,2*!Pi], yreg=[-!pi/2, !pi/2], /length
 
 
 ; trace field lines from two points
 fastqsl, fname='spherical_seed_path', /preview, $
-seed=[[!pi*0.85, 0.1, 1.], [!pi*1.1, -0.2, 1.2]], /path, /loopB, $ 
-qsl=qsl
+seed=[[!pi*0.85, 0.1, 1.], [!pi*1.1, -0.2, 1.2]], /path, /loopB, qsl=qsl, /keep_tmp
 
 ; transfrom *qsl.path[1] in (longitude, latitude, radius() to path1_car in (x, y, z), and
 ; transfrom *qsl.loopB[1] in (B_lon, B_lat, B_r) to loopB1_car in (B_x, B_y, B_z)

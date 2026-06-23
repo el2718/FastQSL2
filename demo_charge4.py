@@ -165,6 +165,9 @@ delta=0.8, tol=1.0e-3, odir='fastqsl', nthreads=12, preview=True)
 # only exporting CurlB
 qsl=fastqsl(Bx, By, Bz, CurlB_out=True, maxsteps=0, seed='original', odir= 'fastqsl', fname='CurlB', save_file=True)
 
+# compute twist with the input qsl.CurlB
+fastqsl(Bvec, qsl['CurlB'], odir= 'fastqsl', twist_out=True, fname='input_CurlB', preview=True)
+
 # Figure 4 of Chen (2026), see fname+'_logq_local.png'
 fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
 xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], preview=True, r_local=2, fname='r_local2')
@@ -181,10 +184,10 @@ cdir = os.getcwd()+os.sep
 if bfile not in os.listdir(cdir): bfield_charge4_spherical(bfile)
 with open(bfile, 'rb') as file: (b_lon, b_lat, b_r, lon_rad, lat_rad, radius) = pickle.load(file)
 
-# Q at r=1
+# Q and length at r=1
 fastqsl(b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, spherical=True, \
 factor=4, preview=True, keep_tmp=True, \
-xreg=[0.,2*np.pi], yreg=[-np.pi/2, np.pi/2])
+xreg=[0.,2*np.pi], yreg=[-np.pi/2, np.pi/2], length_out=True)
 
 
 # trace field lines from two points

@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import os, subprocess, pickle
 
-def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=False, \
+def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *, 
+            xa=None, ya=None, za=None, spherical=False, \
             xperiod=False, yperiod=False, zperiod=False, \
             xreg=None, yreg=None, zreg=None, csFlag=False, factor=4, delta=None, \
             lon_delta=None, lat_delta=None, r_delta=None, arc_delta=None, seed=None, \
@@ -11,7 +12,7 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
             scottFlag=False, inclineFlag=False, r_local=0., nthreads=0, silent=False, \
             B_out=False, CurlB_out=False, rF_out=False, targetB_out=False, targetCurlB_out=False, \
             path_out=False, loopB_out=False, loopCurlB_out=False, \
-            CurlBx=None, CurlBy=None, CurlBz=None, Ax=None, Ay=None, Az=None, \
+            Ax=None, Ay=None, Az=None, \
             length_out=False, twist_out=False, int_CurlB2_out=False, int_CurlBoB_out=False, \
             odir=None, fname=None, save_file=False, preview=False, tmp_dir=None, keep_tmp=False):
 # ------------------------------------------------------------
@@ -23,7 +24,7 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
         if tmp_dir[-1] != os.sep : tmp_dir=tmp_dir+os.sep
     else: tmp_dir= cdir+'tmpFastQSL'+os.sep
 
-    if Bx is None and By is None and Bz is None:
+    if Bx is None:
         BtmpFlag= os.path.exists(tmp_dir+'field.bin')
         if not BtmpFlag:  raise Exception('please provde a magnetic field')
     else: BtmpFlag=False
@@ -47,9 +48,9 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
                 za=np.fromfile(file, dtype='f4', count=nz)
     else:   
         # check input
-        B3Flag= Bx is not None and By is not None and Bz is not None
-        Bx_ndim=np.array(Bx).ndim
-        sBx    =np.array(Bx).shape
+        B3Flag = Bz is not None
+        Bx_ndim= np.array(Bx).ndim
+        sBx    = np.array(Bx).shape
 
         if B3Flag:
             if Bx_ndim != 3: raise Exception('Bx, By, and Bz must be 3D arrays!')
@@ -80,20 +81,21 @@ def fastqsl(Bx=None, By=None, Bz=None, *, xa=None, ya=None, za=None, spherical=F
             Bvec[:,:,:,2]=Bz
         else: Bvec=np.array(Bx, dtype='f4', order='C')
 
+        CurlB_input= (CurlBx is not None) or (By is not None and Bz is None)
+
         if CurlBx is not None:
-            if CurlBy is not None and CurlBz is not None:
-                if sBx != np.array(CurlBx).shape or sBx != np.array(CurlBy).shape or sBx != np.array(CurlBz).shape:
-                    raise Exception('CurlBx, CurlBy, and CurlBz must have the same dimensions!')
-                CurlBvec=np.zeros((nz, ny, nx, 3), dtype='f4')
-                CurlBvec[:,:,:,0]=CurlBx
-                CurlBvec[:,:,:,1]=CurlBy
-                CurlBvec[:,:,:,2]=CurlBz
-            else: 
-                if np.array(CurlBx).shape != (nz, ny, nx, 3):
-                    raise Exception('Something is wrong with the CurlB field')
-                CurlBvec=np.array(CurlBx, dtype='f4', order='C')
-            CurlB_input=True
-        else: CurlB_input=False
+            if CurlBz is None: raise Exception('Something is wrong with the CurlB field')
+            if sBx != np.array(CurlBx).shape or sBx != np.array(CurlBy).shape or sBx != np.array(CurlBz).shape:
+                raise Exception('CurlBx, CurlBy, and CurlBz must have the same dimensions!')
+            CurlBvec=np.zeros((nz, ny, nx, 3), dtype='f4')
+            CurlBvec[:,:,:,0]=CurlBx
+            CurlBvec[:,:,:,1]=CurlBy
+            CurlBvec[:,:,:,2]=CurlBz
+        if  By is not None and Bz is None:
+            # for this case, CurlBvec is input by By
+            if np.array(By).shape != (nz, ny, nx, 3):
+                raise Exception('Something is wrong with the CurlB field')
+            CurlBvec=np.array(By, dtype='f4', order='C')
 
         if Ax is not None:
             if Ay is not None and Az is not None:
