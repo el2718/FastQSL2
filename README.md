@@ -27,16 +27,18 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 arXiv: https://arxiv.org/pdf/2604.16195
 
 ```bibtex
-@article{:/publisher/Science China Press/journal/SCIENCE CHINA Physics, Mechanics & Astronomy/69/8/10.1007/s11433-025-2982-2,
-  author = "Jun Chen,Thomas Wiegelmann,Li Feng,Chaowei Jiang,Rui Liu",
-  title = "FastQSL 2: A comprehensive toolkit for magnetic connectivity analysis",
-  journal = "SCIENCE CHINA Physics, Mechanics & Astronomy",
-  year = "2026",
-  volume = "69",
-  number = "8",
-  pages = "289611-",
-  url = "http://www.sciengine.com/publisher/Science China Press/journal/SCIENCE CHINA Physics, Mechanics & Astronomy/69/8/10.1007/s11433-025-2982-2,
-  doi = "https://doi.org/10.1007/s11433-025-2982-2"
+@article{Chen2026,
+  title = {FastQSL 2: A comprehensive toolkit for magnetic connectivity analysis},
+  author = {Jun Chen and Thomas Wiegelmann and Li Feng and Chaowei Jiang and Rui Liu},
+  year = {2026},
+  journal = {SCIENCE CHINA Physics, Mechanics \& Astronomy},
+  volume = {69},
+  number = {8},
+  pages = {289611},
+  doi = {https://doi.org/10.1007/s11433-025-2982-2},
+  url = {http://www.sciengine.com/doi/10.1007/s11433-025-2982-2},
+  isbn = {1674-7348},
+  keywords = {solar corona, magnetic topology, open source software}
 }
 ```
 
