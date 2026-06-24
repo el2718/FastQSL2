@@ -28,7 +28,7 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 ```bibtex
 @article{Chen2026FastQSL2,
   title = {FastQSL 2: A comprehensive toolkit for magnetic connectivity analysis},
-  author = {Jun Chen and Thomas Wiegelmann and Li Feng and Chaowei Jiang and Rui Liu},
+  author = {{Chen}, Jun and {Wiegelmann}, Thomas and {Feng}, Li and {Jiang}, Chaowei and {Liu}, Rui},
   year = {2026},
   journal = {SCIENCE CHINA Physics, Mechanics, and Astronomy},
   volume = {69},
