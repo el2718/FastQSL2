@@ -30,7 +30,7 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
   title = {FastQSL 2: A comprehensive toolkit for magnetic connectivity analysis},
   author = {Jun Chen and Thomas Wiegelmann and Li Feng and Chaowei Jiang and Rui Liu},
   year = {2026},
-  journal = {SCIENCE CHINA Physics, Mechanics \& Astronomy},
+  journal = {SCIENCE CHINA Physics, Mechanics and Astronomy},
   volume = {69},
   number = {8},
   pages = {289611},
