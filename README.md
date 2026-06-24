@@ -23,8 +23,22 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 -----------------------------
 ## Cite as
 
-* [Jun Chen*, Thomas Wiegelmann, Li Feng*, Chaowei Jiang, and Rui Liu. FastQSL 2: A Comprehensive Toolkit for Magnetic Connectivity Analysis. 2026, SCIENCE CHINA Physics, Mechanics & Astronomy, accepted](https://www.sciengine.com/SCPMA/doi/10.1007/s11433-025-2982-2)
+* [Jun Chen*, Thomas Wiegelmann, Li Feng*, Chaowei Jiang, and Rui Liu. FastQSL 2: A Comprehensive Toolkit for Magnetic Connectivity Analysis. 2026, SCIENCE CHINA Physics, Mechanics & Astronomy, 69, 289611](https://www.sciengine.com/SCPMA/doi/10.1007/s11433-025-2982-2)
 arXiv: https://arxiv.org/pdf/2604.16195
+
+```bibtex
+@article{:/publisher/Science China Press/journal/SCIENCE CHINA Physics, Mechanics & Astronomy/69/8/10.1007/s11433-025-2982-2,
+  author = "Jun Chen,Thomas Wiegelmann,Li Feng,Chaowei Jiang,Rui Liu",
+  title = "FastQSL 2: A comprehensive toolkit for magnetic connectivity analysis",
+  journal = "SCIENCE CHINA Physics, Mechanics & Astronomy",
+  year = "2026",
+  volume = "69",
+  number = "8",
+  pages = "289611-",
+  url = "http://www.sciengine.com/publisher/Science China Press/journal/SCIENCE CHINA Physics, Mechanics & Astronomy/69/8/10.1007/s11433-025-2982-2,
+  doi = "https://doi.org/10.1007/s11433-025-2982-2"
+}
+```
 
 * [Peijin Zhang, Jun Chen*, Rui Liu and ChuanBing Wang. FastQSL: A Fast Computation Method for Quasi-separatrix Layers. 2022, The Astrophysical Journal, 937, 26](https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61)
 
