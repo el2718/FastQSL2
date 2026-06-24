@@ -24,7 +24,6 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 ## Cite as
 
 * [Jun Chen*, Thomas Wiegelmann, Li Feng*, Chaowei Jiang, and Rui Liu. FastQSL 2: A Comprehensive Toolkit for Magnetic Connectivity Analysis. 2026, SCIENCE CHINA Physics, Mechanics & Astronomy, 69, 289611](https://www.sciengine.com/SCPMA/doi/10.1007/s11433-025-2982-2)
-arXiv: https://arxiv.org/pdf/2604.16195
 
 ```bibtex
 @article{Chen2026,
@@ -41,6 +40,7 @@ arXiv: https://arxiv.org/pdf/2604.16195
   keywords = {solar corona, magnetic topology, open source software}
 }
 ```
+arXiv: https://arxiv.org/pdf/2604.16195
 
 * [Peijin Zhang, Jun Chen*, Rui Liu and ChuanBing Wang. FastQSL: A Fast Computation Method for Quasi-separatrix Layers. 2022, The Astrophysical Journal, 937, 26](https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61)
 
