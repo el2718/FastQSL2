@@ -34,7 +34,7 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
   volume = {69},
   number = {8},
   pages = {289611},
-  doi = {https://doi.org/10.1007/s11433-025-2982-2},
+  doi = {10.1007/s11433-025-2982-2},
   url = {http://www.sciengine.com/doi/10.1007/s11433-025-2982-2},
   isbn = {1674-7348},
   keywords = {solar corona, magnetic topology, open source software}
