@@ -40,7 +40,9 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
   keywords = {solar corona, magnetic topology, open source software}
 }
 ```
+
 Springer Nature: https://link.springer.com/article/10.1007/s11433-025-2982-2
+
 arXiv: https://arxiv.org/pdf/2604.16195
 
 * [Peijin Zhang, Jun Chen*, Rui Liu and ChuanBing Wang. FastQSL: A Fast Computation Method for Quasi-separatrix Layers. 2022, The Astrophysical Journal, 937, 26](https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61)
