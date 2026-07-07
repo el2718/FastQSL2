@@ -88,7 +88,7 @@ arXiv: https://arxiv.org/pdf/2604.16195
     ```
   * If you also need [SSW](http://www.lmsal.com/solarsoft/) for some other analysis, please take a look at https://github.com/rbluosolar/sswgdl
 ### If using fastqsl\.py
-* install **python** https://www.python.org/
+* install **python** https://www.python.org
   * **numpy** and **matplotlib** should be installed
   * **scipy** is suggested to install for reading *.sav from IDL in a demo
   * setting an environment variable of `$PYTHONPATH` and placing fastqsl\.py into a private path is suggested, just append such line to ~/.bashrc
