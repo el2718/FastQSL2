@@ -80,6 +80,7 @@ arXiv: https://arxiv.org/pdf/2604.16195
     * ArchLinux: /usr/lib/gdl
     * Gentoo: /usr/local/share/gdl
     * macOS: /opt/local/share/gnudatalanguage
+    
     **Please append the following lines to ~/.bashrc**, e.g. for Ubuntu
     ```bash
     export GDL_DIR=/usr/share/gnudatalanguage
