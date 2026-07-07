@@ -108,12 +108,7 @@ def bfield2_charge4_spherical(bfile, n_lon=181, n_lat=91, n_r=31):
     lon_rad= np.linspace(0., 2.*np.pi, n_lon)
     lat_rad= np.linspace(-np.pi/2., np.pi/2., n_lat)
     radius = np.linspace(1., 2.5, n_r)
-
-    cos_lon=np.cos(lon_rad)
-    sin_lon=np.sin(lon_rad)
-    cos_lat=np.cos(lat_rad)
-    sin_lat=np.sin(lat_rad)
-
+    
     seed_original=np.zeros((n_r, n_lat, n_lon, 3),'f4')
     for i in range(n_lon): seed_original[:,:,i,0]=lon_rad[i]
     for i in range(n_lat): seed_original[:,i,:,1]=lat_rad[i]
