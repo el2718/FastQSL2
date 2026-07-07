@@ -2893,12 +2893,13 @@ end function cos2vector
 subroutine initialize_region
 implicit none
 integer:: i, j, nqx, nqy, nqz
-real:: ev1(0:2), ev2(0:2), point0(0:2), point1(0:2), point2(0:2), &
+real:: ev1(0:2), ev2(0:2), i_shift, j_shift, &
+point0(0:2), point1(0:2), point2(0:2), point_orig(0:2), &
 p0(0:2), p1(0:2), p2_spherical(0:2), arc, sin_arc, max_da(0:2)
 real, allocatable:: axis1(:,:)
 logical:: csFlag, preset_xreg, preset_yreg
 !------------------------------------------------------------
-! receive information from fastqsl.pro
+! receive information from fastqsl.pro/fastqsl.py
 open(1, file='head_region.bin', access='stream', status='old')
 read(1) xreg, yreg, zreg, deltas, csFlag, preset_xreg, preset_yreg
 close(1, status='delete')
@@ -2911,13 +2912,23 @@ if (csflag) then
 	delta_i=deltas(-1)
 	delta_j=deltas( 2)
 
-	if (spherical) then
-		p0= [cos(yreg(0))*[cos(xreg(0)), sin(xreg(0))], sin(yreg(0))]
-		p1= [cos(yreg(1))*[cos(xreg(1)), sin(xreg(1))], sin(yreg(1))]
-		arc= acos(cos2vector(p0, p1, sin_arc))
-		nq1= int(arc/delta_i)+1
+	if ((-xreg(0) .eq. xreg(1)) .and. (-yreg(0) .eq. yreg(1))) then
+		if (spherical) then
+			p1= [cos(yreg(1))*[cos(xreg(1)), sin(xreg(1))], sin(yreg(1))]
+			arc= acos(cos2vector([1., 0., 0.], p1, sin_arc))
+			nq1= int(arc/delta_i)*2+1
+		else
+			nq1= int(norm2s([xreg(1), yreg(1)])/delta_i)*2+1
+		endif	
 	else
-		nq1= int(norm2s([xreg(1)-xreg(0), yreg(1)-yreg(0)])/delta_i)+1
+		if (spherical) then
+			p0= [cos(yreg(0))*[cos(xreg(0)), sin(xreg(0))], sin(yreg(0))]
+			p1= [cos(yreg(1))*[cos(xreg(1)), sin(xreg(1))], sin(yreg(1))]
+			arc= acos(cos2vector(p0, p1, sin_arc))
+			nq1= int(arc/delta_i)+1
+		else
+			nq1= int(norm2s([xreg(1)-xreg(0), yreg(1)-yreg(0)])/delta_i)+1
+		endif
 	endif
 	
 	nq2=int(abs(zreg(1)-zreg(0))/delta_j)+1
@@ -2925,7 +2936,6 @@ else
 	if (-xreg(0) .eq. xreg(1)) then
 		! make the symmetry around x=0
 		nqx= int(xreg(1)/deltas(0))*2+1
-		xreg(0)=-(nqx-1)/2*deltas(0)
 	else
 		nqx= int((xreg(1)-xreg(0))/deltas(0))+1
 	endif
@@ -2937,7 +2947,6 @@ else
 	if (-yreg(0) .eq. yreg(1)) then
 		! make the symmetry around y=0
 		nqy= int(yreg(1)/deltas(1))*2+1
-		yreg(0)=-(nqy-1)/2*deltas(1)
 	else
 		nqy= int((yreg(1)-yreg(0))/deltas(1))+1
 	endif
@@ -2969,18 +2978,32 @@ jend=nq2-1
 allocate(seed(0:2, 0:iend, 0:jend))
 
 if (csFlag .and. spherical) then
-	do i=0, iend
-		p2_spherical = vp_car2spherical((p0*sin(arc-delta_i*i)+p1*sin(delta_i*i))/sin_arc)
-		seed(0:1, i, 0) = p2_spherical(0:1)
-	enddo
+	if ((-xreg(0) .eq. xreg(1)) .and. (-yreg(0) .eq. yreg(1))) then
+		seed(0:1, iend/2, 0)=0.
+		do i=iend/2+1, iend
+			p2_spherical = vp_car2spherical([1.,0.,0.]*sin(arc-delta_i*(i-iend/2))+ &
+			                                        p1*sin(delta_i*(i-iend/2))/sin_arc)
+			seed(0:1, i, 0)      =  p2_spherical(0:1)
+			seed(0:1, iend-i, 0) = -p2_spherical(0:1)
+		enddo
+	else
+		do i=0, iend
+			p2_spherical = vp_car2spherical((p0*sin(arc-delta_i*i)+p1*sin(delta_i*i))/sin_arc)
+			seed(0:1, i, 0) = p2_spherical(0:1)
+		enddo
+	endif
 
 	forall(j=1:jend) seed(0:1, :, j) = seed(0:1, :, 0)
 	forall(j=0:jend) seed(  2, :, j) = zreg(0) + delta_j*j
 
 	ev3=normalize_cross_product(p0, p1)
 else
-
 	point0=[xreg(0),yreg(0),zreg(0)]
+
+	! default values, can be adjusted if a sysmetry is found
+	point_orig=point0
+	i_shift=0
+	j_shift=0
 
 	select case(Normal_index)
 	case(-1)
@@ -2991,15 +3014,34 @@ else
 		ev2=normalize(point2-point0)
 		
 		ev3=normalize_cross_product(ev1, ev2)
+		if (xreg(0) .eq. -xreg(1) .and. yreg(0) .eq. -yreg(1)) then
+			i_shift=iend/2
+			point_orig(0:1)=0.
+		endif
 	case(0)
 		ev1=[0.,1.,0.]; ev2=[0.,0.,1.]
+		if (yreg(0) .eq. -yreg(1)) then
+			i_shift=iend/2
+			point_orig(1)=0.
+		endif
 	case(1)
 		ev1=[1.,0.,0.]; ev2=[0.,0.,1.]
+		if (xreg(0) .eq. -xreg(1)) then
+			i_shift=iend/2
+			point_orig(0)=0.
+		endif
 	case(2)
 		ev1=[1.,0.,0.]; ev2=[0.,1.,0.]
+		if (xreg(0) .eq. -xreg(1)) then
+			i_shift=iend/2
+			point_orig(0)=0.
+		endif
+		if (yreg(0) .eq. -yreg(1)) then
+			j_shift=jend/2
+			point_orig(1)=0.
+		endif
 	end select
-
-	forall(i=0:iend, j=0:jend) seed(:, i, j) = point0 + i*delta_i*ev1 + j*delta_j*ev2
+	forall(i=0:iend, j=0:jend) seed(:,i,j) = point_orig + (i-i_shift)*delta_i*ev1 + (j-j_shift)*delta_j*ev2
 endif
 
 if (csFlag) then
@@ -3011,11 +3053,10 @@ if (csFlag) then
 	deallocate(axis1)
 endif
 !------------------------------------------------------------
-! inform fastqsl.pro these; 
-! xreg(1), yreg(1), zreg(1) may be changed due to flooring of giving nq1, nq2, nq3
-
-xreg(1)=seed(0, iend, jend)
-yreg(1)=seed(1, iend, jend)
+! inform fastqsl.pro/fastqsl.py these; 
+! xreg, yreg, zreg(1) may be changed due to flooring of giving nq1, nq2, nq3
+xreg=[seed(0, 0, 0), seed(0, iend, jend)]
+yreg=[seed(1, 0, 0), seed(1, iend, jend)]
 if (vflag) then
 	zreg(1)=zreg(0)+deltas(2)*(nq3-1)
 else
