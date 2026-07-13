@@ -180,7 +180,7 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
 ### Coordinates
 
   * **xa, ya, za**: axis coordinates of magnetic field in 1D arrays
-    * should not be presented if the **Bx, By, Bz** are set on a Cartesian uniform grid
+    * they are unnecessary to be presented if the **Bx, By, Bz** are set on a Cartesian uniform grid
       ```
       stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
       ```
