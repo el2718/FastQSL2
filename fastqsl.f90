@@ -2049,7 +2049,7 @@ integer(1), target, allocatable:: rbs(:,:), rbe(:,:)
 integer(1), allocatable:: rboundary(:,:)
 integer(2), allocatable:: sign2d(:,:)! IDL do not have the type of 8-bit signed integer
 real:: deltas(-1:2), delta_i, delta_j, xreg(0:1), yreg(0:1), zreg(0:1), ev3(0:2)
-real, allocatable:: q(:,:), q_perp(:,:), int_private(:,:,:), &
+real, allocatable:: q(:,:), q_perp(:,:), &
 seed(:,:,:), b_layer(:,:,:), CurlB_layer(:,:,:), bnp2d(:,:), &
 bs_layer(:,:,:), be_layer(:,:,:), CurlBs_layer(:,:,:), CurlBe_layer(:,:,:), &
 q_local(:,:), brn_s(:,:), brn_e(:,:)
@@ -2063,13 +2063,18 @@ type line
 endtype line
 type(line), allocatable :: lines(:)
 
+type int_line
+	real, allocatable:: data(:,:)
+endtype int_line
+type(int_line) :: int_private(0:9)
+
 integer, allocatable:: index_seed(:), loop_size(:)
 
 contains
 
 subroutine q_bridge(i, j)
 implicit none
-integer:: i, j, id, its, ite
+integer:: i, j, ip, id, its, ite
 logical:: pole_j
 type(line_info):: info
 real:: weight(0:1,0:1,0:1)
@@ -2134,7 +2139,12 @@ if (targetB_flag) then
 endif
 
 if (CurlB_out) CurlB_layer(:, i, j)=info%CurlBp
-if (privateFlag) int_private(i, j, :)=info%int_private
+if (privateFlag) then
+	do ip =0, 9 
+		if (int_private_out(ip)) &
+		int_private(ip)%data(i, j)=info%int_private(ip)
+	enddo
+endif
 if (targetCurlB_out) then 
 	CurlBs_layer(:, i, j)=info%CurlBs
 	CurlBe_layer(:, i, j)=info%CurlBe
@@ -2709,7 +2719,7 @@ end subroutine q_diff
 
 subroutine compute_layer
 implicit none
-integer:: i, j, label, label0, loop_end
+integer:: i, j, ip, label, label0, loop_end
 !------------------------------------------------------------
 if (sign2dFlag) allocate(sign2d(0:iend, 0:jend))
 !------------------------------------------------------------
@@ -2738,7 +2748,12 @@ do j= 0, jend, jend
 		rFe(:, i, j)=rFe(:, 0, j)
 		rboundary(i, j)=rboundary(0, j)
 		b_layer(:, i, j)=b_layer(:, 0, j)
-		if (privateFlag) int_private(i, j, :)=int_private(0, j, :)
+		if (privateFlag) then
+			do ip =0, 9 
+				if (int_private_out(ip)) &
+				int_private(ip)%data(i, j)=int_private(ip)%data(0, j)
+			enddo
+		endif
 		if (CurlB_out) CurlB_layer(:, i, j)=CurlB_layer(:, 0, j)
 		
 		if (targetB_flag) then 
@@ -3104,7 +3119,7 @@ real(8):: tcalc, tnow, tend, omp_get_wtime
 integer:: i, k, nthreads, i2end, OMP_GET_NUM_PROCS
 integer(8), allocatable:: indexes(:)
 integer(1):: ip
-character(len=1) ::str_ip
+character(len=1) :: str_aux
 !------------------------------------------------------------
 open(1, file='head.bin', access='stream', status='old')
 read(1) step, tol, r_local, maxsteps, RK4Flag, inclineFlag, &
@@ -3217,7 +3232,14 @@ if (targetB_flag) then
 	allocate(bs_layer(0:2, 0:iend, 0:jend))
 	allocate(be_layer(0:2, 0:iend, 0:jend))
 endif
-if (privateFlag) allocate(int_private(0:iend, 0:jend, 0:9))
+
+if (privateFlag) then
+	do ip = 0, 9 
+		if (int_private_out(ip)) &
+		allocate(int_private(ip)%data(0:iend, 0:jend))
+	enddo
+endif
+
 if (scottFlag) allocate(q_perp(0:iend, 0:jend))
 if (diff_flag) then
 	allocate(rbs(0:iend, 0:jend))
@@ -3286,8 +3308,8 @@ endif
 
 do ip=0, 9
 	if (int_private_out(ip)) then
-		write(str_ip,"(i0)") ip
-		open(30+ip, file='int_private'//trim(str_ip)//'.bin', access='stream', status='replace')
+		write(str_aux,"(i0)") ip
+		open(30+ip, file='int_private'//trim(str_aux)//'.bin', access='stream', status='replace')
 	endif
 enddo
 
@@ -3353,7 +3375,8 @@ do k=0, nq3-1
 	endif
 	
 	do ip=0, 9
-		if (int_private_out(ip)) write(30+ip) int_private(:,:,ip)
+		if (int_private_out(ip)) &
+		write(30+ip) int_private(ip)%data
 	enddo
 	
 enddo
@@ -3399,7 +3422,14 @@ if (q_local_Flag) then
 	deallocate(q_local)
 	if (diff_flag) deallocate(local_s_flag, local_e_flag, brn_s, brn_e)
 endif
-if (privateFlag) deallocate(int_private)
+
+if (privateFlag) then
+	do ip = 0, 9 
+		if (int_private_out(ip)) &
+		deallocate(int_private(ip)%data)
+	enddo
+endif
+
 if ( dbdc_field_Flag) deallocate( dbdc_field)
 if (CurlBvec_Flag) deallocate(CurlBvec)
 if (A_input)       deallocate(Avec)
@@ -3429,6 +3459,8 @@ if (verbose) then
 endif
 !------------------------------------------------------------
 ! In Windows, the pop-up window for fastqsl.exe can not be closed automatically
+! call get_environment_variable("HOME", str_aux)
+! if (str_aux .ne. "/") &
 ! call system('taskkill /im fastqsl.exe /f') 
 
 ! another way to kill the pop-up window
