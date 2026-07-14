@@ -2795,7 +2795,7 @@ if (sign2dFlag) then
 endif
 !------------------------------------------------------------
 if (diff_flag) then
-!$OMP PARALLEL DO PRIVATE(i,j), schedule(DYNAMIC)
+!$OMP PARALLEL DO collapse(2) PRIVATE(i,j), schedule(DYNAMIC)
 DO j= 0, jend
 DO i= 0, iend
 	call q_diff(i, j)
