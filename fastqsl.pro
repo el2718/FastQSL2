@@ -78,7 +78,7 @@ endif else begin
 		Bvec=float(Bx)
 		nx=sbx[2] & ny=sbx[3] & nz=sbx[4]
 
-		; for this case, CurlBvec is input by By
+		; for this case, CurlBvec is inputted by By
 		CurlB_input = N_PARAMS() ge 2 and sby[0] eq 4
 		if CurlB_input then CurlB_input= sby[1] eq 3 and sby[2] eq nx and sby[3] eq ny and sby[4] eq nz
 		if CurlB_input then CurlBvec=float(By)

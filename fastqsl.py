@@ -94,7 +94,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
             CurlBvec[:,:,:,1]=CurlBy
             CurlBvec[:,:,:,2]=CurlBz
         if  By is not None and Bz is None:
-            # for this case, CurlBvec is input by By
+            # for this case, CurlBvec is inputted by By
             if np.array(By).shape != (nz, ny, nx, 3):
                 raise Exception('Something is wrong with the CurlB field')
             CurlBvec=np.array(By, dtype='f4', order='C')
