@@ -25,66 +25,31 @@ IF STRMID(cdir, STRLEN(cdir)-1) NE os_sep THEN cdir=cdir+os_sep
 if keyword_set(tmp_dir) then begin
 	IF STRMID(tmp_dir, STRLEN(tmp_dir)-1) NE os_sep THEN tmp_dir=tmp_dir+os_sep
 endif else tmp_dir= cdir+'tmpFastQSL'+os_sep
+
+get_lun, unit
 ;------------------------------------------------------------
 ; check input
-get_lun, unit
+if n_elements(bx) eq 0 then begin
+	BtmpFlag=file_test(tmp_dir+'field.bin')
+	if ~BtmpFlag then message, 'please provde a magnetic field'
 
-case N_PARAMS() of
-	0: begin
-		BtmpFlag=file_test(tmp_dir+'field.bin')
-		if ~BtmpFlag then message, 'please provde a magnetic field'
+	nx=0L & ny=0L & nz=0L & spherical=0L & dummy=lonarr(5)
+	openr, unit, tmp_dir+'field.bin'
+	readu, unit, nx, ny, nz, stretchFlag, spherical, dummy
+	if stretchFlag then begin
+		xa= fltarr(nx) & ya= fltarr(ny) & za= fltarr(nz)
+		readu, unit, xa, ya, za
+	endif
+	close, unit
+endif else begin
+	BtmpFlag=0
+	sbx=size(bx)
+	sby=size(by)
+	B3Flag = sbx[0] eq 3
 
-		nx=0L & ny=0L & nz=0L & spherical=0L & dummy=lonarr(5)
-		openr, unit, tmp_dir+'field.bin'
-		readu, unit, nx, ny, nz, stretchFlag, spherical, dummy
-		if stretchFlag then begin
-			xa= fltarr(nx) & ya= fltarr(ny) & za= fltarr(nz)
-			readu, unit, xa, ya, za
-		endif
-		close, unit
-	end
-	1: begin ; Bvec
-		BtmpFlag=0
-		B3Flag=0
-		CurlB_input=0
-	end
-	2: begin ; Bvec, CurlBvec
-		BtmpFlag=0
-		B3Flag=0
-		CurlB_input=1
-	end
-	3: begin ; Bx, By, Bz
-		BtmpFlag=0
-		B3Flag=1
-		CurlB_input=0
-	end
-	6: begin ; Bx, By, Bz, CurlBx, CurlBy, CurlBz
-		BtmpFlag=0
-		B3Flag=1
-		CurlB_input=1
-	end
-	ELSE: message, 'Something is wrong with the magnetic field'
-endcase
-;------------------------------------------------------------
-old_tmp_dir=file_test(tmp_dir)
-
-if old_tmp_dir then begin
-	dummy=file_search(tmp_dir, '*.bin', count=nf)
-	if BtmpFlag then begin
-		for i=0, nf-1 do begin
-			if dummy[i] ne tmp_dir+'field.bin' and  $
-			   dummy[i] ne tmp_dir+'magnetogram.bin' $
-			   then file_delete, dummy[i]
-		endfor
-	endif else if nf gt 0 then file_delete, dummy
-endif else file_mkdir, tmp_dir
-;------------------------------------------------------------
-; magnetic field
-if ~BtmpFlag then begin	
-	sbx=size(Bx)
 	if B3Flag then begin
-		sby=size(By) & sbz=size(Bz)
-		if sbx[0] ne 3 or sby[0] ne 3 or sbz[0] ne 3 then message, 'Bx, By and Bz must be 3D arrays!'
+		sbz=size(Bz)
+		if sby[0] ne 3 or sbz[0] ne 3 then message, 'Bx, By and Bz must be 3D arrays!'
 		if sbx[1] ne sby[1] or sbx[1] ne sbz[1] or $
 		   sbx[2] ne sby[2] or sbx[2] ne sbz[2] or $
 		   sbx[3] ne sby[3] or sbx[3] ne sbz[3] then message, 'Bx, By and Bz must have the same dimensions!'
@@ -94,12 +59,34 @@ if ~BtmpFlag then begin
 		Bvec[0,*,*,*]=Bx
 		Bvec[1,*,*,*]=By
 		Bvec[2,*,*,*]=Bz
-	endif else begin 
-		; the dimensions of Bx are (3,nx,ny,nz)
+
+		szx=size(CurlBx) & szy=size(CurlBy) & szz=size(CurlBz)
+		CurlB_input= N_PARAMS() ge 6 and szx[0] eq 3 and szy[0] eq 3 and szz[0] eq 3
+		if CurlB_input then begin
+			CurlB_input= szx[1] eq nx and szx[2] eq ny and szx[3] eq nz and $
+			             szy[1] eq nx and szy[2] eq ny and szy[3] eq nz and $
+			             szz[1] eq nx and szz[2] eq ny and szz[3] eq nz 
+		endif
+		if CurlB_input then begin
+			CurlBvec=fltarr(3, nx, ny, nz)
+			CurlBvec[0,*,*,*]=CurlBx
+			CurlBvec[1,*,*,*]=CurlBy
+			CurlBvec[2,*,*,*]=CurlBz
+		endif
+	endif else begin
 		if sbx[0] ne 4 or sbx[1] ne 3 then message, 'Something is wrong with the magnetic field'
-		nx=sbx[2] & ny=sbx[3] & nz=sbx[4]
 		Bvec=float(Bx)
+		nx=sbx[2] & ny=sbx[3] & nz=sbx[4]
+
+		; for this case, CurlBvec is input by By
+		CurlB_input = N_PARAMS() ge 2 and sby[0] eq 4
+		if CurlB_input then CurlB_input= sby[1] eq 3 and sby[2] eq nx and sby[3] eq ny and sby[4] eq nz
+		if CurlB_input then CurlBvec=float(By)
 	endelse
+endelse
+;------------------------------------------------------------
+; understand grids 
+if ~BtmpFlag then begin
 
 	stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
 	spherical= keyword_set(spherical)
@@ -126,28 +113,6 @@ if ~BtmpFlag then begin
 		endelse
 	endelse
 
-	if CurlB_input then begin
-		if B3Flag then begin
-			szx=size(CurlBx) & szy=size(CurlBy) & szz=size(CurlBz)
-			if szx[0] ne 3 or szy[0] ne 3 or szz[0] ne 3 then message, 'CurlBx, CurlBy and CurlBz must be 3D arrays!'
-			if szx[1] ne nx or szx[2] ne ny or szx[3] ne nz or $
-			   szy[1] ne nx or szy[2] ne ny or szy[3] ne nz or $
-			   szz[1] ne nx or szz[2] ne ny or szz[3] ne nz then message, 'CurlBx, CurlBy and CurlBz must have the same dimensions!'
-			CurlBvec=fltarr(3, nx, ny, nz)
-			CurlBvec[0,*,*,*]=CurlBx
-			CurlBvec[1,*,*,*]=CurlBy
-			CurlBvec[2,*,*,*]=CurlBz
-		endif else begin
-			; for this case, CurlBvec is input by By
-			sCurlBvec=size(By) 
-			if sCurlBvec[0] ne 4 or sCurlBvec[1] ne 3 then $
-			message, 'Something is wrong with the CurlB field'
-			if sCurlBvec[2] ne nx or sCurlBvec[3] ne ny or sCurlBvec[4] ne nz then $
-			message, 'Something is wrong with the CurlB field'
-			CurlBvec=float(By)
-		endelse
-	endif
-
 	if keyword_set(Ax) then begin
 		szx=size(Ax)
 		if keyword_set(Ay) and keyword_set(Az) then begin
@@ -167,8 +132,8 @@ if ~BtmpFlag then begin
 			message, 'Something is wrong with the additional field'
 			Avec=float(Ax)
 		endelse
-		A_input=1L
-	endif else A_input=0L
+		A_input=1
+	endif else A_input=0
 endif
 ;------------------------------------------------------------
 ; understand the output grid
@@ -322,6 +287,20 @@ preview         = keyword_set(preview)
 save_file       = keyword_set(save_file)
 verbose         =~keyword_set(silent)
 keep_tmp        = keyword_set(keep_tmp)
+;------------------------------------------------------------
+old_tmp_dir=file_test(tmp_dir)
+
+if old_tmp_dir then begin
+	dummy=file_search(tmp_dir, '*.bin', count=nf)
+	if BtmpFlag then begin
+		for i=0, nf-1 do begin
+			if dummy[i] ne tmp_dir+'field.bin' and  $
+			   dummy[i] ne tmp_dir+'magnetogram.bin' $
+			   then file_delete, dummy[i]
+		endfor
+	endif else if nf gt 0 then file_delete, dummy
+endif else file_mkdir, tmp_dir
+
 magnetogram_out = preview and ((BtmpFlag and ~file_test(tmp_dir+'magnetogram.bin')) or stretchFlag)
 ;------------------------------------------------------------
 ;  transmit the configure of computation to fastqsl.x
