@@ -429,7 +429,7 @@ Possible elements in **qsl** are:
   * **Bs, Be**: $\vec{B}$ on **rFs, rFe**
       * [Priest and Demoulin (1995)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/95JA02740) use $N$ at the photosphere to locate QSLs; in [Titov (2007)](https://iopscience.iop.org/article/10.1086/512671),
       $Q = N^2 / \Delta$, and $\Delta =|B_\textrm{n,launch}/B_\textrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$
-      If targetB_out is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\textrm{n,launch}/B_\textrm{n,target}|$ from **rboundary, Bs, Be**
+      If **targetB_out** is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\textrm{n,launch}/B_\textrm{n,target}|$ from **rboundary, Bs, Be**
   * **CurlBs, CurlBe**: $\nabla \times \vec{B}$  on **rFs, rFe**
   * **path**: path of field lines launched from **seed**
     * For example, if the output domain is 2D,
