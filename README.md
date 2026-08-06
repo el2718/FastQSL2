@@ -437,7 +437,7 @@ Possible elements in **qsl** are:
         * `(*qsl.path[i, j])[*, 0]` is identical to `qsl.rFs[*, i, j]`
         * `(*qsl.path[i, j])[*, n-1]` is identical to `qsl.rFe[*, i, j]`
         * `(*qsl.path[i, j])[*, qsl.index_seed[i, j]]` is identical to `qsl.seed[*, i, j]`
-      * in fastqsl\.py, qsl['path'] is a list, qsl['path'][j][i] gives a field line with  dimensions of (n, 3), and
+      * in fastqsl\.py, `qsl['path']` is a list, `qsl['path'][j][i]` gives a field line with  dimensions of (n, 3), and
         * `qsl['path'][j][i][0, :]` is identical to `qsl['rFs'][j, i, :]`
         * `qsl['path'][j][i][-1, :]` is identical to `qsl['rFe'][j, i, :]`
         * `qsl['path'][j][i][qsl['index_seed'][j, i], :]` is identical to `qsl['seed'][j, i, :]`
