@@ -159,7 +159,7 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
 
 ### Field
   * **Bx, By, Bz**: 
-    * For fastqsl\.pro, the typical dimensions of Bx, By and Bz are (nx,ny,nz). The dimensions of Bx can also be (3,nx,ny,nz), and then By and Bz should not be presented. For example, the last two lines of the following code produce identical images
+    * For fastqsl\.pro, the typical dimensions of Bx, By and Bz are (nx,ny,nz). If the dimension of **Bx** is (3,nx,ny,nz), then $\vec{B}$ is fully read from **Bx**. For example, the last two lines of the following code produce identical images
       ```
       sz3d=size(By, /dim)
       nx=sz3d[0]
