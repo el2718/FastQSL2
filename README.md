@@ -311,6 +311,9 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
     $ \texttt{tol}|_{S0} = \texttt{tol}_{\perp} \times | B_{n,0} / B |^{1.5}$
 
     $ tol |_{S0} = tol$
+    
+    $\textrm{sign}(B_z)|_{z=zmin}$
+    
     $\textrm{tol}|_{z=zmin}$
 
     for every field line launched from $S0$, then **step** and **tol** at the input are actually $\textrm{step}_\perp$ and $\textrm{tol}_\perp$
