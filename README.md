@@ -308,9 +308,9 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
     
     $\texttt{step}|_{S0} = \textrm{max}([\texttt{step}_{\perp} \times |B_{n,0} / B|, \texttt{step}_\mathrm{min}])$
 
-    $ \texttt{tol}|_{S0} = \texttt{tol}_{\perp} \times | B_{n,0} / B |^{1.5}$
+    $\texttt{tol}|_{S0} = \texttt{tol}_{\perp} \times | B_{n,0} / B |^{1.5}$
 
-    $\texttt{tol}|_{S0}= \texttt{tol}_{\perp}$
+    $\texttt{tol}|_{S0}= Q_\perp$
     
     $Q_\perp$
 
