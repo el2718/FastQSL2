@@ -393,7 +393,7 @@ Possible elements in **qsl** are:
     IDL> fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
     ```
     then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line
-  * **sign2d**:   $\mathrm{sign} (B_z)|_{z=z_\mathrm{min}}$
+  * **sign2d**:  sign$(B_z)|_{z=z_\mathrm{min}}$
     * only exists when the bottom plane is included
     * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.) * qsl.sign2d`
   * **rFs, rFe**:  coordinates of terminal foot points (r:remote, F:foot, s:start, e:end). A segment of a field line has two terminal points, at the start (or end) point, $\vec{B}$ (or $-\vec{B}$) points to the whole calculated path of the field line.  
