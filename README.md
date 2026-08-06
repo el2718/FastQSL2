@@ -379,21 +379,21 @@ For fastqsl\.py, the result is given by the [dictionary](https://docs.python.org
 Possible elements in **qsl** are:
   * **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
   * **seed**:    the coordinates of the output grid for the launch of tracing; its units are the same as **xa, ya, za** if stretchFlag
-  * **dim** dimensions of the output region
+  * **dim**: dimensions of the output region
   * **axis1**:  the coordinates $x, y$ ($\varphi, \vartheta$, if **spherical** is invoked) from point0 to point1
     * only appears when **csFlag** is invoked, then **axis1** is same as `qsl.seed[0:1, *, 0]`
   * **length**: $L= \int_\textrm{path} \textrm{d}s$, length of field lines launched from **seed**
   * **twist**: $T_w = \int_\textrm{path} \dfrac{(\nabla \times \vec{B}) \cdot \vec{B}}{4\pi B^2} \textrm{d}s$, can be used to measure how many turns two infinitesimally close field lines wind about each other. Eq. (16) of [Berger and Prior (2006) J. Phys. A: Math. Gen. 39 8321](https://iopscience.iop.org/article/10.1088/0305-4470/39/26/005); Also see [Liu_2016_ApJ_818_148](https://iopscience.iop.org/article/10.3847/0004-637X/818/2/148)
   * **q, q_perp**: squashing factor $Q$ and $Q_\perp$, see  [Titov_2002_JGRA_107_1164](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2001JA000278) and [Titov_2007_ApJ_660_863](https://iopscience.iop.org/article/10.1086/512671)
     * **q_perp** is only available when **scottFlag** is invoked, [Pariat (2012)]((https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html)) is not precise enough for $Q_\perp$
-  * **q_local**: see Chen (2026), for locating where magnetic field lines bifurcate, i.e.  (quasi-) separators 
+  * **q_local**: see Chen (2026), for locating where magnetic field lines bifurcate, i.e.  (quasi-)separators 
   * **B, CurlB**:  $\vec{B}$, $\nabla \times \vec{B}$ on **seed**
     For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field line is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same grid of Bx, By, Bz. Then just run
     ```
     IDL> fastqsl, density, pressure, temperatrue, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
     ```
     then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line
-  * **sign2d**:   $\textrm{sign}(B_z)|_{z=z_\textrm{min}}$
+  * **sign2d**:   $\mathrm{sign}(B_z)|_{z=z_\mathrm{min}}$
     * only exists when the bottom plane is included
     * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.) * qsl.sign2d`
   * **rFs, rFe**:  coordinates of terminal foot points (r:remote, F:foot, s:start, e:end). A segment of a field line has two terminal points, at the start (or end) point, $\vec{B}$ (or $-\vec{B}$) points to the whole calculated path of the field line.  
