@@ -330,6 +330,7 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
 ### Efficiency and verbose
   * **nthreads**:    number of processors to engage the computation
     * default is OMP_GET_NUM_PROCS() - 2 (reset in fastqsl.x if the value is 0)
+    * if it is larger than OMP_GET_NUM_PROCS(), it will be reset to OMP_GET_NUM_PROCS()
   * **silent**:      do not print anything if no mistake occurs
     * default is 0
 ### Optional outputs
