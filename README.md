@@ -451,7 +451,7 @@ Possible elements in **qsl** are:
   * **index_seed**: the index in **path** for the launch points
 ----------------------------
 ## User-defined line integrals
-Users can define their private line integrals of the form $\int_\textrm{path} \mathrm{privates}(\vec{B}, \nabla \times \vec{B}, \vec{A} )\ \textrm{d}s$
+Users can define their private line integrals of the form $\int_\textrm{path} \mathrm{privates}(\vec{r}, \vec{B}, \nabla \times \vec{B}, \vec{A} )\ \textrm{d}s$
 * In `privates.f90`, which is included in `fastqsl.f90`, `privates(0)`, `privates(1)`, `privates(2)`, and `privates(3)` are the functions for **length**, **twist**, $\int_\textrm{path} |\nabla \times \vec{B}|^2\ \textrm{d}s$, and $\int_\textrm{path} |\nabla \times \vec{B}|/|\vec{B}|\ \textrm{d}s$. At most 10 different functions can be defined
 * If the function needs $\nabla \times \vec{B}$, please also modify the line in `privates.f90`
   ```
