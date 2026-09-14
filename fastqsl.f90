@@ -3124,10 +3124,10 @@ character(len=1) :: str_aux
 open(1, file='head.bin', access='stream', status='old')
 read(1) step, tol, r_local, maxsteps, RK4Flag, inclineFlag, &
         launch_out, B_out, CurlB_out, &
-		rF_out, targetB_out, targetCurlB_out, &
-		path_out, loopB_out, loopCurlB_out, &
-		sflag, bflag, cflag, vflag, nthreads, scottFlag, &
-		verbose, keep_tmp, magnetogram_out, int_private_out
+        rF_out, targetB_out, targetCurlB_out, &
+        path_out, loopB_out, loopCurlB_out, &
+        sflag, bflag, cflag, vflag, nthreads, scottFlag, &
+        verbose, keep_tmp, magnetogram_out, int_private_out
 close(1, status='delete')
 !------------------------------------------------------------
 ! if (verbose) call system_clock(tnow)
@@ -3461,7 +3461,7 @@ endif
 ! In Windows, the pop-up window for fastqsl.exe can not be closed automatically
 ! call get_environment_variable("HOME", str_aux)
 ! if (str_aux .ne. "/") &
-! call system('taskkill /im fastqsl.exe /f') 
+! call system('taskkill /im fastqsl.exe /f')
 
 ! another way to kill the pop-up window
 ! call abort
