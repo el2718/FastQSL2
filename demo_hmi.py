@@ -45,20 +45,23 @@ def HMI_pfss4fastqsl(num_CR, num_r, num_t, num_p, Rss, data_dir):
             pickle.dump((bvec, lon_rad, lat_rad, radius), file)
     return Bfile
 # ------------------------------------------------------------
-num_CR=2284    # Carrington rotation
+# Carrington rotation
+num_CR=2284
 
-num_r=60    # dimensions of B grid
+# dimensions of B grid
+num_r=60
 num_t=180
 num_p=360
 
-Rss=2.5        # the radius of Source surface
+# the radius of Source surface
+Rss=2.5
 
+# the directory to save the magnetic field
 data_dir = os.getcwd()+os.sep
 # ------------------------------------------------------------
 Bfile= HMI_pfss4fastqsl(num_CR, num_r, num_t, num_p, Rss, data_dir)
 with open(data_dir+Bfile, "rb") as file:
     bvec, lon_rad, lat_rad, radius = pickle.load(file)
-print(bvec.shape)
 # ------------------------------------------------------------
 r_cut=2
 
@@ -68,7 +71,7 @@ fname='pfss_orig', preview=True, keep_tmp=True)
 
 # remove first two layers to remove small scale structure
 fastqsl(bvec[r_cut:,:,:, :], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
-fname='pfss_rcut2', preview=True, keep_tmp=True)
+xreg=[-np.pi,3*np.pi], fname='pfss_rcut2', preview=True, keep_tmp=True)
 
 # trace field lines from two points
 # Since keep_tmp=True was set in the command above, bfield.bin has already been saved in tmp_dir; 
@@ -81,5 +84,5 @@ seed=[[np.pi*0.85, 0.1, 1.7], [np.pi*1.5, -0.2, 1.2]], \
 path_out=True, loopB_out=True)
 
 # compute two parameters for solar wind modeling at bottom
-par2solarwind(bvec[r_cut:,:,:, :], lon_rad, lat_rad, radius[r_cut:],\
-              bottomFlag=True, fname='solarwind', preview=True)
+par2solarwind(bvec[r_cut:,:,:, :], lon_rad, lat_rad, radius[r_cut:], \
+              bottomFlag=True, fname='pfss_solarwind', preview=True)
