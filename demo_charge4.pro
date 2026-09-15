@@ -212,6 +212,8 @@ xreg=[0.,2*!Pi], yreg=[-!pi/2, !pi/2], /length
 
 
 ; trace field lines from two points
+; Since keep_tmp was invoked in the command above, bfield.bin has already been saved in tmp_dir; 
+; therefore, the input magnetic field is unnecessary here
 fastqsl, fname='spherical_seed_path', /preview, $
 seed=[[!pi*0.85, 0.1, 1.], [!pi*1.1, -0.2, 1.2]], /path, /loopB, qsl=qsl, /keep_tmp
 

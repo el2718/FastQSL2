@@ -108,7 +108,7 @@ def bfield2_charge4_spherical(bfile, n_lon=181, n_lat=91, n_r=31):
     lon_rad= np.linspace(0., 2.*np.pi, n_lon)
     lat_rad= np.linspace(-np.pi/2., np.pi/2., n_lat)
     radius = np.linspace(1., 2.5, n_r)
-    
+
     seed_original=np.zeros((n_r, n_lat, n_lon, 3),'f4')
     for i in range(n_lon): seed_original[:,:,i,0]=lon_rad[i]
     for i in range(n_lat): seed_original[:,i,:,1]=lat_rad[i]
@@ -186,6 +186,8 @@ xreg=[0.,2*np.pi], yreg=[-np.pi/2, np.pi/2], length_out=True)
 
 
 # trace field lines from two points
+# Since keep_tmp=True was set in the command above, bfield.bin has already been saved in tmp_dir; 
+# therefore, the input magnetic field is unnecessary here
 qsl=fastqsl(fname='spherical_seed_path', preview=True, \
 seed=[[np.pi*0.85, 0.1, 1.], [np.pi*1.1, -0.2, 1.2]], path_out=True, loopB_out=True)
 
