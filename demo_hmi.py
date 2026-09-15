@@ -80,6 +80,6 @@ length_out=True, \
 seed=[[np.pi*0.85, 0.1, 1.7], [np.pi*1.5, -0.2, 1.2]], \
 path_out=True, loopB_out=True)
 
-# trace field lines from two points
+# compute two parameters for solar wind modeling at bottom
 par2solarwind(bvec[r_cut:,:,:, :], lon_rad, lat_rad, radius[r_cut:],\
               bottomFlag=True, fname='solarwind', preview=True)
