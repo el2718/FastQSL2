@@ -236,7 +236,7 @@ endif else begin
 				if ~keyword_set(lon_delta) then lon_delta = (xa[nx-1]-xa[0])/((nx-1.0)*factor) 
 				if ~keyword_set(lat_delta) then lat_delta = (ya[ny-1]-ya[0])/((ny-1.0)*factor) 
 				if ~keyword_set(  r_delta) then   r_delta = (za[nz-1]-za[0])/((nz-1.0)*factor)
-			endelse 
+			endelse
 			if     ~keyword_set(arc_delta) then arc_delta = min([lon_delta, lat_delta])
 		endif else if  ~keyword_set(delta) then     delta = (xa[nx-1]-xa[0])/((nx-1.0)*factor)
 	endif else if      ~keyword_set(delta) then     delta = 1.0/factor
@@ -608,8 +608,8 @@ if sFlag then begin
 endif else begin
 	if csFlag then begin
 		if spherical then begin
-			x_margin=reform(QSL.axis1(0,*))
-			y_margin=reform(QSL.axis1(1,*))
+			x_margin=reform(QSL.axis1[0,*])
+			y_margin=reform(QSL.axis1[1,*])
 		endif else begin
 			x_margin=xreg
 			y_margin=yreg
@@ -828,7 +828,7 @@ if (maxsteps ne 0 and (out_dim eq 2 or plot_bottom)) then begin
 				endif
 			endfor
 		endif
-	endfor
+	
 	endif
 endif
 endif ; preview

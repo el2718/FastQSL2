@@ -6,8 +6,6 @@ import pfsspy, sunpy, wget, os, pickle
 import astropy.units
 import numpy as np
 from fastqsl import fastqsl
-# git clone https://github.com/el2718/par2solarwind
-from par2solarwind import par2solarwind
 # ------------------------------------------------------------
 def HMI_pfss4fastqsl(num_CR, num_r, num_t, num_p, Rss, data_dir):
     Bfile='B4fastqsl'+str(num_CR)+'.pkl'
@@ -35,7 +33,7 @@ def HMI_pfss4fastqsl(num_CR, num_r, num_t, num_p, Rss, data_dir):
         bvec= pfss_out.bg.transpose(2,1,0,3) 
 
         # b_lat = -b_theta
-        bvec[:,:,:,1]= - bvec[:,:,:,1] 
+        bvec[:,:,:,1]= - bvec[:,:,:,1]
 
         lon_rad= pfss_out.grid.pg
         lat_rad= np.arcsin(pfss_out.grid.sg)
@@ -83,6 +81,8 @@ length_out=True, \
 seed=[[np.pi*0.85, 0.1, 1.7], [np.pi*1.5, -0.2, 1.2]], \
 path_out=True, loopB_out=True)
 
-# compute two parameters for solar wind modeling at bottom
-par2solarwind(bvec[r_cut:,:,:, :], lon_rad, lat_rad, radius[r_cut:], \
-              bottomFlag=True, fname='pfss_solarwind', preview=True)
+# # git clone https://github.com/el2718/par2solarwind
+# from par2solarwind import par2solarwind
+# # compute two parameters for solar wind modeling at bottom
+# par2solarwind(bvec[r_cut:,:,:, :], lon_rad, lat_rad, radius[r_cut:], \
+#               bottomFlag=True, fname='pfss_solarwind', preview=True)
