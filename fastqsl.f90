@@ -43,7 +43,7 @@ integer:: i, j, k, s, t, nx, ny, nz, nx_mag, ny_mag, aend1, round(0:1,0:2), j1, 
 real:: weight(0:1,0:1,0:1), mag_delta, clat_pole, dlast, dperiod, &
 e_yin(0:2, 0:1), e_yang(0:2, 0:1), fj2, vp_yin(0:2), vp(0:2), &
 bp_yin(0:2), bp(0:2), ap_yin(0:2), ap(0:2), curlbp_yin(0:2), curlbp(0:2)
-real, allocatable:: field_tmp(:,:,:,:), magnetogram(:,:), lon_tmp(:), lat_tmp(:)
+real, allocatable:: field_tmp(:), magnetogram(:,:), lon_tmp(:), lat_tmp(:)
 real, pointer:: ax_tmp(:)
 type(pole_field), pointer:: pole
 !------------------------------------------------------------
@@ -125,11 +125,12 @@ period_lon = periodFlag(0) .and. spherical
 
 if (.not. spherical) forall(s=0:2, periodFlag(s)) period(s)=pmax(i)-pmin(i)
 !------------------------------------------------------------
-allocate(field_tmp(0:2, 0:nx-1, 0:ny-1, 0:nz-1))
+! read a 1D array is faster than a 4D array
+allocate(field_tmp(0:int8(3)*nx*ny*nz-1))
 read(1) field_tmp
 !------------------------------------------------------------
 allocate(Bvec(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
-Bvec(:, 0:nx-1, 0:ny-1, 0:nz-1)=field_tmp
+Bvec(:, 0:nx-1, 0:ny-1, 0:nz-1)= reshape(field_tmp,(/3,nx,ny,nz/))
 if (periodFlag(0)) Bvec(:,pend(0),:,:)=Bvec(:,0,:,:)
 if (periodFlag(1)) Bvec(:,:,pend(1),:)=Bvec(:,:,0,:)
 if (periodFlag(2)) Bvec(:,:,:,pend(2))=Bvec(:,:,:,0)
@@ -137,7 +138,7 @@ if (periodFlag(2)) Bvec(:,:,:,pend(2))=Bvec(:,:,:,0)
 if (CurlB_input) then
 	read(1) field_tmp
 	allocate(CurlBvec(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
-	CurlBvec(:, 0:nx-1, 0:ny-1, 0:nz-1)=field_tmp
+	CurlBvec(:, 0:nx-1, 0:ny-1, 0:nz-1)= reshape(field_tmp,(/3,nx,ny,nz/))
 	if (periodFlag(0)) CurlBvec(:,pend(0),:,:)=CurlBvec(:,0,:,:)
 	if (periodFlag(1)) CurlBvec(:,:,pend(1),:)=CurlBvec(:,:,0,:)
 	if (periodFlag(2)) CurlBvec(:,:,:,pend(2))=CurlBvec(:,:,:,0)
@@ -145,7 +146,7 @@ endif
 if (A_input) then
 	read(1) field_tmp
 	allocate(Avec(0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
-	Avec(:, 0:nx-1, 0:ny-1, 0:nz-1)=field_tmp
+	Avec(:, 0:nx-1, 0:ny-1, 0:nz-1)= reshape(field_tmp,(/3,nx,ny,nz/))
 	if (periodFlag(0)) Avec(:,pend(0),:,:)=Avec(:,0,:,:)
 	if (periodFlag(1)) Avec(:,:,pend(1),:)=Avec(:,:,0,:)
 	if (periodFlag(2)) Avec(:,:,:,pend(2))=Avec(:,:,:,0)
