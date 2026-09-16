@@ -828,7 +828,7 @@ if (maxsteps ne 0 and (out_dim eq 2 or plot_bottom)) then begin
 				endif
 			endfor
 		endif
-	
+	endfor
 	endif
 endif
 endif ; preview
