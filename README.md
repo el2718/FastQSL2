@@ -644,3 +644,4 @@ If you need this derived code, please visit https://github.com/el2718/slipq
 * May, 17, 2026 Jun Chen, User-defined line integrals
 * May, 19, 2026 Jun Chen, add positional parameters of CurlBx, CurlBy, CurlBz
 * Jun, 23, 2026 Jun Chen, add the element dim to the output
+* Sep, 18, 2026 Jun Chen, complete convert_coordinate
