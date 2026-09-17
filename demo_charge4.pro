@@ -210,7 +210,6 @@ fastqsl, b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, /spherical, $
 factor=4, /preview, /keep_tmp, qsl=qsl, $
 xreg=[0.,2*!Pi], yreg=[-!pi/2, !pi/2], /length
 
-
 ; trace field lines from two points
 ; Since keep_tmp was invoked in the command above, bfield.bin has already been saved in tmp_dir; 
 ; therefore, the input magnetic field is unnecessary here
@@ -219,6 +218,8 @@ seed=[[!pi*0.85, 0.1, 1.], [!pi*1.1, -0.2, 1.2]], /path, /loopB, qsl=qsl, /keep_
 
 ; transfrom *qsl.path[1] in (longitude, latitude, radius() to path1_car in (x, y, z), and
 ; transfrom *qsl.loopB[1] in (B_lon, B_lat, B_r) to loopB1_car in (B_x, B_y, B_z)
-path1_car= convert_coordinate(*qsl.path[1], *qsl.loopB[1], mode='lon_lat_r_to_xyz', v1out=loopB1_car)
+; please compile convert_coordinate.f90 and specify the path of convert_coordinate.x in convert_coordinate.pro
+
+; path1_car= convert_coordinate(*qsl.path[1], *qsl.loopB[1], mode='lon_lat_r_to_xyz', v1out=loopB1_car)
 
 end

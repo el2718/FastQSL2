@@ -432,7 +432,7 @@ Possible elements in **qsl** are:
     * boundary_mark_colors.pdf is the color table for *_rbs.png, *_rbe.png, and *_rb_target.png
   * **Bs, Be**: $\vec{B}$ on **rFs, rFe**
       * [Priest and Demoulin (1995)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/95JA02740) use $N$ at the photosphere to locate QSLs; in [Titov (2007)](https://iopscience.iop.org/article/10.1086/512671),
-      $Q = N^2 / \Delta$, and $\Delta =|B_\textrm{n,launch}/B_\textrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$
+      $Q = N^2 / \Delta$, and $\Delta =|B_\textrm{n,launch}/B_\textrm{n,target}|$ derived from $\nabla \cdot \vec{B}=0$.
       If **targetB_out** is invoked, FastQSL can produce the image of $N$ and Bnr = $|B_\textrm{n,launch}/B_\textrm{n,target}|$ from **rboundary, Bs, Be**
   * **CurlBs, CurlBe**: $\nabla \times \vec{B}$  on **rFs, rFe**
   * **path**: path of field lines launched from **seed**
@@ -470,7 +470,6 @@ Users can define their private line integrals of the form $\int_\textrm{path} \m
 * If an additional field $\vec{A}$ is necessary for the integrals, the field can be assigned to the keywords **Ax**, **Ay**, and **Az**. The forms are similar to **Bx**, **By**, and **Bz**
 -----------------------------
 ## Demos
-
 ### If using fastqsl\.pro
 ```idl
 IDL> .r demo_charge4.pro
@@ -494,7 +493,63 @@ nohup ./demo_charge4.sh > verbose_demo.txt 2>&1 &
 ```python
 python3 demo_charge4.py
 ```
-----------------------------
+-----------------------------
+## Convert coordinate
+Here we provide a way to transform coordinates among $\{x, y, z\}$, $\{\varphi, \vartheta, r\}$, and $\{\varphi_2, \vartheta_2, r\}$, as well as the corresponding vector components $\{v_x, v_y, v_z\}$ $\{v_\varphi, v_\vartheta, v_r\}$, and $\{v_{\varphi_2}, v_{\vartheta_2}, v_r\}$.
+
+### Computation core
+* compilation in Linux and macOS:
+    ```bash
+    ifx -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -xHost -ipo
+    ```
+    ```bash
+    ifort -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -xHost -ipo
+    ```
+    ```bash
+    gfortran -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -march=native
+    ```
+* compilation in windows:
+    ```bash
+    gfortran -o convert_coordinate.exe convert_coordinate.f90 -fopenmp -O3 -march=native
+    ```
+* please specify the path of `convert_coordinate.x`
+  * in convert_coordinate\.pro, please correct the line
+    ```idl
+    spawn, '/path/of/convert_coordinate.x'
+    ```
+  * in convert_coordinate\.py, please correct the line
+    ```python
+    subprocess.run(r'/path/of/convert_coordinate.x', shell=True)
+    ```
+### Parameters
+  * **coordinate**: 
+    * the array of coordinate to be tranformed, its dimesions can be (3) or (3, n1) or (3, n1, n2) or (3, n1, n2, n3) 
+  * **v1**, **v2**, **v3**, **v4**:
+    * the array of vectors to be tranformed, their dimesions should be the same as **coordinate**
+  * **mode**:
+    |number form|string form|input coordinate|output coordinate|
+    |---|---|---|---|
+    |0|'xyz_to_lon_lat_r'|$\{x, y, z\}$ | $\{\varphi, \vartheta, r\}$|
+    |1|'lon_lat_r_to_xyz'|$\{\varphi, \vartheta, r\}$ | $ \{x, y, z\} $|
+    |2|'xyz_to_lon2_lat2_r'|$\{x, y, z\}$ | $\{\varphi_2, \vartheta_2, r\}$|
+    |3|'lon2_lat2_r_to_xyz'|$\{\varphi_2, \vartheta_2, r\} $ | $ \{x, y, z\}$|
+    |4|'lon_lat_r_to_lon2_lat2_r'| $\{\varphi, \vartheta, r\} $ | $\{\varphi_2, \vartheta_2, r\}$|
+    |5|'lon2_lat2_r_to_lon_lat_r'|$\{\varphi_2, \vartheta_2, r\} $ | $\{\varphi, \vartheta, r\} $|
+
+  * **tmp_dir, nthreads**: have the same meaning as above
+### Usage:
+  * If use `convert_coordinate.pro`:
+    ```
+    coordinate_out = convert_coordinate(coordinate, mode='lon_lat_r_to_xyz')
+    coordinate_out = convert_coordinate(coordinate, v1, v2, v1out=v1out, v2out=v2out, mode=1)
+    ```
+  * If use `convert_coordinate.py`:
+    ```
+    coordinate_out = convert_coordinate(coordinate, mode='lon_lat_r_to_xyz')
+    coordinate_out, v1out, v2out = convert_coordinate(coordinate, v1, v2, mode=1)
+    ```
+  *  The commented-out lines with `convert_coordinate` in `demo_charge4.pro` and `demo_charge4.py` contain some examples
+-----------------------------
 ## Memory occupation 
 In fastqsl.x, the most memory is occupied by: 
 * a 3D magnetic field
