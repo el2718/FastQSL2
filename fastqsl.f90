@@ -41,8 +41,7 @@ implicit none
 logical:: southFlag, CurlB_input
 integer:: i, j, k, s, t, nx, ny, nz, nx_mag, ny_mag, aend1, round(0:1,0:2), j1, j2
 real:: weight(0:1,0:1,0:1), mag_delta, clat_pole, dlast, dperiod, &
-e_yin(0:2, 0:1), e_yang(0:2, 0:1), fj2, vp_yin(0:2), vp(0:2), &
-bp_yin(0:2), bp(0:2), ap_yin(0:2), ap(0:2), curlbp_yin(0:2), curlbp(0:2)
+matrix(0:1, 0:1), fj2, vp_yin(0:2), vp(0:2), bp(0:2), ap(0:2), CurlBp(0:2)
 real, allocatable:: field_tmp(:), magnetogram(:,:), lon_tmp(:), lat_tmp(:)
 real, pointer:: ax_tmp(:)
 type(pole_field), pointer:: pole
@@ -270,26 +269,18 @@ do s=0, 1
 	do i= - aend1, aend1
 		if (abs(lat_tmp(j)) .le. half_pi-dlast) then
 			vp_yin=[lon_tmp(i), lat_tmp(j), axis(2)%pa(k)]
-			call vp_yinyang(vp_yin, vp, .true., e_yin, e_yang)
+			call vp_yinyang(vp_yin, vp, .true., matrix)
 			call round_weight(vp, round, weight)
 			forall(t=0:2) bp(t)=sum(weight*Bvec(t, round(:,0), round(:,1), round(:,2)))
-			forall(t=0:1) bp_yin(t)=bp(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
-									bp(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
-			bp_yin(2)=bp(2)
-			pole%Bvec(:,i,j,k)=bp_yin
+			matrix=transpose(matrix)
+			pole%Bvec(:,i,j,k)= [MATMUL(bp(0:1), matrix), bp(2)]
 			if (CurlB_input) then
 				forall(t=0:2) CurlBp(t)=sum(weight*CurlBvec(t, round(:,0), round(:,1), round(:,2)))
-				forall(t=0:1) CurlBp_yin(t)=CurlBp(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
-										    CurlBp(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
-				CurlBp_yin(2)=CurlBp(2)
-				pole%CurlBvec(:,i,j,k)=CurlBp_yin
+				pole%CurlBvec(:,i,j,k)= [MATMUL(CurlBp(0:1), matrix), CurlBp(2)]
 			endif
 			if (A_input) then
 				forall(t=0:2) ap(t)=sum(weight*Avec(t, round(:,0), round(:,1), round(:,2)))
-				forall(t=0:1) ap_yin(t)=ap(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
-										ap(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
-				ap_yin(2)=ap(2)
-				pole%Avec(:,i,j,k)=ap_yin
+				pole%Avec(:,i,j,k)=[MATMUL(ap(0:1), matrix), ap(2)]
 			endif
 		endif
 	enddo
@@ -302,26 +293,10 @@ do s=0, 1
 		if (A_input) pole%Avec(:,0,0,k)=0.
 		do i= 0, pend(0)
 			vp=[axis(0)%pa(i), axis(1)%pa(j1), axis(2)%pa(k)]
-			call vp_yinyang(vp_yin, vp, .false., e_yin, e_yang)
-			bp=Bvec(:,i,j1,k)
-			forall(t=0:1) bp_yin(t)=bp(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
-			                        bp(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
-			              bp_yin(2)=bp(2)
-			pole%Bvec(:,0,0,k)= pole%Bvec(:,0,0,k)+ bp_yin
-			if (CurlB_input) then 
-				CurlBp=CurlBvec(:,i,j1,k)
-				forall(t=0:1) CurlBp_yin(t)=CurlBp(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
-										    CurlBp(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
-							  CurlBp_yin(2)=CurlBp(2)
-				pole%CurlBvec(:,0,0,k)= pole%CurlBvec(:,0,0,k)+ CurlBp_yin
-			endif
-			if (A_input) then 
-				ap=Avec(:,i,j1,k)
-				forall(t=0:1) ap_yin(t)=ap(0)*dot_product(e_yang(:, 0), e_yin(:, t))+&
-										ap(1)*dot_product(e_yang(:, 1), e_yin(:, t))     
-							  ap_yin(2)=ap(2)
-				pole%Avec(:,0,0,k)= pole%Avec(:,0,0,k)+ ap_yin
-			endif
+			call vp_yinyang(vp_yin, vp, .false., matrix)
+			pole%Bvec(:,0,0,k)= pole%Bvec(:,0,0,k)+ [MATMUL(Bvec(0:1,i,j1,k), matrix), Bvec(2,i,j1,k)]
+			if (CurlB_input) pole%CurlBvec(:,0,0,k)= pole%CurlBvec(:,0,0,k)+ [MATMUL(CurlBvec(0:1,i,j1,k), matrix), CurlBvec(2,i,j1,k)]
+			if (A_input) pole%Avec(:,0,0,k)= pole%Avec(:,0,0,k)+ [MATMUL(Avec(0:1,i,j1,k), matrix), Avec(2,i,j1,k)]
 		enddo
 		pole%Bvec(:,0,0,k)= pole%Bvec(:,0,0,k)/(pend(0)+1)
 		if (CurlB_input) pole%CurlBvec(:,0,0,k)= pole%CurlBvec(:,0,0,k)/(pend(0)+1)
@@ -790,40 +765,46 @@ CurlBp=[gradBp(1,2)-gradBp(2,1), &
 END subroutine CurlB_grid_pole
 
 
-subroutine vp_yinyang(vp_yin, vp, toyang, e_yin, e_yang)
+subroutine vp_yinyang(vp_yin, vp, toyang, matrix)
 implicit none
-real:: vp(0:2), vp_yin(0:2), cos_yin(0:1), sin_yin(0:1), cos_yang(0:1), sin_yang(0:1)
-real, optional:: e_yin(0:2, 0:1), e_yang(0:2, 0:1)
-logical:: toyang
+real:: vp_yin(0:2), vp(0:2), e1(0:2, 0:1), e2(0:2, 0:1), &
+cos_1(0:1), sin_1(0:1), cos_2(0:1), sin_2(0:1)
+real, optional:: matrix(0:1, 0:1)
+logical, intent(in):: toyang
+integer:: i, j 
 !------------------------------------------------------------
 if (toyang) then
-	cos_yin=cos(vp_yin(0:1))
-	sin_yin=sin(vp_yin(0:1))
-
-	vp(0)=xy2lon([sin_yin(1),cos_yin(0)*cos_yin(1)])
-	vp(1)=asin(cos_yin(1)*sin_yin(0))
-	vp(2)=vp_yin(2)
-
-	cos_yang=cos(vp(0:1))
-	sin_yang=sin(vp(0:1))
+	cos_1=cos(vp_yin(0:1))
+	sin_1=sin(vp_yin(0:1))
+	vp(0)= xy2lon([sin_1(1), cos_1(0)*cos_1(1)])
+	vp(1)= asin(cos_1(1)*sin_1(0))
+	vp(2)= vp_yin(2)
 else
-	cos_yang=cos(vp(0:1))
-	sin_yang=sin(vp(0:1))
-
-	vp_yin(0)=xy2lon([cos_yang(1)*sin_yang(0), sin_yang(1)])
-	vp_yin(1)=asin(cos_yang(1)*cos_yang(0))
-	vp_yin(2)=vp(2)
-
-	cos_yin=cos(vp_yin(0:1))
-	sin_yin=sin(vp_yin(0:1))
+	cos_1=cos(vp(0:1))
+	sin_1=sin(vp(0:1))
+	vp_yin(0)= xy2lon([cos_1(1)*sin_1(0), sin_1(1)])
+	vp_yin(1)= asin(cos_1(1)*cos_1(0))
+	vp_yin(2)= vp(2)
 endif
 
-if (present(e_yin)) then
-	e_yin(:, 0)=[0., -sin_yin(0), cos_yin(0)]
-	e_yin(:, 1)=[cos_yin(1), -sin_yin(1)*[cos_yin(0), sin_yin(0)]]
+if (present(matrix)) then
+    if (toyang) then
+		cos_2=cos(vp(0:1))
+		sin_2=sin(vp(0:1))
+		e1(:,0)=[0., -sin_1(0), cos_1(0)]
+		e1(:,1)=[cos_1(1), -sin_1(1)*[cos_1(0), sin_1(0)]]
+		e2(:,0)=[-sin_2(0), cos_2(0), 0.]
+		e2(:,1)=[-sin_2(1)*[cos_2(0), sin_2(0)], cos_2(1)]
+    else
+		cos_2=cos(vp_yin(0:1))
+		sin_2=sin(vp_yin(0:1))
+		e1(:,0)=[-sin_1(0), cos_1(0), 0.]
+		e1(:,1)=[-sin_1(1)*[cos_1(0), sin_1(0)], cos_1(1)]
+		e2(:,0)=[0., -sin_2(0), cos_2(0)]
+		e2(:,1)=[cos_2(1), -sin_2(1)*[cos_2(0), sin_2(0)]]
+    endif
 
-	e_yang(:, 0)=[-sin_yang(0), cos_yang(0), 0.]
-	e_yang(:, 1)=[-sin_yang(1)*[cos_yang(0), sin_yang(0)], cos_yang(1)]
+    forall(i=0:1, j=0:1) matrix(i, j)=dot_product(e1(:, i), e2(:, j))
 endif
 end subroutine vp_yinyang
 
@@ -935,35 +916,28 @@ include 'privates.f90'
 subroutine cal_yinyang(site, toyang, dvdsflag)
 implicit none
 type(site_info), target :: site
-real, target:: e_yang(0:2, 0:1), e_yin(0:2, 0:1)
-real, pointer:: vector1(:), vector2(:), e1(:,:), e2(:,:), dvds1(:), dvds2(:)
+real, pointer:: vector1(:), vector2(:), dvds1(:), dvds2(:)
 real:: matrix0(0:1, 0:1), matrix1(0:1, 0:1), matrix2(0:1, 0:1), &
 matrix3(0:1, 0:1), matrix4(0:1, 0:1)
 integer:: i, j
 logical:: toyang
 logical, optional:: dvdsflag
 !------------------------------------------------------------
-call vp_yinyang(site%v_yin(0:2), site%v(0:2), toyang, e_yin, e_yang)
+call vp_yinyang(site%v_yin(0:2), site%v(0:2), toyang, matrix0)
 
 if (site%scottFlag .or. present(dvdsflag)) then
 
 if (toyang) then
 	vector1 =>site%v_yin
 	vector2 =>site%v
-	e1      =>e_yin
-	e2      =>e_yang
 else
 	vector1 =>site%v
 	vector2 =>site%v_yin
-	e1      =>e_yang
-	e2      =>e_yin
 endif
 
-forall(i=0:1, j=0:1) matrix0(i,j)=dot_product(e1(:, i), e2(:, j))
-
 if (site%scottFlag) then
-	vector2(5:8:3)=vector1(5:8:3)
-	forall(i=0:1, j=1:2) vector2(i+j*3)=dot_product(vector1(j*3:j*3+1), matrix0(:, i))
+	vector2(3:5)=[MATMUL(vector1(3:4), matrix0), vector1(5)]
+	vector2(6:8)=[MATMUL(vector1(6:7), matrix0), vector1(8)]
 endif
 
 if (present(dvdsflag)) then
@@ -979,9 +953,8 @@ if (present(dvdsflag)) then
 		!\partial (vector2(0:1))/\partial (vector1(0:1))
 		matrix1(0,:)=matrix0(0,:)*cos(vector1(1))
 		matrix1(:,0)=matrix1(:,0)/cos(vector2(1))
-		
-		forall(i=0:1) dvds2(i)=dot_product(dvds1(0:1), matrix1(:, i))
-		dvds2(2)=dvds1(2)
+
+		dvds2(0:2)=[MATMUL(dvds1(0:1), matrix1), dvds1(2)]
 
 		if (site%scottFlag) then
 			matrix2(:,0)= matrix0(:,1)
@@ -992,23 +965,13 @@ if (present(dvdsflag)) then
 
 			!d martrix0/ds
 			matrix4= dvds2(0)*sin(vector2(1))*matrix2 + dvds1(0)*sin(vector1(1))*matrix3
-
-			forall(i=0:1, j=1:2) & 
-			dvds2(i+j*3)=dot_product(  dvds1(j*3:j*3+1), matrix0(:,i))+&
-						 dot_product(vector1(j*3:j*3+1), matrix4(:,i))
-			dvds2(5:8:3)=dvds1(5:8:3)
+			dvds2(3:5)= [MATMUL(dvds1(3:4), matrix0)+ MATMUL(vector1(3:4), matrix4), dvds1(5)]
+			dvds2(6:8)= [MATMUL(dvds1(6:7), matrix0)+ MATMUL(vector1(6:7), matrix4), dvds1(8)]
 		endif
 	else ! if dvdsflag is .false., toyang is .true. already
-		forall(i=0:1) site%B(i)=dot_product(site%B_yin(0:1), matrix0(:, i))
-		site%B(2)=site%B_yin(2)
-		if (site%CurlBFlag) then
-			forall(i=0:1) site%CurlB(i)=dot_product(site%CurlB_yin(0:1), matrix0(:, i))
-			site%CurlB(2)=site%CurlB_yin(2)
-		endif
-		if (site%Aflag) then
-			forall(i=0:1) site%A(i)=dot_product(site%A_yin(0:1), matrix0(:, i))
-			site%A(2)=site%A_yin(2)
-		endif
+		site%B= [MATMUL(site%B_yin(0:1), matrix0), site%B_yin(2)]
+		if (site%CurlBFlag) site%CurlB=[MATMUL(site%CurlB_yin(0:1), matrix0), site%CurlB_yin(2)]
+		if (site%Aflag)     site%A=[MATMUL(site%A_yin(0:1), matrix0), site%A_yin(2)]
 	endif
 endif
 endif
