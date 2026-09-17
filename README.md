@@ -530,9 +530,9 @@ Here we provide a way to transform coordinates among $\{x, y, z\}$, $\{\varphi, 
     |number form|string form|input coordinate|output coordinate|
     |---|---|---|---|
     |0|'xyz_to_lon_lat_r'|$\{x, y, z\}$ | $\{\varphi, \vartheta, r\}$|
-    |1|'lon_lat_r_to_xyz'|$\{\varphi, \vartheta, r\}$ | $ \{x, y, z\} $|
+    |1|'lon_lat_r_to_xyz'|$\{\varphi, \vartheta, r\}$ | $\{x, y, z\}$|
     |2|'xyz_to_lon2_lat2_r'|$\{x, y, z\}$ | $\{\varphi_2, \vartheta_2, r\}$|
-    |3|'lon2_lat2_r_to_xyz'|$\{\varphi_2, \vartheta_2, r\} $ | $ \{x, y, z\}$|
+    |3|'lon2_lat2_r_to_xyz'|$\{\varphi_2, \vartheta_2, r\} $ | $\{x, y, z\}$|
     |4|'lon_lat_r_to_lon2_lat2_r'| $\{\varphi, \vartheta, r\} $ | $\{\varphi_2, \vartheta_2, r\}$|
     |5|'lon2_lat2_r_to_lon_lat_r'|$\{\varphi_2, \vartheta_2, r\} $ | $\{\varphi, \vartheta, r\} $|
 
