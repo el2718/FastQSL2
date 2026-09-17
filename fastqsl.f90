@@ -776,15 +776,11 @@ integer:: i, j
 if (toyang) then
 	cos_1=cos(vp_yin(0:1))
 	sin_1=sin(vp_yin(0:1))
-	vp(0)= xy2lon([sin_1(1), cos_1(0)*cos_1(1)])
-	vp(1)= asin(cos_1(1)*sin_1(0))
-	vp(2)= vp_yin(2)
+	vp= [xy2lon([sin_1(1), cos_1(0)*cos_1(1)]), asin(cos_1(1)*sin_1(0)), vp_yin(2)]
 else
 	cos_1=cos(vp(0:1))
 	sin_1=sin(vp(0:1))
-	vp_yin(0)= xy2lon([cos_1(1)*sin_1(0), sin_1(1)])
-	vp_yin(1)= asin(cos_1(1)*cos_1(0))
-	vp_yin(2)= vp(2)
+	vp_yin= [xy2lon([cos_1(1)*sin_1(0), sin_1(1)]), asin(cos_1(1)*cos_1(0)), vp(2)]
 endif
 
 if (present(matrix)) then
