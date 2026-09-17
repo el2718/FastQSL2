@@ -537,7 +537,7 @@ Here we provide a way to transform coordinates among $\{x, y, z\}$, $\{\varphi, 
     |5|'lon2_lat2_r_to_lon_lat_r'|$\{\varphi_2, \vartheta_2, r\} $ | $\{\varphi, \vartheta, r\} $|
 
   * **tmp_dir, nthreads**: have the same meaning as above
-### Usage:
+### Usage
   * If use `convert_coordinate.pro`:
     ```
     coordinate_out = convert_coordinate(coordinate, mode='lon_lat_r_to_xyz')
