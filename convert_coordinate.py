@@ -68,9 +68,8 @@ def convert_coordinate(coordinate, v1=None, v2=None, v3=None, v4=None, \
             file.write(np.array(v4, dtype=coordinate.dtype, order='C'))
     # -----------------------------------------------------
     # please specify the path
-    # subprocess.run(r'/path/of/convert_coordinate.x', shell=True)
     os.chdir(tmp_dir)
-    subprocess.run(r'~/Desktop/QSLS/update/convert_coordinate.x', shell=True)
+    subprocess.run(r'/path/of/convert_coordinate.x', shell=True)
     os.chdir(cdir)
     # -----------------------------------------------------
     with open(tmp_dir+'coordinate_out.bin','rb') as file: 

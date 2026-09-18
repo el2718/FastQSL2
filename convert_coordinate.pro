@@ -115,8 +115,7 @@ endif
 ;-----------------------------------------------------
 cd, tmp_dir
 ; please specify the path
-; spawn, '/path/of/convert_coordinate.x'
-spawn, '~/Desktop/QSLS/update/convert_coordinate.x'
+spawn, '/path/of/convert_coordinate.x'
 cd, cdir
 ;-----------------------------------------------------
 openr, unit, tmp_dir+'coordinate_out.bin'

@@ -279,12 +279,9 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 # ------------------------------------------------------------
     # computed by fastqsl.x
     os.chdir(tmp_dir)
-
     # please specify the path
     # the following r can avoid the potential problem of '\n' from os.sep ='\' in Windows
-    # subprocess.run(r'/path/of/fastqsl.x', shell=True)
-    # subprocess.run(r'~/Desktop/FastQSL2/fastqsl.x', shell=True)
-    subprocess.run(r'~/Desktop/QSLS/update/fastqsl.x', shell=True)
+    subprocess.run(r'/path/of/fastqsl.x', shell=True)
     os.chdir(cdir)
 # ################################### retrieving results ######################################
 # make the dictionary qsl
