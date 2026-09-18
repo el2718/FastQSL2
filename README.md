@@ -151,11 +151,11 @@ All *.mod produced from compilation can be deleted
     then `$HOME/bin` is a `$PATH` of the system
 * For Windows, use fastqsl.exe instead of fastqsl.x
 * For example, 
-  * in Linux, if the path is`~/Documents/FastQSL2/`, this command can replace the text
+  * in Linux, if the path is `~/Documents/FastQSL2/`, this command can replace the text
     ```
     sed -i 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
     ```
-  * in MacOS, if the path is`~/Documents/FastQSL2/`, this command can replace the text
+  * in MacOS, if the path is `~/Documents/FastQSL2/`, this command can replace the text
     ```
     sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
     ```
