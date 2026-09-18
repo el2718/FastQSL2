@@ -10,10 +10,10 @@ if size(mode,/tname) eq 'STRING' then begin
         'lon_lat_r_to_xyz': mode=1
 		'xyz_to_lon2_lat2_r': mode=2
         'lon2_lat2_r_to_xyz': mode=3
-        'lon_lat_r_to_lon2_lat2_r': mode= 4
-        'lon2_lat2_r_to_lon_lat_r': mode= 5
+        'lon_lat_r_to_lon2_lat2_r': mode=4
+        'lon2_lat2_r_to_lon_lat_r': mode=5
+        ELSE: message, 'Something is wrong with mode'
     endcase
-    if size(mode,/tname) eq 'STRING' then message, 'Something is wrong with mode'
 endif
 ;-----------------------------------------------------
 sz_coor=size(coordinate)
