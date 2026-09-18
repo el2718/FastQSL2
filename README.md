@@ -143,19 +143,6 @@ All *.mod produced from compilation can be deleted
     ```python
     subprocess.run(r'/path/of/fastqsl.x', shell=True)
     ```
-  * For example, 
-    * in Linux, the conmand can be
-      ```
-      sed -i 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
-      ```
-    * in MacOS, the conmand can be
-      ```
-      sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
-      ```
-    * in Windows, the conmand can be
-      ```
-      replace "/path/of/fastqsl.x" "D:\FastQSL2\fastqsl.exe" fastqsl.pro
-      ```
 * or move fastqsl.x to the `$PATH` (e.g. `/usr/local/bin/`) of the system and delete the text `/path/of/`
   * you can append this line to `~/.bashrc`
     ```
@@ -163,6 +150,19 @@ All *.mod produced from compilation can be deleted
     ```
     then `$HOME/bin` is a `$PATH` of the system
 * For Windows, use fastqsl.exe instead of fastqsl.x
+* For example, 
+  * in Linux, the conmand can be
+    ```
+    sed -i 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
+    ```
+  * in MacOS, the conmand can be
+    ```
+    sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
+    ```
+  * in Windows, the conmand can be
+    ```
+    replace "/path/of/fastqsl.x" "D:\FastQSL2\fastqsl.exe" fastqsl.pro
+    ```
 -----------------------------
 ## Parameters
 
