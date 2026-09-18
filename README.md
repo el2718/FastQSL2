@@ -143,18 +143,18 @@ All *.mod produced from compilation can be deleted
     ```python
     subprocess.run(r'/path/of/fastqsl.x', shell=True)
     ```
-  * For example, if you want to change `/path/of/` to `~/Documents/FastQSL2/` in `fastqsl.pro`
-    * in Linux, the conmand is 
+  * For example, 
+    * in Linux, the conmand can be
       ```
       sed -i 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
       ```
-    * in MacOS, the conmand is
+    * in MacOS, the conmand can be
       ```
       sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
       ```
-    * in Windows, the conmand is
+    * in Windows, the conmand can be
       ```
-      replace "/path/of/" "~/Documents/FastQSL2/" fastqsl.pro
+      replace "/path/of/fastqsl.x" "D:\FastQSL2\fastqsl.exe" fastqsl.pro
       ```
 * or move fastqsl.x to the `$PATH` (e.g. `/usr/local/bin/`) of the system and delete the text `/path/of/`
   * you can append this line to `~/.bashrc`

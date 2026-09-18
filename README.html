@@ -155,13 +155,13 @@ executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would b
 </code></pre></li>
 <li>in fastqsl.py, please correct the line<pre data-role="codeBlock" data-info="python" class="language-python python"><code>subprocess<span class="token punctuation">.</span>run<span class="token punctuation">(</span><span class="token string">r'/path/of/fastqsl.x'</span><span class="token punctuation">,</span> shell<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
 </code></pre></li>
-<li>For example, if you want to change <code>/path/of/</code> to <code>~/Documents/FastQSL2/</code> in <code>fastqsl.pro</code>
+<li>For example,
 <ul>
-<li>in Linux, the conmand is<pre data-role="codeBlock" data-info="" class="language-text"><code>sed -i 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
+<li>in Linux, the conmand can be<pre data-role="codeBlock" data-info="" class="language-text"><code>sed -i 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
 </code></pre></li>
-<li>in MacOS, the conmand is<pre data-role="codeBlock" data-info="" class="language-text"><code>sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
+<li>in MacOS, the conmand can be<pre data-role="codeBlock" data-info="" class="language-text"><code>sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
 </code></pre></li>
-<li>in Windows, the conmand is<pre data-role="codeBlock" data-info="" class="language-text"><code>replace "/path/of/" "~/Documents/FastQSL2/" fastqsl.pro
+<li>in Windows, the conmand can be<pre data-role="codeBlock" data-info="" class="language-text"><code>replace "/path/of/fastqsl.x" "D:\FastQSL2\fastqsl.exe" fastqsl.pro
 </code></pre></li>
 </ul>
 </li>
