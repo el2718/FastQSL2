@@ -507,6 +507,16 @@ nohup ./demo_charge4.sh > verbose_demo.txt 2>&1 &
 python3 demo_charge4.py
 ```
 -----------------------------
+## Memory occupation 
+In fastqsl.x, the most memory is occupied by: 
+* a 3D magnetic field
+* a 3D CurlB_field (if twist_out or CurlB_out or targetCurlB_out or loopCurlB_out)
+* a dbdc_field (3 times as the occupation of the 3D magnetic field)
+* data on a 2D slice
+  * Even if the output domain is 3D, FastQSL processes the computation layer by layer. Once a layer's computation is finished, the results are appended to associated *.bin files. The program then proceeds to the subsequent layer.
+  * If **path_out** or is invoked, `lines` can occupy a quite large amount of memory; if **r_local** is > 0., `lines` is also allocated
+  
+-----------------------------
 ## Convert coordinate
 Here we provide a way to transform coordinates among $\{x, y, z\}$, $\{\varphi, \vartheta, r\}$, and $\{\varphi_2, \vartheta_2, r\}$, as well as the corresponding vector components $\{v_x, v_y, v_z\}$ $\{v_\varphi, v_\vartheta, v_r\}$, and $\{v_{\varphi_2}, v_{\vartheta_2}, v_r\}$.
 
@@ -562,15 +572,6 @@ Here we provide a way to transform coordinates among $\{x, y, z\}$, $\{\varphi, 
     coordinate_out, v1out, v2out = convert_coordinate(coordinate, v1, v2, mode=1)
     ```
   *  The commented-out lines with `convert_coordinate` in `demo_charge4.pro` and `demo_charge4.py` contain some examples
------------------------------
-## Memory occupation 
-In fastqsl.x, the most memory is occupied by: 
-* a 3D magnetic field
-* a 3D CurlB_field (if twist_out or CurlB_out or targetCurlB_out or loopCurlB_out)
-* a dbdc_field (3 times as the occupation of the 3D magnetic field)
-* data on a 2D slice
-  * Even if the output domain is 3D, FastQSL processes the computation layer by layer. Once a layer's computation is finished, the results are appended to associated *.bin files. The program then proceeds to the subsequent layer.
-  * If **path_out** is invoked, **path** can occupy a quite large amount of memory
 
 -----------------------------
 ## Derived Products
