@@ -1,7 +1,7 @@
 import numpy as np
 import subprocess, os
 def convert_coordinate(coordinate, v1=None, v2=None, v3=None, v4=None, \
-                       *, mode=0, nthreads=0, tmp_dir=None):
+                       *, mode=0, nthreads=1, tmp_dir=None):
     # -----------------------------------------------------
     if (isinstance(mode, str)):
         if   mode == 'xyz_to_lon_lat_r': 

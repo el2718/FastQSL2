@@ -2,7 +2,7 @@ function convert_coordinate, coordinate, v1, v2, v3, v4, $
 v1out=v1out, v2out=v2out, v3out=v3out, v4out=v4out, $
 mode=mode, tmp_dir=tmp_dir, nthreads=nthreads
 ;-----------------------------------------------------
-if ~keyword_set(nthreads) then nthreads=0
+if ~keyword_set(nthreads) then nthreads=1
 if ~keyword_set(mode) then mode=0
 if size(mode,/tname) eq 'STRING' then begin
     case mode of
