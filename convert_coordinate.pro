@@ -119,37 +119,37 @@ cd, tmp_dir
 spawn, '~/Desktop/QSLS/update/convert_coordinate.x'
 cd, cdir
 ;-----------------------------------------------------
-openr,  unit, tmp_dir+'coordinate_out.bin'
+openr, unit, tmp_dir+'coordinate_out.bin'
 coordinate_out=coordinate
 readu, unit, coordinate_out
-close,  unit
+close, unit
 
 if present1 then begin
-openw,  unit, tmp_dir+'v1out.bin'
+openr, unit, tmp_dir+'v1out.bin'
 v1out=v1
-writeu, unit, v1out
-close,  unit
+readu, unit, v1out
+close, unit
 endif
 
 if present2 then begin
-openw,  unit, tmp_dir+'v2out.bin'
+openr, unit, tmp_dir+'v2out.bin'
 v2out=v2
-writeu, unit, v2out
-close,  unit
+readu, unit, v2out
+close, unit
 endif
 
 if present3 then begin
-openw,  unit, tmp_dir+'v3out.bin'
+openr, unit, tmp_dir+'v3out.bin'
 v3out=v3
-writeu, unit, v3out
-close,  unit
+readu, unit, v3out
+close, unit
 endif
 
 if present4 then begin
-openw,  unit, tmp_dir+'v4out.bin'
+openr, unit, tmp_dir+'v4out.bin'
 v4out=v4
-writeu, unit, v4out
-close,  unit
+readu, unit, v4out
+close, unit
 endif
 ;-----------------------------------------------------
 free_lun, unit, /force
