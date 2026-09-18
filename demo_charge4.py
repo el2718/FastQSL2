@@ -131,47 +131,47 @@ def bfield2_charge4_spherical(bfile, n_lon=181, n_lat=91, n_r=31):
 # ------------------------------------------------------------
 # Examples for cartersian grid
 bfile='charge4_cartersian.pkl'
-# cdir = os.getcwd()+os.sep 
-# if bfile not in os.listdir(cdir): bfield_charge4_cartersian(bfile)
-# with open(bfile, 'rb') as file: (Bvec, Bx, By, Bz, xa, ya, za) = pickle.load(file)
+cdir = os.getcwd()+os.sep 
+if bfile not in os.listdir(cdir): bfield_charge4_cartersian(bfile)
+with open(bfile, 'rb') as file: (Bvec, Bx, By, Bz, xa, ya, za) = pickle.load(file)
 
-# nx=len(xa)
-# ixh=(nx-1)/2
-# kend=len(za)-1
+nx=len(xa)
+ixh=(nx-1)/2
+kend=len(za)-1
 
-# # images of Figure 4 in Zhang, P., Chen, J.*, Liu, R. and Wang, C., 2022, ApJ, 937, 26
-# fastqsl(Bx, By, Bz, fname='method1_z0', preview=True)
-# fastqsl(Bx, By, Bz, fname='method2_z0', preview=True, scottFlag=True, RK4Flag=True)
-# fastqsl(Bvec, xreg=[0,nx-1], yreg=[ixh,ixh], zreg=[0,kend/2], \
-#         fname='method1_y0', preview=True)
-# fastqsl(Bx, By, Bz, xreg=[0,nx-1], yreg=[ixh,ixh], zreg=[0,kend/2], \
-#         fname='method2_y0', preview=True, scottFlag=True)
+# images of Figure 4 in Zhang, P., Chen, J.*, Liu, R. and Wang, C., 2022, ApJ, 937, 26
+fastqsl(Bx, By, Bz, fname='method1_z0', preview=True)
+fastqsl(Bx, By, Bz, fname='method2_z0', preview=True, scottFlag=True, RK4Flag=True)
+fastqsl(Bvec, xreg=[0,nx-1], yreg=[ixh,ixh], zreg=[0,kend/2], \
+        fname='method1_y0', preview=True)
+fastqsl(Bx, By, Bz, xreg=[0,nx-1], yreg=[ixh,ixh], zreg=[0,kend/2], \
+        fname='method2_y0', preview=True, scottFlag=True)
 
-# # An example of calculating in a cross section which is tilted to x-axis and y-axis, 
-# # and with stretched (actually uniformed) grids
-# fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, delta=0.01, \
-# xreg=[-2,0], yreg=[1,0], zreg=[0,2], csFlag=True, \
-# fname='tilted_cs', RK4Flag=True, step=2.0, odir= 'fastqsl/', twist_out=True, preview=True)
+# An example of calculating in a cross section which is tilted to x-axis and y-axis, 
+# and with stretched (actually uniformed) grids
+fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, delta=0.01, \
+xreg=[-2,0], yreg=[1,0], zreg=[0,2], csFlag=True, \
+fname='tilted_cs', RK4Flag=True, step=2.0, odir= 'fastqsl/', twist_out=True, preview=True)
 
-# # An example of calculating in a box volume
-# fastqsl(Bx, By, Bz, xreg=[ixh/2,ixh], yreg=[ixh/4,ixh], zreg=[kend/4, kend/2], \
-# delta=0.8, tol=1.0e-3, odir='fastqsl', nthreads=12, preview=True)
+# An example of calculating in a box volume
+fastqsl(Bx, By, Bz, xreg=[ixh/2,ixh], yreg=[ixh/4,ixh], zreg=[kend/4, kend/2], \
+delta=0.8, tol=1.0e-3, odir='fastqsl', nthreads=12, preview=True)
 
-# # only exporting CurlB
-# qsl=fastqsl(Bx, By, Bz, CurlB_out=True, maxsteps=0, seed='original', odir= 'fastqsl', fname='CurlB', save_file=True)
+# only exporting CurlB
+qsl=fastqsl(Bx, By, Bz, CurlB_out=True, maxsteps=0, seed='original', odir= 'fastqsl', fname='CurlB', save_file=True)
 
-# # compute twist with the input qsl.CurlB
-# fastqsl(Bvec, qsl['CurlB'], odir= 'fastqsl', twist_out=True, fname='input_CurlB', preview=True)
+# compute twist with the input qsl.CurlB
+fastqsl(Bvec, qsl['CurlB'], odir= 'fastqsl', twist_out=True, fname='input_CurlB', preview=True)
 
-# # Figure 4 of Chen (2026), see fname+'_logq_local.png'
-# fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
-# xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], preview=True, r_local=2, fname='r_local2')
-# fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
-# xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], preview=True, r_local=1, fname='r_local1')
-# fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
-# xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], preview=True, r_local=0.2, fname='r_local0.2')
-# fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
-# xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], preview=True, r_local=0.05, fname='r_local0.05')
+# Figure 4 of Chen (2026), see fname+'_logq_local.png'
+fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
+xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], preview=True, r_local=2, fname='r_local2')
+fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
+xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], preview=True, r_local=1, fname='r_local1')
+fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
+xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], preview=True, r_local=0.2, fname='r_local0.2')
+fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
+xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], preview=True, r_local=0.05, fname='r_local0.05')
 # # ------------------------------------------------------------
 # # Examples for spherical grid
 bfile='charge4_spherical.pkl'
