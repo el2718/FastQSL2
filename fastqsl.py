@@ -652,5 +652,5 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
             elif isinstance(attr, list): print('{0:<16}'.format("qsl."+key), "list")
         if save_file:
             print('Try:')
-            print('with open("'+odir+fname+'.pkl"'+', "rb") as file: qsl=pickle.load(file)')
+            print('with open("'+odir+fname+'.pkl"'+',"rb") as file: qsl=pickle.load(file)')
     return qsl
