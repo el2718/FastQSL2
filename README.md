@@ -386,7 +386,7 @@ See **Products** for more details. All default values here are 0.
 ## Products
 For fastqsl\.pro, the result is given by the structure **qsl**, and can be returned by the keyword **qsl**, or can be saved as `odir+fname+'.sav'`. The infomation of its elements can be known by `help, qsl, /str`. For example, the element **q** can be accessed by `qsl.q`.
 
-For fastqsl\.py, the result is given by the object **qsl**, and can be returned by the return of the function fastqsl, or can be saved as `odir+fname+'.pkl'`. This object is constructed using `types.SimpleNamespace`, therefore it also can be accessed as a [dictionary](https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries) via `qsl.__dict__`. The names of its elements can be found in `qsl.__dict__.keys()`. For example, the element **q** can be accessed as `qsl.q` or `qsl.__dict__['q']`
+For fastqsl\.py, the result is given by the object **qsl**, and can be returned by the return of the function fastqsl, or can be saved as `odir+fname+'.pkl'`. This object is constructed using `types.SimpleNamespace`, therefore it also can be accessed as a [dictionary](https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries) via `qsl.__dict__`. The names of its elements can be found in `qsl.__dict__.keys()`. For example, the element **q** can be accessed as `qsl.q` or `qsl.__dict__['q']`.
 
 Possible elements in **qsl** are:
   * **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
