@@ -128,11 +128,6 @@ All *.mod produced from compilation can be deleted
   ```bash
   gfortran -o fastqsl.exe fastqsl.f90 -fopenmp -O3 -march=native
   ``` 
-  * in Windows 11, and in some upgraded Windows 10, the pop-up window for fastqsl.exe cannot be closed automatically. Please uncomment this line in fastqsl.f90 to kill the pop-up window (delete !):
-    ```
-    ! call system('taskkill /im fastqsl.exe /f')
-    ```
-  * for ifx, the compilation should be the same as ifort, while I have not tested it
 ### Path of fastqsl.x
 * please specify the path of fastqsl.x, 
   * in fastqsl\.pro, please correct the line
@@ -515,7 +510,7 @@ In fastqsl.x, the most memory is occupied by:
 * data on a 2D slice
   * Even if the output domain is 3D, FastQSL processes the computation layer by layer. Once a layer's computation is finished, the results are appended to associated *.bin files. The program then proceeds to the subsequent layer.
   * If **path_out** or is invoked, `lines` can occupy a quite large amount of memory; if **r_local** is > 0., `lines` is also allocated
-  
+
 -----------------------------
 ## Convert coordinate
 Here we provide a way to transform coordinates among $\{x, y, z\}$, $\{\varphi, \vartheta, r\}$, and $\{\varphi_2, \vartheta_2, r\}$, as well as the corresponding vector components $\{v_x, v_y, v_z\}$ $\{v_\varphi, v_\vartheta, v_r\}$, and $\{v_{\varphi_2}, v_{\vartheta_2}, v_r\}$.
