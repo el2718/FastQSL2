@@ -161,7 +161,7 @@ delta=0.8, tol=1.0e-3, odir='fastqsl', nthreads=12, preview=True)
 qsl=fastqsl(Bx, By, Bz, CurlB_out=True, maxsteps=0, seed='original', odir= 'fastqsl', fname='CurlB', save_file=True)
 
 # compute twist with the input qsl.CurlB
-fastqsl(Bvec, qsl['CurlB'], odir= 'fastqsl', twist_out=True, fname='input_CurlB', preview=True)
+fastqsl(Bvec, qsl.CurlB, odir= 'fastqsl', twist_out=True, fname='input_CurlB', preview=True)
 
 # Figure 4 of Chen (2026), see fname+'_logq_local.png'
 fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \
@@ -195,4 +195,4 @@ seed=[[np.pi*0.85, 0.1, 1.], [np.pi*1.1, -0.2, 1.2]], path_out=True, loopB_out=T
 # transfrom *qsl['loopB'][1] in (B_lon, B_lat, B_r) to loopB1_car in (B_x, B_y, B_z)
 # please compile convert_coordinate.f90 and specify the path of convert_coordinate.x in convert_coordinate.py
 
-# path1_car, loopB1_car= convert_coordinate(qsl['path'][1], qsl['loopB'][1], mode='lon_lat_r_to_xyz')
+# path1_car, loopB1_car= convert_coordinate(qsl.path[1], qsl.loopB[1], mode='lon_lat_r_to_xyz')

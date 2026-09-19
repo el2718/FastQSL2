@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+from types import SimpleNamespace
 import os, subprocess, pickle
 
 def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *, 
@@ -285,11 +286,11 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
     os.chdir(cdir)
 # ################################### retrieving results ######################################
 # make the dictionary qsl
-    qsl={}
+    qsl=SimpleNamespace()
 
     if maxsteps != 0:
-        if RK4Flag: qsl.update({'step':np.array(step, dtype="f4")})
-        else: qsl.update({'tol':np.array(tol, dtype="f4")})
+        if RK4Flag: qsl.step=np.array(step, dtype="f4")
+        else: qsl.tol=np.array(tol, dtype="f4")
 
     # the output grid   
     if not sFlag:
@@ -301,15 +302,21 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
             zreg=dummy[4:6]
 
         if spherical:
-            qsl.update({'lon_reg':xreg, 'lat_reg':yreg, 'r_reg':zreg})
-            if normal_index == -1: qsl.update({'arc_delta':np.array(arc_delta,'f4')})
-            if normal_index in [0, 2]: qsl.update({'lat_delta':np.array(lat_delta,'f4')})
-            if normal_index in [1, 2]: qsl.update({'lon_delta':np.array(lon_delta,'f4')})
-            if normal_index != 2 or vFlag: qsl.update({'r_delta':np.array(r_delta,'f4')})
-        else: qsl.update({'xreg':xreg, 'yreg':yreg, 'zreg':zreg, 'delta':np.array(delta,'f4')})
+            qsl.lon_reg=xreg
+            qsl.lat_reg=yreg
+            qsl.r_reg  =zreg
+            if normal_index == -1: qsl.arc_delta=np.array(arc_delta,'f4')
+            if normal_index in [0, 2]: qsl.lat_delta=np.array(lat_delta,'f4')
+            if normal_index in [1, 2]: qsl.lon_delta=np.array(lon_delta,'f4')
+            if normal_index != 2 or vFlag: qsl.r_delta=np.array(r_delta,'f4')
+        else: 
+            qsl.xreg=xreg
+            qsl.yreg=yreg
+            qsl.zreg=zreg
+            qsl.delta=np.array(delta,'f4')
     # end if not sFlag
 
-    if os.path.exists(tmp_dir+'q_local.bin'): qsl.update({'r_local':np.array(r_local, dtype="f4")})
+    if os.path.exists(tmp_dir+'q_local.bin'): qsl.r_local=np.array(r_local, dtype="f4")
 
     if   out_dim== 0:
         dim =(1)
@@ -324,7 +331,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
         dim =(nq3,nq2,nq1)
         dim3=(nq3,nq2,nq1,3)
 
-    qsl.update({'dim':np.array(dim,'i4')})
+    qsl.dim=np.array(dim,'i4')
 
     qsl_data0=[ \
     ['axis1',      'f4', (nq1, 2)], \
@@ -363,13 +370,13 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
         with open(tmp_dir+name+'.bin','rb') as file: 
             dummy=np.fromfile(file, dtype=str3[1]).reshape(str3[2])
         if name in ['path', 'loopB','loopCurlB']:
-            if   out_dim <=1: qsl.update({name:[dummy[indexes[i]:indexes[i+1],:] \
-                                      for i in range(nq1)]})
-            elif out_dim ==2: qsl.update({name:[[dummy[indexes[i+j*nq1]:indexes[i+j*nq1+1],:] \
-                                      for i in range(nq1)] for j in range(nq2)]})
-            elif out_dim ==3: qsl.update({name:[[[dummy[indexes[i+j*nq1+k*nq1*nq2]:indexes[i+j*nq1+k*nq1*nq2+1],:] \
-                                      for i in range(nq1)] for j in range(nq2)] for k in range(nq3)]})
-        else: qsl.update({name:dummy})
+            if   out_dim <=1: qsl.__setattr__(name, [dummy[indexes[i]:indexes[i+1],:] \
+                                      for i in range(nq1)])
+            elif out_dim ==2: qsl.__setattr__(name, [[dummy[indexes[i+j*nq1]:indexes[i+j*nq1+1],:] \
+                                      for i in range(nq1)] for j in range(nq2)])
+            elif out_dim ==3: qsl.__setattr__(name, [[[dummy[indexes[i+j*nq1+k*nq1*nq2]:indexes[i+j*nq1+k*nq1*nq2+1],:] \
+                                      for i in range(nq1)] for j in range(nq2)] for k in range(nq3)])
+        else: qsl.__setattr__(name, dummy)
 # ------------------------------------------------------------
 # the name of .pkl file
     if fname is None and (preview or save_file):
@@ -433,9 +440,9 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 
                 if path_out:
                     for i in range(nq1): 
-                        x_path=qsl['path'][i][:,0].copy()
+                        x_path=qsl.path[i][:,0].copy()
                         if spherical: x_path=np.mod(x_path-xa[0], two_pi)+xa[0]
-                        plt.plot(x_path, qsl['path'][i][:,1], '.g', markersize=1)
+                        plt.plot(x_path, qsl.path[i][:,1], '.g', markersize=1)
 
                 if out_dim ==0:
                     x_seed=np.array(seed[0],'f4')
@@ -455,8 +462,8 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
         else:
             if csFlag:
                 if spherical:
-                    x_margin=qsl['axis1'][:,0]
-                    y_margin=qsl['axis1'][:,1]
+                    x_margin=qsl.axis1[:,0]
+                    y_margin=qsl.axis1[:,1]
                 else:
                     x_margin=xreg
                     y_margin=yreg
@@ -493,7 +500,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
         plot_bottom=os.path.exists(tmp_dir+'sign2d.bin')
 
         if maxsteps != 0 and (out_dim ==2 or plot_bottom):
-            rb_tmp=qsl['rboundary'] if out_dim ==2 else qsl['rboundary'][0,:,:]
+            rb_tmp=qsl.rboundary if out_dim ==2 else qsl.rboundary[0,:,:]
             rbs = rb_tmp // 10
             rbe = np.mod(rb_tmp,10)
             cmap_rboundary = ListedColormap([(0,0,0), (0.5,0.5,0.5), (1,1,1), \
@@ -501,10 +508,10 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 
             if plot_bottom:
                 rb_target=np.zeros((nq2,nq1),'i1')
-                rb_target[qsl['sign2d'] == 1]=rbe[qsl['sign2d'] == 1]
-                rb_target[qsl['sign2d'] ==-1]=rbs[qsl['sign2d'] ==-1]
+                rb_target[qsl.sign2d == 1]=rbe[qsl.sign2d == 1]
+                rb_target[qsl.sign2d ==-1]=rbs[qsl.sign2d ==-1]
 
-                # for the case of qsl['sign2d'] ==0
+                # for the case of qsl.sign2d ==0
                 rb_target[rbs == rbe] = rbs[rbs == rbe]
 
                 plt.imsave(odir+fname+'_rb_target.png', rb_target, \
@@ -530,7 +537,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
             q_strs=[str3[0] for str3 in qsl_data if str3[0] in ['q', 'q_perp','q_local' ]]
             
             for q_str in q_strs:
-                q_tmp = qsl[q_str].copy() if out_dim ==2 else qsl[q_str][0,:,:].copy()
+                q_tmp = qsl.__dict__[q_str].copy() if out_dim ==2 else qsl.__dict__[q_str][0,:,:].copy()
 
                 # 1. for white color
                 q_tmp[np.isnan(q_tmp)]=1.
@@ -538,7 +545,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 
                 if plot_bottom:
                     plt.imsave(odir+fname+'_slog'+q_str+'.png', \
-                    np.log10(q_tmp)*qsl['sign2d'], vmin=-5., vmax=5., origin='lower', cmap='bwr')
+                    np.log10(q_tmp)*qsl.sign2d, vmin=-5., vmax=5., origin='lower', cmap='bwr')
                     if verbose: print(odir+fname+'_slog'+q_str+'.png')
 
                     if targetB_out and q_str=='q': q_tmp1=q_tmp.copy()
@@ -546,7 +553,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                     # make white color for open field line
                     # q_tmp[rb_tmp != 11]=1. 
                     # plt.imsave(odir+fname+'_slog'+q_str+'.png', \
-                    # np.log10(q_tmp)*qsl['sign2d'], vmin=-5., vmax=5., origin='lower', cmap='bwr')
+                    # np.log10(q_tmp)*qsl.sign2d, vmin=-5., vmax=5., origin='lower', cmap='bwr')
                     # if verbose: print(odir+fname+'_slog'+q_str+'_orig.png')              
                 else:
                     plt.imsave(odir+fname+ '_log'+q_str+'.png', \
@@ -565,15 +572,15 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                 # In Titov (2007), q = N^2 / Delta, and Delta = Bnr
                 Bnr=np.zeros((nq2,nq1),'f4')
 
-                Bs=qsl['Bs'] if out_dim ==2 else qsl['Bs'][0,:,:,:]
-                Be=qsl['Be'] if out_dim ==2 else qsl['Be'][0,:,:,:]
+                Bs=qsl.Bs if out_dim ==2 else qsl.Bs[0,:,:,:]
+                Be=qsl.Be if out_dim ==2 else qsl.Be[0,:,:,:]
                 
                 for j in range(nq2):
                     for i in range(nq1): 
-                        if   qsl['sign2d'][j,i] ==  1 and rbe[j,i] in range(1,7):
+                        if   qsl.sign2d[j,i] ==  1 and rbe[j,i] in range(1,7):
                             Bn_target=Be[j,i,(6-rbe[j,i])//2]
                             if Bn_target != 0.: Bnr[j,i]=np.abs(Bs[j,i,2]/Bn_target)
-                        elif qsl['sign2d'][j,i] == -1 and rbs[j,i] in range(1,7):
+                        elif qsl.sign2d[j,i] == -1 and rbs[j,i] in range(1,7):
                             Bn_target=Bs[j,i,(6-rbs[j,i])//2]
                             if Bn_target != 0.: Bnr[j,i]=np.abs(Be[j,i,2]/Bn_target)
                     
@@ -599,8 +606,8 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 
             if out_dim ==2:
                 for int_name in int_private_name:
-                    if int_name in qsl.keys():
-                        int_tmp=qsl[int_name].copy()
+                    if int_name in qsl.__dict__.keys():
+                        int_tmp=qsl.__dict__[int_name].copy()
                         int_tmp[np.isnan(int_tmp)]=0. # 0. for black color
                         int_tmp[np.isinf(int_tmp)]=0.
                         png_file=odir+fname+'_'+int_name+'.png'
@@ -637,11 +644,12 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 
     if verbose:
         print('\n'+'Elements in qsl:')
-        for key in qsl.keys():
-            if   isinstance(qsl[key], np.ndarray):
-                content = qsl[key] if qsl[key].size <=3 else qsl[key].shape
-                print('{0:<20}{1:<10}'.format("qsl['"+key+"']", qsl[key].dtype.name), content)
-            elif isinstance(qsl[key], list): print('{0:<19}'.format("qsl['"+key+"']"), "list")
+        for key in qsl.__dict__.keys():
+            attr = qsl.__dict__[key]
+            if isinstance(attr, np.ndarray):
+                content = attr if attr.size <=3 else attr.shape
+                print('{0:<17}{1:<10}'.format("qsl."+key, attr.dtype.name), content)
+            elif isinstance(attr, list): print('{0:<16}'.format("qsl."+key), "list")
         if save_file:
             print('Try:')
             print('with open("'+odir+fname+'.pkl"'+', "rb") as file: qsl = pickle.load(file)')

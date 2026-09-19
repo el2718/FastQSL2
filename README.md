@@ -386,7 +386,7 @@ See **Products** for more details. All default values here are 0.
 ## Products
 For fastqsl\.pro, the result is given by the structure **qsl**, and can be returned by the keyword **qsl**, or can be saved as `odir+fname+'.sav'`. The infomation of its elements can be known by `help, qsl, /str`. For example, the element **q** can be accessed by `qsl.q`.
 
-For fastqsl\.py, the result is given by the [dictionary](https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries) **qsl**, and can be returned by the return of the function fastqsl, or can be saved as `odir+fname+'.pkl'`. The names of its elements can be found in `qsl.keys()`. For example, the element **q** can be accessed by `qsl['q']`
+For fastqsl\.py, the result is given by the object **qsl**, and can be returned by the return of the function fastqsl, or can be saved as `odir+fname+'.pkl'`. This object is constructed using `types.SimpleNamespace`, therefore it also can be accessed as a [dictionary](https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries) via `qsl.__dict__`. The names of its elements can be found in `qsl.__dict__.keys()`. For example, the element **q** can be accessed as `qsl.q` or `qsl.__dict__['q']`
 
 Possible elements in **qsl** are:
   * **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
@@ -449,10 +449,10 @@ Possible elements in **qsl** are:
         * `(*qsl.path[i, j])[*, 0]` is identical to `qsl.rFs[*, i, j]`
         * `(*qsl.path[i, j])[*, n-1]` is identical to `qsl.rFe[*, i, j]`
         * `(*qsl.path[i, j])[*, qsl.index_seed[i, j]]` is identical to `qsl.seed[*, i, j]`
-      * in fastqsl\.py, `qsl['path']` is a list, `qsl['path'][j][i]` gives a field line with  dimensions of (n, 3), and
-        * `qsl['path'][j][i][0, :]` is identical to `qsl['rFs'][j, i, :]`
-        * `qsl['path'][j][i][-1, :]` is identical to `qsl['rFe'][j, i, :]`
-        * `qsl['path'][j][i][qsl['index_seed'][j, i], :]` is identical to `qsl['seed'][j, i, :]`
+      * in fastqsl\.py, `qsl.path` is a list, `qsl.path[j][i]` gives a field line with  dimensions of (n, 3), and
+        * `qsl.path[j][i][0, :]` is identical to `qsl.rFs[j, i, :]`
+        * `qsl.path[j][i][-1, :]` is identical to `qsl.rFe[j, i, :]`
+        * `qsl.path[j][i][qsl.index_seed[j, i], :]` is identical to `qslseed[j, i, :]`
     * Using RKF45 requires many fewer grid points on a path than using RK4
     * A smaller tol (or step) requires more grid points on a path, but then the coordinate precision of the path is better
   * **loopB, loopCurlB**: $\vec{B}$, $\nabla \times \vec{B}$ on **path**
@@ -654,3 +654,4 @@ If you need this derived code, please visit https://github.com/el2718/slipq
 * May, 19, 2026 Jun Chen, add positional parameters of CurlBx, CurlBy, CurlBz
 * Jun, 23, 2026 Jun Chen, add the element dim to the output
 * Sep, 18, 2026 Jun Chen, complete convert_coordinate
+* Sep, 20, 2026 Jun Chen, for fastqsl.py, return **qsl** as a object instead of a dictionary
