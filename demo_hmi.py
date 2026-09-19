@@ -64,8 +64,8 @@ with open(data_dir+Bfile, "rb") as file:
 r_cut=2
 
 # compute Q at bottom
-# fastqsl(bvec, xa=lon_rad, ya=lat_rad, za=radius, spherical=True, \
-# fname='pfss_orig', preview=True, keep_tmp=True)
+fastqsl(bvec, xa=lon_rad, ya=lat_rad, za=radius, spherical=True, \
+fname='pfss_orig', preview=True, keep_tmp=True)
 
 # remove first two layers to remove small scale structure
 fastqsl(bvec[r_cut:,:,:, :], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
@@ -77,12 +77,12 @@ fname='pfss_rcut2', scottFlag=False, preview=True, keep_tmp=True)
 # trace field lines from two points
 # Since keep_tmp=True was set in the command above, bfield.bin has already been saved in tmp_dir; 
 # therefore, the input magnetic field is unnecessary here
-# qsl=fastqsl(\
-# # bvec[r_cut:,:,:, :], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
-# fname='pfss_rcut2_seed_path', preview=True, \
-# length_out=True, \
-# seed=[[np.pi*0.85, 0.1, 1.7], [np.pi*1.5, -0.2, 1.2]], \
-# path_out=True, loopB_out=True)
+qsl=fastqsl(\
+# bvec[r_cut:,:,:, :], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
+fname='pfss_rcut2_seed_path', preview=True, \
+length_out=True, \
+seed=[[np.pi*0.85, 0.1, 1.7], [np.pi*1.5, -0.2, 1.2]], \
+path_out=True, loopB_out=True)
 
 # # git clone https://github.com/el2718/par2solarwind
 # from par2solarwind import par2solarwind
