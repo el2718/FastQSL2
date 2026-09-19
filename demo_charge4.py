@@ -191,8 +191,8 @@ xreg=[0.,2*np.pi], yreg=[-np.pi/2, np.pi/2], length_out=True)
 qsl=fastqsl(fname='spherical_seed_path', preview=True, \
 seed=[[np.pi*0.85, 0.1, 1.], [np.pi*1.1, -0.2, 1.2]], path_out=True, loopB_out=True)
 
-# transfrom *qsl['path'][1] in (longitude, latitude, radius() to path1_car in (x, y, z), and
-# transfrom *qsl['loopB'][1] in (B_lon, B_lat, B_r) to loopB1_car in (B_x, B_y, B_z)
+# transfrom *qsl.path[1] in (longitude, latitude, radius() to path1_car in (x, y, z), and
+# transfrom *qsl.loopB[1] in (B_lon, B_lat, B_r) to loopB1_car in (B_x, B_y, B_z)
 # please compile convert_coordinate.f90 and specify the path of convert_coordinate.x in convert_coordinate.py
 
 # path1_car, loopB1_car= convert_coordinate(qsl.path[1], qsl.loopB[1], mode='lon_lat_r_to_xyz')
