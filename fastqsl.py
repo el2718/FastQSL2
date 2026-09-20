@@ -4,7 +4,7 @@ from matplotlib.colors import ListedColormap
 from types import SimpleNamespace
 import os, subprocess, pickle
 
-def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *, 
+def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *, \
             xa=None, ya=None, za=None, spherical=False, \
             xperiod=False, yperiod=False, zperiod=False, \
             xreg=None, yreg=None, zreg=None, csFlag=False, factor=4, delta=None, \
@@ -604,7 +604,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                 if verbose: print(odir+fname+'_lg_Bnr.png')
             # end if targetB_out
 
-            if out_dim ==2:
+            if out_dim == 2:
                 for int_name in int_private_name:
                     if int_name in qsl.__dict__.keys():
                         int_tmp=qsl.__dict__[int_name].copy()
