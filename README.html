@@ -79,7 +79,8 @@
 git reset --hard
 git pull
 </code></pre><p>If you use MacOS, and your Fortran compiler is gfortran, you can just execute</p>
-<pre data-role="codeBlock" data-info="" class="language-text"><code>gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
+<pre data-role="codeBlock" data-info="" class="language-text"><code>cd ~/Documents/FastQSL2/
+gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
 gfortran -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -march=native
 sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
 sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.py
