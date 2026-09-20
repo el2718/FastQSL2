@@ -616,20 +616,6 @@ For the case of static boundaries, we can compute the slip-squashing factors usi
 If you need this derived code, please visit https://github.com/el2718/slipq
 
 -----------------------------
-## Update the project
-For exmaple, if your use MacOS, your path of FastQSL is `~/Documents/FastQSL2/`, and your Fortran compiler is gfortran, you can just execute
-```
-cd ~/Documents/FastQSL2/
-git reset --hard
-git pull
-gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
-gfortran -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -march=native
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.py
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.pro
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.py
-```
------------------------------
 ## History
 * Jun 30, 2014 Rui Liu @ USTC, IDL edition
 * Apr 21, 2015 Rui Liu and Jun Chen, deal with field lines passing through the boundary other than the bottom

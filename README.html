@@ -1039,18 +1039,6 @@ where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.
 <p>For the case of static boundaries, we can compute the slip-squashing factors using the coordinate mapping provided by FastQSL. Following the initial coordinate mapping within the first magnetic field, the resulting mapped coordinates can serve as a seed grid for applying FastQSL to the second magnetic field.</p>
 <p>If you need this derived code, please visit <a href="https://github.com/el2718/slipq">https://github.com/el2718/slipq</a></p>
 <hr>
-<h2 id="update-the-project">Update the project </h2>
-<p>For exmaple, if your use MacOS, your path of FastQSL is <code>~/Documents/FastQSL2/</code>, and your Fortran compiler is gfortran, you can just execute</p>
-<pre data-role="codeBlock" data-info="" class="language-text"><code>cd ~/Documents/FastQSL2/
-git reset --hard
-git pull
-gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
-gfortran -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -march=native
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.py
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.pro
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.py
-</code></pre><hr>
 <h2 id="history">History </h2>
 <ul>
 <li>Jun 30, 2014 Rui Liu @ USTC, IDL edition</li>
@@ -1298,10 +1286,6 @@ to avoid an error in a remote server: % TVLCT: Unable to open X Windows display<
         </div>
       </details>
     <div class="md-toc-link-wrapper" style="padding:0;;display:list-item;list-style:square;margin-left:42px">
-          <a href="#update-the-project" class="md-toc-link">
-            <p>Update the project</p>
-
-          </a></div><div class="md-toc-link-wrapper" style="padding:0;;display:list-item;list-style:square;margin-left:42px">
           <a href="#history" class="md-toc-link">
             <p>History</p>
 
