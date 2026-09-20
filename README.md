@@ -118,7 +118,7 @@ After reading the following, you will know how to adjust the commands for other 
   export PYTHONPATH="/your/private/py/path:$PYTHONPATH"
   ```
 
-### Computation core with Fortran
+### Computation core
 #### Compiler installation
 * gfortran https://fortran-lang.org/learn/os_setup/install_gfortran/ or
 * Intel® Fortran Compiler https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler-download.html
