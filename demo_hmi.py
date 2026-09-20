@@ -87,4 +87,4 @@ path_out=True, loopB_out=True)
 # from par2solarwind import par2solarwind
 # # compute two parameters for solar wind modeling at bottom
 # par2solarwind(Bvec[r_cut:,:,:, :], lon_rad, lat_rad, radius[r_cut:], \
-#               bottomFlag=True, fname=fname+'solarwind', preview=True)
+#               bottomFlag=True, fname=fname+'_rcut2_solarwind', preview=True)
