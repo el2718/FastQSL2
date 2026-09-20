@@ -66,8 +66,7 @@ This project can be downloaded via the command
 ```
 git clone https://github.com/el2718/FastQSL2
 ```
-
-For the following, assume that the path of the project is `~/Documents/FastQSL2/`.  
+Here assume that the path of the project is `~/Documents/FastQSL2/`.  
 
 For update, you can execute
 ```
