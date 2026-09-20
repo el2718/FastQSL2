@@ -12,7 +12,7 @@ def pfss4fastqsl(num_CR, *, \
                  data_type="hmi.Synoptic_Mr_polfil", \
                  data_dir=os.getcwd()+os.sep, fname=None, \
                  ):
-    if fname is None: fname = 'Bvec_'+data_type+'.'+str(num_CR)
+    if fname is None: fname = 'pfss_'+data_type+'.'+str(num_CR)
 
     Bfile = data_dir+fname+'.pkl'
     if fname+'.pkl' not in os.listdir(data_dir):
