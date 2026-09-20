@@ -2,14 +2,10 @@
 
 To calculate the squashing factor $Q$, and other quantities related to the magnetic connectivity, at the bottom, a cross section, a box volume, or on some seed points, given a 3D magnetic field on a Cartesian or spherical, uniform or stretched grid.
 
-This program can be downloaded via the command
-```
-git clone https://github.com/el2718/FastQSL2
-```
-
 Please address comments and suggestions to [Dr. Chen, Jun (陈俊)](mailto:chenjun@pmo.ac.cn)
 
 If your markdown reader cannot render the formulae in README\.md, please read README.html directly.
+
 
 -----------------------------
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
@@ -19,7 +15,6 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 [cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
 [cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
 [cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
-
 -----------------------------
 ## Cite as
 
@@ -64,10 +59,37 @@ arXiv: https://arxiv.org/abs/2604.16195
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
------------------------------
-## Software for Interface
 
-### If using fastqsl\.pro
+-----------------------------
+## Installation
+This project can be downloaded via the command
+```
+git clone https://github.com/el2718/FastQSL2
+```
+
+For the following, assume that the path of the project is `~/Documents/FastQSL2/`.  
+
+For update, you can execute
+```
+cd ~/Documents/FastQSL2/
+git reset --hard
+git pull
+```
+
+If you use MacOS, and your Fortran compiler is gfortran, you can just execute
+```
+gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
+gfortran -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -march=native
+sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
+sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.py
+sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.pro
+sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.py
+```
+After reading the following, you will know how to adjust the commands for other operating systems and Fortran compilers.
+
+### Software for Interface
+
+#### If using fastqsl\.pro
 * install **IDL** https://www.nv5geospatialsoftware.com/Products/IDL 
   * setting the environment variable `$IDL_PATH` and placing fastqsl\.pro into a private path are suggested. If your IDL is installed at /usr/local/exelis/idl, and if you use Bash Shell, just append the following lines to ~/.bashrc:
      ```bash
@@ -87,7 +109,7 @@ arXiv: https://arxiv.org/abs/2604.16195
     export GDL_PATH="$GDL_DIR/lib:+/your/private/pro/path"
     ```
   * If you also need [SSW](http://www.lmsal.com/solarsoft/) for some other analysis, please take a look at https://github.com/rbluosolar/sswgdl
-### If using fastqsl\.py
+#### If using fastqsl\.py
 * install **python** https://www.python.org
   * **numpy** and **matplotlib** should be installed
   * **scipy** is suggested to install for reading *.sav from IDL in a demo
@@ -95,9 +117,9 @@ arXiv: https://arxiv.org/abs/2604.16195
   ```bash
   export PYTHONPATH="/your/private/py/path:$PYTHONPATH"
   ```
------------------------------
-## Computation core with Fortran
-### Compiler installation
+
+### Computation core with Fortran
+#### Compiler installation
 * gfortran https://fortran-lang.org/learn/os_setup/install_gfortran/ or
 * Intel® Fortran Compiler https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler-download.html
   * please append this line to ~/.bashrc
@@ -106,7 +128,7 @@ arXiv: https://arxiv.org/abs/2604.16195
     ```
 * Other compilers listed at https://fortran-lang.org/compilers/ should also work for FastQSL, while I have not tested them, testing and sharing your experiences to me are welcome
 * For checking whether your compiler is successfully installed, you can try https://github.com/el2718/sudoku
-### Compilation
+#### Compilation
 All *.mod produced from compilation can be deleted
 
 * For Linux and macOS (either by ifx/ifort or gfortran):
@@ -128,7 +150,7 @@ All *.mod produced from compilation can be deleted
   ```bash
   gfortran -o fastqsl.exe fastqsl.f90 -fopenmp -O3 -march=native
   ``` 
-### Path of fastqsl.x
+#### Path of fastqsl.x
 * please specify the path of fastqsl.x, 
   * in fastqsl\.pro, please correct the line
     ```idl

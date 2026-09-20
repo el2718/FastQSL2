@@ -26,9 +26,7 @@
       
 <h1 id="fastqsl-2">FastQSL 2 </h1>
 <p>To calculate the squashing factor <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span></span></span></span>, and other quantities related to the magnetic connectivity, at the bottom, a cross section, a box volume, or on some seed points, given a 3D magnetic field on a Cartesian or spherical, uniform or stretched grid.</p>
-<p>This program can be downloaded via the command</p>
-<pre data-role="codeBlock" data-info="" class="language-text"><code>git clone https://github.com/el2718/FastQSL2
-</code></pre><p>Please address comments and suggestions to <a href="mailto:chenjun@pmo.ac.cn">Dr. Chen, Jun (陈俊)</a></p>
+<p>Please address comments and suggestions to <a href="mailto:chenjun@pmo.ac.cn">Dr. Chen, Jun (陈俊)</a></p>
 <p>If your markdown reader cannot render the formulae in README.md, please read README.html directly.</p>
 <hr>
 <p><a href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img src="https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg" alt="CC BY-NC-SA 4.0"></a></p>
@@ -72,8 +70,24 @@
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 </code></pre><hr>
-<h2 id="software-for-interface">Software for Interface </h2>
-<h3 id="if-using-fastqslpro">If using fastqsl.pro </h3>
+<h2 id="installation">Installation </h2>
+<p>This project can be downloaded via the command</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>git clone https://github.com/el2718/FastQSL2
+</code></pre><p>For the following, assume that the path of the project is <code>~/Documents/FastQSL2/</code>.</p>
+<p>For update, you can execute</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>cd ~/Documents/FastQSL2/
+git reset --hard
+git pull
+</code></pre><p>If you use MacOS, and your Fortran compiler is gfortran, you can just execute</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
+gfortran -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -march=native
+sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
+sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.py
+sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.pro
+sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.py
+</code></pre><p>After reading the following, you will know how to adjust the commands for other operating systems and Fortran compilers.</p>
+<h3 id="software-for-interface">Software for Interface </h3>
+<h4 id="if-using-fastqslpro">If using fastqsl.pro </h4>
 <ul>
 <li>install <strong>IDL</strong> <a href="https://www.nv5geospatialsoftware.com/Products/IDL">https://www.nv5geospatialsoftware.com/Products/IDL</a>
 <ul>
@@ -102,7 +116,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="if-using-fastqslpy">If using fastqsl.py </h3>
+<h4 id="if-using-fastqslpy">If using fastqsl.py </h4>
 <ul>
 <li>install <strong>python</strong> <a href="https://www.python.org">https://www.python.org</a>
 <ul>
@@ -113,9 +127,8 @@
 <pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token builtin class-name">export</span> <span class="token assign-left variable">PYTHONPATH</span><span class="token operator">=</span><span class="token string">"/your/private/py/path:<span class="token variable">$PYTHONPATH</span>"</span>
 </code></pre></li>
 </ul>
-<hr>
-<h2 id="computation-core-with-fortran">Computation core with Fortran </h2>
-<h3 id="compiler-installation">Compiler installation </h3>
+<h3 id="computation-core-with-fortran">Computation core with Fortran </h3>
+<h4 id="compiler-installation">Compiler installation </h4>
 <ul>
 <li>gfortran <a href="https://fortran-lang.org/learn/os_setup/install_gfortran/">https://fortran-lang.org/learn/os_setup/install_gfortran/</a> or</li>
 <li>Intel® Fortran Compiler <a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler-download.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler-download.html</a>
@@ -127,7 +140,7 @@
 <li>Other compilers listed at <a href="https://fortran-lang.org/compilers/">https://fortran-lang.org/compilers/</a> should also work for FastQSL, while I have not tested them, testing and sharing your experiences to me are welcome</li>
 <li>For checking whether your compiler is successfully installed, you can try <a href="https://github.com/el2718/sudoku">https://github.com/el2718/sudoku</a></li>
 </ul>
-<h3 id="compilation">Compilation </h3>
+<h4 id="compilation">Compilation </h4>
 <p>All *.mod produced from compilation can be deleted</p>
 <ul>
 <li>For Linux and macOS (either by ifx/ifort or gfortran):<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>ifx <span class="token parameter variable">-o</span> fastqsl.x fastqsl.f90 <span class="token parameter variable">-fopenmp</span> <span class="token parameter variable">-O3</span> <span class="token parameter variable">-xHost</span> <span class="token parameter variable">-ipo</span>
@@ -142,7 +155,7 @@ executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would b
 </code></pre><pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>gfortran <span class="token parameter variable">-o</span> fastqsl.exe fastqsl.f90 <span class="token parameter variable">-fopenmp</span> <span class="token parameter variable">-O3</span> <span class="token parameter variable">-march</span><span class="token operator">=</span>native
 </code></pre></li>
 </ul>
-<h3 id="path-of-fastqslx">Path of fastqsl.x </h3>
+<h4 id="path-of-fastqslx">Path of fastqsl.x </h4>
 <ul>
 <li>please specify the path of fastqsl.x,
 <ul>
@@ -1135,6 +1148,12 @@ to avoid an error in a remote server: % TVLCT: Unable to open X Windows display<
 
           </a></div><details style="padding:0;;padding-left:24px;" open="">
         <summary class="md-toc-link-wrapper">
+          <a href="#installation" class="md-toc-link"><p>Installation</p>
+</a>
+          </summary>
+        <div>
+          <details style="padding:0;;padding-left:24px;" open="">
+        <summary class="md-toc-link-wrapper">
           <a href="#software-for-interface" class="md-toc-link"><p>Software for Interface</p>
 </a>
           </summary>
@@ -1169,6 +1188,9 @@ to avoid an error in a remote server: % TVLCT: Unable to open X Windows display<
             <p>Path of fastqsl.x</p>
 
           </a></div>
+        </div>
+      </details>
+    
         </div>
       </details>
     <details style="padding:0;;padding-left:24px;" open="">
