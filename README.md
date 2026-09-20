@@ -150,6 +150,7 @@ All *.mod produced from compilation can be deleted
   ```bash
   gfortran -o fastqsl.exe fastqsl.f90 -fopenmp -O3 -march=native
   ``` 
+  * for ifx, the compilation should be the same as ifort, while I have not tested it
 #### Path of fastqsl.x
 * please specify the path of fastqsl.x, 
   * in fastqsl\.pro, please correct the line

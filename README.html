@@ -153,7 +153,10 @@ sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.py
 <li>For Windows (either by ifort or gfortran):<br>
 executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would be necessary<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>ifort /o fastqsl.exe fastqsl.f90 /Qopenmp /O3 /QxHost /Qipo
 </code></pre><pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>gfortran <span class="token parameter variable">-o</span> fastqsl.exe fastqsl.f90 <span class="token parameter variable">-fopenmp</span> <span class="token parameter variable">-O3</span> <span class="token parameter variable">-march</span><span class="token operator">=</span>native
-</code></pre></li>
+</code></pre><ul>
+<li>for ifx, the compilation should be the same as ifort, while I have not tested it</li>
+</ul>
+</li>
 </ul>
 <h4 id="path-of-fastqslx">Path of fastqsl.x </h4>
 <ul>
