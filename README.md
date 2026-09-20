@@ -16,6 +16,7 @@ This program is licensed under a [CC BY-NC-SA 4.0 License][cc-by-nc-sa].
 [cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
 [cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
 -----------------------------
+
 ## Cite as
 
 * [Jun Chen*, Thomas Wiegelmann, Li Feng*, Chaowei Jiang, and Rui Liu. (2026). FastQSL 2: A comprehensive toolkit for magnetic connectivity analysis. SCIENCE CHINA Physics, Mechanics & Astronomy, 69(8), 289611.](https://www.sciengine.com/SCPMA/doi/10.1007/s11433-025-2982-2)
