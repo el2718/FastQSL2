@@ -592,6 +592,7 @@ Slip-squashing factors $Q_\textrm{sf}$ and $Q_\textrm{sb}$ ([Titov_2009_ApJ_693_
 For the case of static boundaries, we can compute the slip-squashing factors using the coordinate mapping provided by FastQSL. Following the initial coordinate mapping within the first magnetic field, the resulting mapped coordinates can serve as a seed grid for applying FastQSL to the second magnetic field. 
 
 If you need this derived code, please visit https://github.com/el2718/slipq
+
 -----------------------------
 ## Update the project
 For exmaple, if your use MacOS, your path of FastQSL is `~/Documents/FastQSL2/`, and your Fortran compiler is gfortran, you can just execute
