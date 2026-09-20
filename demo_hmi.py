@@ -63,7 +63,7 @@ with open(Bfile, "rb") as file:
     Bvec, lon_rad, lat_rad, radius = pickle.load(file)
 # ------------------------------------------------------------
 r_cut=2
-fname = 'Bvec_'+data_type+'.'+str(num_CR)
+fname = 'pfss_'+data_type+'.'+str(num_CR)
 
 # # compute Q at bottom
 fastqsl(Bvec, xa=lon_rad, ya=lat_rad, za=radius, spherical=True, \
@@ -87,4 +87,4 @@ path_out=True, loopB_out=True)
 # from par2solarwind import par2solarwind
 # # compute two parameters for solar wind modeling at bottom
 # par2solarwind(Bvec[r_cut:,:,:, :], lon_rad, lat_rad, radius[r_cut:], \
-#               bottomFlag=True, fname='solarwind', preview=True)
+#               bottomFlag=True, fname=fname+'solarwind', preview=True)
