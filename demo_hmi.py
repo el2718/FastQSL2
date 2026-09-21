@@ -15,7 +15,8 @@ def pfss4fastqsl(num_CR, *, \
     if fname is None: fname = 'pfss_'+data_type+'.'+str(num_CR)
 
     Bfile = data_dir+fname+'.pkl'
-    if fname+'.pkl' not in os.listdir(data_dir):
+    # if fname+'.pkl' not in os.listdir(data_dir):
+    if True:
         
         if num_CR<2096: raise Exception("CR "+str(num_CR)+" too early for HMI")
         HMI_file=data_type+'.'+str(num_CR)+'.fits'
@@ -25,12 +26,14 @@ def pfss4fastqsl(num_CR, *, \
                 raise Exception("Could not get HMI map for CR "+str(num_CR))
 
         HMI_map = sunpy.map.Map(HMI_file)
-
+        print(dir(HMI_map))
         # Downsample and remove NaNs as required by pfsspy
         HMI_map = HMI_map.resample([n_lon-1, n_lat-1] * astropy.units.pix)
         HMI_map.data[np.isnan(HMI_map.data)]=0.0    # NaNs set to zero
         pfss_in  = pfsspy.Input(HMI_map, n_r-1, Rss)
         pfss_out = pfsspy.pfss(pfss_in)
+
+
 
         # exchange the index order of R and phi (longitude)
         Bvec= pfss_out.bg.transpose(2,1,0,3) 
@@ -65,17 +68,17 @@ with open(Bfile, "rb") as file:
 r_cut=2
 fname = 'pfss_'+data_type+'.'+str(num_CR)
 
-# # compute Q at bottom
+# # # compute Q at bottom
 fastqsl(Bvec, xa=lon_rad, ya=lat_rad, za=radius, spherical=True, \
-fname= fname, preview=True, keep_tmp=True)
+fname= fname+'_orig', preview=True, keep_tmp=True)
 
-# # remove first two layers to remove small scale structure
+# # # remove first two layers to remove small scale structure
 fastqsl(Bvec[r_cut:,:,:, :], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
 fname= fname+'_rcut2', scottFlag=False, preview=True, keep_tmp=True)
 
-# trace field lines from two points
-# Since keep_tmp=True was set in the command above, bfield.bin has already been saved in tmp_dir; 
-# therefore, the input magnetic field is unnecessary here
+# # trace field lines from two points
+# # Since keep_tmp=True was set in the command above, bfield.bin has already been saved in tmp_dir; 
+# # therefore, the input magnetic field is unnecessary here
 qsl=fastqsl(\
 # Bvec[r_cut:,:,:, :], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
 fname= fname+'_rcut2_seed_path', preview=True, \
