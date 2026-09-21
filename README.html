@@ -144,15 +144,19 @@ sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.py
 <h4 id="compilation">Compilation </h4>
 <p>All *.mod produced from compilation can be deleted</p>
 <ul>
-<li>For Linux and macOS (either by ifx/ifort or gfortran):<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>ifx <span class="token parameter variable">-o</span> fastqsl.x fastqsl.f90 <span class="token parameter variable">-fopenmp</span> <span class="token parameter variable">-O3</span> <span class="token parameter variable">-xHost</span> <span class="token parameter variable">-ipo</span>
+<li>
+<p>For Linux and macOS (either by ifx/ifort or gfortran):</p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>ifx <span class="token parameter variable">-o</span> fastqsl.x fastqsl.f90 <span class="token parameter variable">-fopenmp</span> <span class="token parameter variable">-O3</span> <span class="token parameter variable">-xHost</span> <span class="token parameter variable">-ipo</span>
 </code></pre><pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>ifort <span class="token parameter variable">-o</span> fastqsl.x fastqsl.f90 <span class="token parameter variable">-fopenmp</span> <span class="token parameter variable">-O3</span> <span class="token parameter variable">-xHost</span> <span class="token parameter variable">-ipo</span>
 </code></pre><pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>gfortran <span class="token parameter variable">-o</span> fastqsl.x fastqsl.f90 <span class="token parameter variable">-fopenmp</span> <span class="token parameter variable">-O3</span> <span class="token parameter variable">-march</span><span class="token operator">=</span>native
 </code></pre><ul>
 <li>set -O3, -xHost, -ipo, -march=native for better efficiency</li>
 </ul>
 </li>
-<li>For Windows (either by ifort or gfortran):<br>
-executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would be necessary<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>ifort /o fastqsl.exe fastqsl.f90 /Qopenmp /O3 /QxHost /Qipo
+<li>
+<p>For Windows (either by ifort or gfortran):</p>
+<p>executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would be necessary</p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>ifort /o fastqsl.exe fastqsl.f90 /Qopenmp /O3 /QxHost /Qipo
 </code></pre><pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>gfortran <span class="token parameter variable">-o</span> fastqsl.exe fastqsl.f90 <span class="token parameter variable">-fopenmp</span> <span class="token parameter variable">-O3</span> <span class="token parameter variable">-march</span><span class="token operator">=</span>native
 </code></pre><ul>
 <li>If the pop-up window for <code>fastqsl.exe</code> cannot be closed automatically on some Windows systems, please uncomment this line (remove !):</li>

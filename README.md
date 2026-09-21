@@ -143,6 +143,7 @@ All *.mod produced from compilation can be deleted
     ```
   * set -O3, -xHost, -ipo, -march=native for better efficiency
 * For Windows (either by ifort or gfortran):
+
   executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would be necessary
   ```bash
   ifort /o fastqsl.exe fastqsl.f90 /Qopenmp /O3 /QxHost /Qipo
