@@ -69,7 +69,7 @@ fname = 'pfss_'+data_type+'.'+str(num_CR)
 fastqsl(Bvec, xa=lon_rad, ya=lat_rad, za=radius, spherical=True, \
 fname= fname+'_orig', preview=True, keep_tmp=True)
 
-# # # remove first two layers to remove small scale structure
+# # # remove first two layers to remove small scale structures
 fastqsl(Bvec[r_cut:,:,:,:], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
 fname= fname+'_rcut2', scottFlag=False, preview=True, keep_tmp=True)
 
