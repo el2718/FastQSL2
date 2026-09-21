@@ -68,7 +68,6 @@ if (present1) then
         sin01= sin(coor(0:1))
         cos01= cos(coor(0:1))
     endif
-
     ! stack e_lon, e_lat, e_r for mode 0 'xyz_to_lon_lat_r' 
     matrix=reshape([-sin01(0),           cos01(0),      0.D0, &
                     -sin01(1)*[cos01(0), sin01(0)], cos01(1), &
@@ -206,7 +205,7 @@ endif
 two_pi=6.28318530717958647692D0
 pi    =3.14159265358979323846D0
 
-!$OMP PARALLEL DO PRIVATE(k, matrix), schedule(static)
+!!$OMP PARALLEL DO PRIVATE(k, matrix), schedule(static)
 do k=0, ndata/3-1
     call convert(coordinate(k*3:k*3+2), matrix)
     if (present1) then
@@ -216,7 +215,7 @@ do k=0, ndata/3-1
         if (present3) v4(k*3:k*3+2)= MATMUL(v4(k*3:k*3+2), matrix)
     endif
 enddo
-!$OMP END PARALLEL DO
+!!$OMP END PARALLEL DO
 !------------------------------------------------------------
 call io_bin('coordinate_out.bin', coordinate, .false.)
 deallocate(coordinate)
@@ -243,10 +242,8 @@ endif
 
 if (r4flag) deallocate(dummy)
 !------------------------------------------------------------
-! In Windows, the pop-up window for fastqsl.exe can not be closed automatically
-call get_environment_variable("HOME", str_aux)
-if (str_aux .ne. "/") &
-call system('taskkill /im convert_coordinate.exe /f')
+! If the pop-up window for fastqsl.exe cannot be closed automatically on some Windows systems, please uncomment this line
+! call system('taskkill /im convert_coordinate.exe /f')
 
 ! another way to kill the pop-up window
 ! call abort

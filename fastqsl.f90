@@ -3418,10 +3418,8 @@ if (verbose) then
 	endif
 endif
 !------------------------------------------------------------
-! In Windows, the pop-up window for fastqsl.exe can not be closed automatically
-call get_environment_variable("HOME", str_aux)
-if (str_aux .ne. "/") &
-call system('taskkill /im fastqsl.exe /f')
+! If the pop-up window for fastqsl.exe cannot be closed automatically on some Windows systems, please uncomment this line
+! call system('taskkill /im fastqsl.exe /f')
 
 ! another way to kill the pop-up window
 ! call abort
