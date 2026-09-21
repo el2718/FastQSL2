@@ -179,7 +179,7 @@ All *.mod produced from compilation can be deleted
     ```
   * in Windows, if the path is `D:\FastQSL2\`, this command can replace the text
     ```
-    replace "/path/of/fastqsl.x" "D:\FastQSL2\fastqsl.exe" fastqsl.pro
+    (Get-Content fastqsl.pro) | Foreach-Object {$_ -replace ("/path/of/fastqsl.x","D:\FastQSL2\fastqsl.exe")} | Out-File fastqsl.pro
     ```
 -----------------------------
 ## Parameters
