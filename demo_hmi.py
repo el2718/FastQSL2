@@ -15,8 +15,7 @@ def pfss4fastqsl(num_CR, *, \
     if fname is None: fname = 'pfss_'+data_type+'.'+str(num_CR)
 
     Bfile = data_dir+fname+'.pkl'
-    # if fname+'.pkl' not in os.listdir(data_dir):
-    if True:
+    if fname+'.pkl' not in os.listdir(data_dir):
         
         if num_CR<2096: raise Exception("CR "+str(num_CR)+" too early for HMI")
         HMI_file=data_type+'.'+str(num_CR)+'.fits'
@@ -73,14 +72,14 @@ fastqsl(Bvec, xa=lon_rad, ya=lat_rad, za=radius, spherical=True, \
 fname= fname+'_orig', preview=True, keep_tmp=True)
 
 # # # remove first two layers to remove small scale structure
-fastqsl(Bvec[r_cut:,:,:, :], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
+fastqsl(Bvec[r_cut:,:,:,:], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
 fname= fname+'_rcut2', scottFlag=False, preview=True, keep_tmp=True)
 
 # # trace field lines from two points
 # # Since keep_tmp=True was set in the command above, bfield.bin has already been saved in tmp_dir; 
 # # therefore, the input magnetic field is unnecessary here
 qsl=fastqsl(\
-# Bvec[r_cut:,:,:, :], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
+# Bvec[r_cut:,:,:,:], xa=lon_rad, ya=lat_rad, za=radius[r_cut:], spherical=True, \
 fname= fname+'_rcut2_seed_path', preview=True, \
 length_out=True, \
 seed=[[np.pi*0.85, 0.1, 1.7], [np.pi*1.5, -0.2, 1.2]], \
