@@ -150,6 +150,10 @@ All *.mod produced from compilation can be deleted
   ```bash
   gfortran -o fastqsl.exe fastqsl.f90 -fopenmp -O3 -march=native
   ``` 
+    * If the pop-up window for `fastqsl.exe` cannot be closed automatically on some Windows systems, please uncomment this line (remove !):
+    ```
+    ! call system('taskkill /im fastqsl.exe /f')
+    ```
   * for ifx, the compilation should be the same as ifort, while I have not tested it
 #### Path of fastqsl.x
 * please specify the path of fastqsl.x, 
