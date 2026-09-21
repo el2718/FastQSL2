@@ -83,8 +83,8 @@ length_out=True, \
 seed=[[np.pi*0.85, 0.1, 1.7], [np.pi*1.5, -0.2, 1.2]], \
 path_out=True, loopB_out=True)
 
+# # compute two parameters for solar wind modeling at bottom
 # # git clone https://github.com/el2718/par2solarwind
 # from par2solarwind import par2solarwind
-# # compute two parameters for solar wind modeling at bottom
 # par2solarwind(Bvec[r_cut:,:,:, :], lon_rad, lat_rad, radius[r_cut:], \
 #               bottomFlag=True, fname=fname+'_rcut2_solarwind', preview=True)
