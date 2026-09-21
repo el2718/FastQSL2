@@ -32,8 +32,6 @@ def pfss4fastqsl(num_CR, *, \
         pfss_in  = pfsspy.Input(HMI_map, n_r-1, Rss)
         pfss_out = pfsspy.pfss(pfss_in)
 
-
-
         # exchange the index order of R and phi (longitude)
         Bvec= pfss_out.bg.transpose(2,1,0,3) 
 
