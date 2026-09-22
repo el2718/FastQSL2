@@ -92,10 +92,11 @@ After reading the following, you will know how to adjust the commands for other 
 #### If using fastqsl\.pro
 * install **IDL** https://www.nv5geospatialsoftware.com/Products/IDL 
   * setting the environment variable `$IDL_PATH` and placing fastqsl\.pro into a private path are suggested. If your IDL is installed at /usr/local/exelis/idl, and if you use Bash Shell, just append the following lines to ~/.bashrc:
-     ```bash
+    ```
     export IDL_DIR=/usr/local/exelis/idl
     export IDL_PATH="$IDL_DIR/lib:+/your/private/pro/path"
     ``` 
+    * Setting an environment variable in Windows:  https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables
 * or install **GDL** https://gnudatalanguage.github.io/downloads.html
   * setting an environment variable `$GDL_PATH` is **necessary for write\_png**, and placing fastqsl\.pro into a private path is suggested. The default `$GDL_DIR` is dependent on the distribution:
     * Ubuntu & Fedora:  /usr/share/gnudatalanguage
@@ -104,7 +105,7 @@ After reading the following, you will know how to adjust the commands for other 
     * macOS: /opt/local/share/gnudatalanguage
     
     **Please append the following lines to ~/.bashrc**, e.g. for Ubuntu
-    ```bash
+    ```
     export GDL_DIR=/usr/share/gnudatalanguage
     export GDL_PATH="$GDL_DIR/lib:+/your/private/pro/path"
     ```
@@ -114,7 +115,7 @@ After reading the following, you will know how to adjust the commands for other 
   * **numpy** and **matplotlib** should be installed
   * **scipy** is suggested to install for reading *.sav from IDL in a demo
   * setting an environment variable of `$PYTHONPATH` and placing fastqsl\.py into a private path is suggested, just append such line to ~/.bashrc
-  ```bash
+  ```
   export PYTHONPATH="/your/private/py/path:$PYTHONPATH"
   ```
 
@@ -132,23 +133,23 @@ After reading the following, you will know how to adjust the commands for other 
 All *.mod produced from compilation can be deleted
 
 * For Linux and macOS (either by ifx/ifort or gfortran):
-    ```bash
+    ```
     ifx -o fastqsl.x fastqsl.f90 -fopenmp -O3 -xHost -ipo
     ```
-    ```bash
+    ```
     ifort -o fastqsl.x fastqsl.f90 -fopenmp -O3 -xHost -ipo
     ```
-    ```bash
+    ```
     gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
     ```
   * set -O3, -xHost, -ipo, -march=native for better efficiency
 * For Windows (either by ifort or gfortran):
 
   executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would be necessary
-  ```bash
+  ```
   ifort /o fastqsl.exe fastqsl.f90 /Qopenmp /O3 /QxHost /Qipo
   ``` 
-  ```bash
+  ```
   gfortran -o fastqsl.exe fastqsl.f90 -fopenmp -O3 -march=native
   ``` 
     * If the pop-up window for `fastqsl.exe` cannot be closed automatically on some Windows systems, please uncomment this line (remove !):
@@ -511,18 +512,18 @@ Users can define their private line integrals of the form $\int_\textrm{path} \m
 IDL> .r demo_charge4.pro
 ```
 if you use Linux or macOS, and don't want to entry the interactive environment of IDL, you can create demo_charge4.sh with the content:
-```bash
+```
 #! /bin/bash -f
 idl <<EOF
 .r demo_charge4.pro
 EOF
 ```
 and the user should have the execute permission of demo_charge4.sh:
-```bash
+```
 chmod u+x demo_charge4.sh
 ```
 then submit it in a terminal by
-```bash
+```
 nohup ./demo_charge4.sh > verbose_demo.txt 2>&1 &
 ```
 ### If using fastqsl\.py
@@ -545,17 +546,17 @@ Here we provide a way to transform coordinates among $\{x, y, z\}$, $\{\varphi, 
 
 ### Computation core
 * compilation in Linux and macOS:
-    ```bash
+    ```
     ifx -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -xHost -ipo
     ```
-    ```bash
+    ```
     ifort -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -xHost -ipo
     ```
-    ```bash
+    ```
     gfortran -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -march=native
     ```
 * compilation in windows:
-    ```bash
+    ```
     gfortran -o convert_coordinate.exe convert_coordinate.f90 -fopenmp -O3 -march=native
     ```
 * please specify the path of `convert_coordinate.x`
