@@ -292,7 +292,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
         if RK4Flag: qsl.step=np.array(step, dtype="f4")
         else: qsl.tol=np.array(tol, dtype="f4")
 
-    # the output grid   
+    # the output grid
     if not sFlag:
         with open(tmp_dir+'tail_region.bin','rb') as file:
             nq1, nq2, nq3, normal_index = np.fromfile(file, dtype="i4", count=4) 
