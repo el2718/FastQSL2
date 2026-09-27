@@ -25,7 +25,6 @@ def pfss4fastqsl(num_CR, *, \
                 raise Exception("Could not get HMI map for CR "+str(num_CR))
 
         HMI_map = sunpy.map.Map(HMI_file)
-        print(dir(HMI_map))
         # Downsample and remove NaNs as required by pfsspy
         HMI_map = HMI_map.resample([n_lon-1, n_lat-1] * astropy.units.pix)
         HMI_map.data[np.isnan(HMI_map.data)]=0.0    # NaNs set to zero
