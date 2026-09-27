@@ -478,6 +478,8 @@ qsl_structure, QSL, nq1, nq2, nq3, xreg, yreg, zreg, $
 delta, arc_delta, lon_delta, lat_delta, r_delta, step, tol, r_local
 
 qsl_tags=tag_names(qsl)
+
+file_delete, tmp_dir+'qsl_structure.pro'
 ;------------------------------------------------------------
 ; the directory for output
 if preview or save_file then begin
@@ -835,7 +837,6 @@ free_lun, unit, /force
 
 if ~keep_tmp then begin
 	if old_tmp_dir then begin
-		file_delete, tmp_dir+'qsl_structure.pro'
 		if n_data gt 0 then file_delete, tmp_dir+qsl_data+'.bin'
 		if path_out then file_delete, tmp_dir+'indexes.bin'
 		if ~sFlag then file_delete, tmp_dir+'tail_region.bin'
