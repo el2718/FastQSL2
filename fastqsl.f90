@@ -164,7 +164,7 @@ if (CurlBvec_Flag .and. .not. CurlB_input) then
 		allocate(cos_lat_tmp(0:pend(1)))
 		cos_lat_tmp=cos(axis(1)%pa)
 	endif
-	!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(DYNAMIC)
+	!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(static)
 	do k=0, pend(2)
 	do j=0, pend(1)
 	do i=0, pend(0)
@@ -178,7 +178,7 @@ endif
 !------------------------------------------------------------
 if (dbdc_field_Flag) then
 	allocate(dbdc_field(0:2, 0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
-	!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(DYNAMIC)
+	!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(static)
 	do k=0, pend(2)
 	do j=0, pend(1)
 	do i=0, pend(0)
@@ -329,7 +329,7 @@ do s=0, 1
 		allocate(pole%CurlBvec(0:2, -pole%aend:pole%aend, -pole%aend:pole%aend, 0:pend(2)))
 		allocate(cos_lat_tmp(-aend1:aend1))
 		cos_lat_tmp=cos(lat_tmp)
-		!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(DYNAMIC)
+		!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(static)
 		do k= 0, pend(2)
 		do j= - pole%aend, pole%aend
 		do i= - pole%aend, pole%aend
@@ -343,7 +343,7 @@ do s=0, 1
 
 	if (dbdc_field_Flag) then
 		allocate(pole%dbdc_field(0:2, 0:2, -pole%aend:pole%aend, -pole%aend:pole%aend, 0:pend(2)))
-		!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(DYNAMIC)
+		!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(static)
 		do k= 0, pend(2)
 		do j= - pole%aend, pole%aend
 		do i= - pole%aend, pole%aend
@@ -3418,7 +3418,9 @@ if (verbose) then
 	endif
 endif
 !------------------------------------------------------------
-! If the pop-up window for fastqsl.exe cannot be closed automatically on some Windows systems, please uncomment this line
+! If the pop-up window for fastqsl.exe cannot be closed automatically on some Windows systems, please uncomment these lines
+! call get_environment_variable("HOME", str_aux)
+! if (str_aux .ne. "/") &
 ! call system('taskkill /im fastqsl.exe /f')
 
 ! another way to kill the pop-up window
