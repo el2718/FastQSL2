@@ -214,7 +214,7 @@ xreg=[0.,2*!Pi], yreg=[-!pi/2, !pi/2], /length
 ; Since keep_tmp was invoked in the command above, bfield.bin has already been saved in tmp_dir; 
 ; therefore, the input magnetic field is unnecessary here
 fastqsl, fname='spherical_seed_path', /preview, $
-seed=[[!pi*0.85, 0.1, 1.], [!pi*1.1, -0.2, 1.2]], /path, /loopB, qsl=qsl, /keep_tmp
+seed=[[!pi*0.85, 0.1, 1.], [!pi*1.1, -0.2, 1.2]], /path, /loopB, qsl=qsl
 
 ; transfrom *qsl.path[1] in (longitude, latitude, radius() to path1_car in (x, y, z), and
 ; transfrom *qsl.loopB[1] in (B_lon, B_lat, B_r) to loopB1_car in (B_x, B_y, B_z)
