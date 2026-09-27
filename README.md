@@ -667,7 +667,6 @@ If you need this derived code, please visit https://github.com/el2718/slipq
   * rename the keyword nbridge to nthreads
   * rename qfactor to fastqsl
   * use os_sep=PATH_SEP() instead of '/'
-  * kill the pop-up window for fastqsl.exe finally in Windows
 * Jan, 12, 2026 Jun Chen, support python
 * Jan, 13, 2026 Jun Chen, allow seed = 1 in fastqsl\.pro (True in fastqsl\.py) for exporting output grid
 * Jan, 17, 2026 Jun Chen, remove the keyword no_preview, add a keyword of save_file, preview
@@ -679,3 +678,4 @@ If you need this derived code, please visit https://github.com/el2718/slipq
 * Jun, 23, 2026 Jun Chen, add the element dim to the output
 * Sep, 18, 2026 Jun Chen, complete convert_coordinate
 * Sep, 20, 2026 Jun Chen, for fastqsl.py, return **qsl** as an object instead of a dictionary
+* Sep, 27, 2026 Jun Chen, Fix fastqsl.exe not exiting on some Windows systems
