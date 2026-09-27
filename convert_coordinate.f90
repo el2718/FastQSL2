@@ -194,7 +194,6 @@ endif
 ! https://www.openmp.org/spec-html/5.0/openmpsu112.html
 if (nthreads .gt. OMP_GET_NUM_PROCS()) nthreads=OMP_GET_NUM_PROCS()
 if (nthreads .eq. 0) nthreads=OMP_GET_NUM_PROCS()-2
-CALL OMP_set_num_threads(nthreads)
 
 if (mode .le. 3) then
     convert => convert_0123 
@@ -205,7 +204,7 @@ endif
 two_pi=6.28318530717958647692D0
 pi    =3.14159265358979323846D0
 
-!!$OMP PARALLEL DO PRIVATE(k, matrix), schedule(static)
+!!$OMP PARALLEL DO PRIVATE(k, matrix), num_threads(nthreads), schedule(static)
 do k=0, ndata/3-1
     call convert(coordinate(k*3:k*3+2), matrix)
     if (present1) then
@@ -241,10 +240,5 @@ if (present4) then
 endif
 
 if (r4flag) deallocate(dummy)
-!------------------------------------------------------------
-! If the pop-up window for fastqsl.exe cannot be closed automatically on some Windows systems, please uncomment this line
-! call system('taskkill /im convert_coordinate.exe /f')
 
-! another way to kill the pop-up window
-! call abort
 end program main

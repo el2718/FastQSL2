@@ -3,7 +3,7 @@ implicit none
 logical:: CurlBvec_Flag, dbdc_field_Flag, stretchFlag, &
 spherical, periodFlag(0:2), period_lon, south_pole, north_pole, A_input, &
 keep_tmp, magnetogram_out ! thest two are inputed in fastqsl.f90
-integer:: binary_index_top, pend(0:2), dend(0:2)
+integer:: binary_index_top, pend(0:2), dend(0:2), nthreads
 integer, allocatable:: binary_values(:)
 real:: pi, half_pi, two_pi, NaN, lat_pole, lat_pole2, pmin(0:2), pmax(0:2), period(0:2)
 real, allocatable, target:: Bvec(:,:,:,:), CurlBvec(:,:,:,:), &
@@ -164,7 +164,7 @@ if (CurlBvec_Flag .and. .not. CurlB_input) then
 		allocate(cos_lat_tmp(0:pend(1)))
 		cos_lat_tmp=cos(axis(1)%pa)
 	endif
-	!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(static)
+	!$OMP PARALLEL DO  PRIVATE(i, j, k), num_threads(nthreads), schedule(static)
 	do k=0, pend(2)
 	do j=0, pend(1)
 	do i=0, pend(0)
@@ -178,7 +178,7 @@ endif
 !------------------------------------------------------------
 if (dbdc_field_Flag) then
 	allocate(dbdc_field(0:2, 0:2, 0:pend(0), 0:pend(1), 0:pend(2)))
-	!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(static)
+	!$OMP PARALLEL DO  PRIVATE(i, j, k), num_threads(nthreads), schedule(static)
 	do k=0, pend(2)
 	do j=0, pend(1)
 	do i=0, pend(0)
@@ -329,7 +329,7 @@ do s=0, 1
 		allocate(pole%CurlBvec(0:2, -pole%aend:pole%aend, -pole%aend:pole%aend, 0:pend(2)))
 		allocate(cos_lat_tmp(-aend1:aend1))
 		cos_lat_tmp=cos(lat_tmp)
-		!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(static)
+		!$OMP PARALLEL DO  PRIVATE(i, j, k), num_threads(nthreads), schedule(static)
 		do k= 0, pend(2)
 		do j= - pole%aend, pole%aend
 		do i= - pole%aend, pole%aend
@@ -343,7 +343,7 @@ do s=0, 1
 
 	if (dbdc_field_Flag) then
 		allocate(pole%dbdc_field(0:2, 0:2, -pole%aend:pole%aend, -pole%aend:pole%aend, 0:pend(2)))
-		!$OMP PARALLEL DO  PRIVATE(i, j, k), schedule(static)
+		!$OMP PARALLEL DO  PRIVATE(i, j, k), num_threads(nthreads), schedule(static)
 		do k= 0, pend(2)
 		do j= - pole%aend, pole%aend
 		do i= - pole%aend, pole%aend
@@ -2684,7 +2684,7 @@ integer:: i, j, ip, label, label0, loop_end
 if (sign2dFlag) allocate(sign2d(0:iend, 0:jend))
 !------------------------------------------------------------
 ! if sflag, jend can be 0 in some case, so 'DO i= 0, iend' should be outside
-!$OMP PARALLEL DO PRIVATE(i,j), schedule(DYNAMIC)
+!$OMP PARALLEL DO PRIVATE(i,j), num_threads(nthreads), schedule(DYNAMIC)
 DO i= 0, iend
 DO j= 0, jend
 	call q_bridge(i, j)
@@ -2770,7 +2770,7 @@ if (sign2dFlag) then
 endif
 !------------------------------------------------------------
 if (diff_flag) then
-!$OMP PARALLEL DO collapse(2) PRIVATE(i,j), schedule(DYNAMIC)
+!$OMP PARALLEL DO collapse(2) PRIVATE(i,j), num_threads(nthreads), schedule(DYNAMIC)
 DO j= 0, jend
 DO i= 0, iend
 	call q_diff(i, j)
@@ -3076,7 +3076,7 @@ use compute
 implicit none
 logical:: qflag, verbose, launch_out
 real(8):: tcalc, tnow, tend, omp_get_wtime
-integer:: i, k, nthreads, i2end, OMP_GET_NUM_PROCS
+integer:: i, k, i2end, OMP_GET_NUM_PROCS
 integer(8), allocatable:: indexes(:)
 integer(1):: ip
 character(len=1) :: str_aux
@@ -3122,7 +3122,6 @@ endif
 ! https://www.openmp.org/spec-html/5.0/openmpsu112.html
 if (nthreads .gt. OMP_GET_NUM_PROCS()) nthreads=OMP_GET_NUM_PROCS()
 if (nthreads .eq. 0) nthreads=OMP_GET_NUM_PROCS()-2
-CALL OMP_set_num_threads(nthreads)
 
 privateFlag=any(int_private_out)
 traceflag = maxsteps .ne. 0
@@ -3417,12 +3416,4 @@ if (verbose) then
 		print '(F7.2, " seconds elapsed in fastqsl.x")', tcalc
 	endif
 endif
-!------------------------------------------------------------
-! If the pop-up window for fastqsl.exe cannot be closed automatically on some Windows systems, please uncomment these lines
-! call get_environment_variable("HOME", str_aux)
-! if (str_aux .ne. "/") &
-! call system('taskkill /im fastqsl.exe /f')
-
-! another way to kill the pop-up window
-! call abort
 end program fastqsl
