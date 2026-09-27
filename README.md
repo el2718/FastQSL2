@@ -113,7 +113,6 @@ After reading the following, you will know how to adjust the commands for other 
 #### If using fastqsl\.py
 * install **python** https://www.python.org
   * **numpy** and **matplotlib** should be installed
-  * **scipy** is suggested to install for reading *.sav from IDL in a demo
   * setting an environment variable of `$PYTHONPATH` and placing fastqsl\.py into a private path is suggested, just append such line to ~/.bashrc
   ```
   export PYTHONPATH="/your/private/py/path:$PYTHONPATH"
