@@ -4,7 +4,7 @@ To calculate the squashing factor $Q$, and other quantities related to the magne
 
 Please address comments and suggestions to [Dr. Chen, Jun (陈俊)](mailto:chenjun@pmo.ac.cn)
 
-If your markdown reader cannot render the formulae in README\.md, please read README.html directly.
+If your markdown reader cannot render the formulae in `README.md`, try using [AsterPDF](https://github.com/eternitylzt/AsterPDF). Another option is [Markdown Preview Enhanced](https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-enhanced) for VS Code.
 
 -----------------------------
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
