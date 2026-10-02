@@ -70,7 +70,7 @@ Here assume that the path of the project is `~/Documents/FastQSL2/`.
 
 For update, you can execute
 ```
-cd ~/Documents/FastQSL2/
+cd $HOME/Documents/FastQSL2/
 git reset --hard
 git pull
 ```
