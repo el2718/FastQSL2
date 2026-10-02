@@ -75,16 +75,27 @@ git reset --hard
 git pull
 ```
 
-If you use MacOS, and your Fortran compiler is gfortran, you can just execute
+If you use macOS or Linux, you can execute
 ```
-cd ~/Documents/FastQSL2/
-gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
-gfortran -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -march=native
+topdir=$HOME/Documents
+
+compile='gfortran -fopenmp -O3 -march=native -o'
+# compile='ifx -fopenmp -O3 -xHost -ipo -o'
+# compile='ifort -fopenmp -O3 -xHost -ipo -o'
+
+if [ "`uname`"=="Darwin" ]; then
+  sedstr=(sed -i '')
+else
+  sedstr=(sed -i)
+fi
+cd $topdir/FastQSL2
+$compile fastqsl.x fastqsl.f90
+$compile convert_coordinate.x convert_coordinate.f90
 rm ./*.mod
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.py
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.pro
-sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.py
+"${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" fastqsl.pro
+"${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" fastqsl.py
+"${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" convert_coordinate.pro
+"${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" convert_coordinate.py
 ```
 After reading the following, you will know how to adjust the commands for other operating systems and Fortran compilers.
 
