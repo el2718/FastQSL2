@@ -186,7 +186,7 @@ All *.mod produced from compilation can be deleted
 -----------------------------
 ## Parameters
 
-The following introductions are written for fastqsl\.pro. The case is similar for fastqsl\.py. The tiny differences are elucidated. Please notice that the index order of an array in IDL and Fortran is Fortran-order (column-major), while the index order of an array in python is C-order (row-major). Therefore the index order of an array for fastqsl\.py should be reversed.
+The following descriptions are written for fastqsl\.pro. The usage is similar for fastqsl\.py. The tiny differences are elucidated. Please notice that the index order of an array in IDL and Fortran is Fortran-order (column-major), while the index order of an array in python is C-order (row-major). Therefore the index order of an array for fastqsl\.py should be reversed.
 
 The IDL language is case-insensitive, and the name of a keyword parameter can be abbreviated to the shortest unambiguous string https://www.nv5geospatialsoftware.com/docs/Using_Keyword_Parameters.html . For example, **B_out** can be invoked in fastqsl\.pro by any one of `,B_out=1`, `,/b_OUT`, `,B=1`, `,/b`. **Bx, By, Bz** are positional parameters (arguments) but not keyword parameters, therefore setting `,B=1` doesn't make it unambiguous. Please do not apply these features to fastqsl\.py
 
@@ -334,10 +334,10 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
     * default is 1.0
   * **tol**:         tolerance of a step in RKF45
     * default is 10.^(-4)
-    * the unit of **step** and **tol** is the original grid spacing. This unit can vary from cell to cell within a stretched grid in a self-adaptive fashion with Equation (16-18) of [Zhang (2022)]((https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61))
+    * the unit of **step** and **tol** is the original grid spacing. This unit can vary from cell to cell within a stretched grid in a self-adaptive fashion with Equation (16-18) of [Zhang (2022)](https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61)
   * **scottFlag**:  to integrate $\dfrac{\textrm{d} \{\vec{U}(s),\vec{V}(s)\}}{\textrm{d} s}=\{\vec{U}(s),\vec{V}(s)\} \cdot\nabla\dfrac{\vec{B}}{B}$ along with the field line tracing, and to give $Q$ and $Q_\perp$ by Equation (22) of [Scott_2017_ApJ_848_117](https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64)
-    * default is 0 (Method 3 of [Pariat_2012_A&A_541_A78](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), while some problematic sites are filled with [Scott (2017)]((https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64)))
-  * **inclineFlag**: to apply Equation (20) or (21) in [Zhang (2022)]((https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61)):
+    * default is 0 (Method 3 of [Pariat_2012_A&A_541_A78](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), while some problematic sites are filled with [Scott (2017)](https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64))
+  * **inclineFlag**: to apply Equation (20) or (21) in [Zhang (2022)](https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61):
     
     $\texttt{step}|_{S_0} = \textrm{max}([\texttt{step}_{\perp} \times |B_{n,0} / B|, \texttt{step}_\mathrm{min}])$
 
@@ -535,7 +535,7 @@ In fastqsl.x, the most memory is occupied by:
 * a dbdc_field (3 times as the occupation of the 3D magnetic field)
 * data on a 2D slice
   * Even if the output domain is 3D, FastQSL processes the computation layer by layer. Once a layer's computation is finished, the results are appended to associated *.bin files. The program then proceeds to the subsequent layer.
-  * If **path_out** or is invoked, `lines` in `fastqsl.f90` can occupy a quite large amount of memory; if **r_local** is > 0., `lines` is also allocated
+  * If **path_out** is invoked, `lines` in `fastqsl.f90` can occupy a quite large amount of memory; if **r_local** is > 0., `lines` is also allocated
 
 -----------------------------
 ## Convert coordinate
@@ -567,7 +567,7 @@ Here we provide a way to transform coordinates among $\{x, y, z\}$, $\{\varphi, 
     ```
 ### Parameters
   * **coordinate**: 
-    * the array of coordinate to be tranformed. For `convert_coordinate.pro`, its dimesions can be (3) or (3, n1) or (3, n1, n2) or (3, n1, n2, n3); For `convert_coordinate.py`, its dimesions can be (3) or (n1, 3) or (n2, n1, 3) or (n3, n2, n1, 3).
+    * the array of coordinates to be tranformed. For `convert_coordinate.pro`, its dimesions can be (3) or (3, n1) or (3, n1, n2) or (3, n1, n2, n3); For `convert_coordinate.py`, its dimesions can be (3) or (n1, 3) or (n2, n1, 3) or (n3, n2, n1, 3).
   * **v1**, **v2**, **v3**, **v4**:
     * the array of vectors located at **coordinate** to be tranformed, their dimesions should be the same as **coordinate**
   * **mode**:
