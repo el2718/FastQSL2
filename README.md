@@ -397,7 +397,7 @@ See **Products** for more details. All default values here are 0.
       * For Linux, /dev/shm/ is the directory from memory. One can set `tmp_dir='/dev/shm/tmpFastQSL/'`
       * For macOS, one way is detailed in https://lvv.me/posts/2025/09/25_ramdisk_on_macos/
       * For Windows, one choice is https://sourceforge.net/projects/imdisk-toolkit/
-  * **keep_tmp**:    do not delete the temporary  binary files output from fastqsl.x
+  * **keep_tmp**:    do not delete the temporary binary files in **tmp_dir**
     * default is 0
     * if **keep_tmp** is invoked in the previous run, and we want to use the same field for the current run, then **Bx, By, Bz, xa, ya, za, spherical, xperiod, yperiod, zperiod** can be ignored. For example, 
       ```
