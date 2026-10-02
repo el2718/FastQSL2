@@ -430,7 +430,7 @@ Possible elements in **qsl** are:
       IDL> fastqsl, density, pressure, temperatrue, xa=lon_rad, ya=lat_rad, za=radius, $
       seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
       ```
-      then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line. Please note that the keyword **spherical** is not invoked here; It is unnecessary when only interpolation is performed, and not invoking it also avoids the problem of vector transformation around the polar regions.
+      then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line. Please note that the keyword **spherical** is not invoked here; It is unnecessary when only interpolation is performed, and not invoking it also avoids the issue of vector transformation around the polar regions.
   * **sign2d**:  $\textrm{sign}(B_z)|_{z=zmin}$
     * only exists when the bottom plane is included
     * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.) * qsl.sign2d`
