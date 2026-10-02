@@ -75,7 +75,7 @@ git reset --hard
 git pull
 ```
 
-The following commands will compile fastqsl.f90 and correct the path of fastqsl.x
+The following commands will generate the executable files and set the correct paths to them.
 ```
 topdir=$HOME/Documents
 
