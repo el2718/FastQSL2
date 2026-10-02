@@ -99,7 +99,7 @@ fi
 "${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" convert_coordinate.py
 ```
 
-And the following is an example of setting environment variables. Some lines should be adjusted according to your configuration
+And the following commands can set environment variables. Some lines should be adjusted according to your configuration
 ```
 topdir=$HOME/Documents
 mypropath=$HOME/.idl/mycode
