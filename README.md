@@ -207,7 +207,7 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
     * will be forcibly converted to 4-byte float arrays while writing 'field.bin'
     * It does not matter if some NaN values or magnetic nulls (where $\vec{B}=\vec{0}$) exist on grid
   * **CurlBx, CurlBy, CurlBz**:
-    * by default, $\nabla \times \vec{B}$ is given by a second-order finite difference of $\vec{B}$. Sometimes this finite difference is not perfectly accurate, and then users can input their calculated $\nabla \times \vec{B}$ here if some products need $\nabla \times \vec{B}$
+    * usually their can be ignored. By default, $\nabla \times \vec{B}$ is given by a second-order finite difference of $\vec{B}$. Sometimes this finite difference is not perfectly accurate, and then users can input their calculated $\nabla \times \vec{B}$ here if some products need $\nabla \times \vec{B}$. 
     * their forms are similar to **Bx, By, Bz**
 ### Coordinates
 
@@ -318,13 +318,13 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
   * **seed**: launch points for tracing
     * if set `seed = 'original'` or `seed = 'original_bottom'` at the input, or **seed** is an array of coordinates with dimensions of (3) or (3,n1) or (3,n1,n2) or (3,n1,n2,n3), its units should be same as **xa, ya, za**
       * invoke sflag. And then FastQSL applies **the second way** to define the output domain by **seed**, and **xreg, yreg, zreg, csFlag, factor, delta, lon_delta, lat_delta, r_delta, arc_delta** will be ignored
-      * if set `seed = 'original'`, then the output **seed** in **qsl** will be the original 3D grid of magnetic field. For example, for a field on a uniform grid, if you only need $\nabla \times \vec{B}$ on the same input grid, just run
+      * if set `seed = 'original'`, then `qsl.seed` will be the original 3D grid of magnetic field. For example, for a field on a uniform grid, if you only need $\nabla \times \vec{B}$ on the same input grid, just run
         ```
         IDL> fastqsl, Bx, By, Bz, seed='original', /CurlB, maxsteps=0, qsl=qsl
         ```
-      * if set `seed = 'original_bottom'`, then the output **seed** in **qsl** will be the original 2D grid at the bottom of magnetic field
+      * if set `seed = 'original_bottom'`, then `qsl.seed` will be the original 2D grid at the bottom of magnetic field
     * if set `seed = 1` at the input of fastqsl\.pro ( `, /seed` also makes seed eq 1), or set `seed = True` at the input of fastqsl\.py
-      * not invoke sflag. The output grid is still described by **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta**, and is returned as the array **seed** in **qsl**. For example, if **spherical** is invoked, and the output domain is set on the surface $\vartheta=\vartheta_0$ (i.e. `qsl.lat_reg[0] eq qsl.lat_reg[1]`), then `qsl.seed[0,i,j]` is same as `qsl.lon_reg[0] + i*qsl.lon_delta`, `qsl.seed[1,i,j]` is same as `qsl.lat_reg[0]`, and `qsl.seed[2,i,j]` is same as `qsl.r_reg[0] + j*qsl.r_delta`
+      * not invoke sflag. The output grid is still described by **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta**, and is returned as `qsl.seed`. For example, if **spherical** is invoked, and the output domain is set on the surface $\vartheta=\vartheta_0$ (i.e. `qsl.lat_reg[0] eq qsl.lat_reg[1]`), then `qsl.seed[0,i,j]` is same as `qsl.lon_reg[0] + i*qsl.lon_delta`, `qsl.seed[1,i,j]` is same as `qsl.lat_reg[0]`, and `qsl.seed[2,i,j]` is same as `qsl.r_reg[0] + j*qsl.r_delta`
 ### Tracing details
 A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm{d} s}=\dfrac{\vec{B}}{B}$
   * **RK4Flag**:     to trace field line by RK4
@@ -349,13 +349,13 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
   * **maxsteps**:    maximum steps for tracing a field line in one direction
     * default is `4*(nx+ny+nz)` if traced by RKF45, is `long(4*(nx+ny+nz)/step)` if traced by RK4.
     * if we want field lines to be terminated at boundaries but not inside the box, **maxsteps** should be large enough.
-    * if **maxsteps** is too small, many 0 will appear in **rboundary**,  then **q** cannot be given and results in NaN, while **length, twist, q_perp** still have their values for one segment of field lines. For example, if `qsl.rboundary[i, j]` is 0 and `not stretchFlag and RK4flag and ~keyword_set(inclineFlag)`, then `qsl.length[i, j]` is approximately `2*maxsteps*step`
-    * Sometimes we want to disable the tracing and want to get **B, CurlB, seed** only, just run
+    * if **maxsteps** is too small, many 0 will appear in `qsl.rboundary`,  then the values in `qsl.q` will result in NaN, and the values in `qsl.length, qsl.twist, qsl.q_perp` are calculated for one segment of field lines. For example, if `qsl.rboundary[i, j]` is 0 and `not stretchFlag and RK4flag and ~keyword_set(inclineFlag)`, then `qsl.length[i, j]` is approximately `2*maxsteps*step`
+    * Sometimes we want to disable the tracing and want to get `qsl.B, qsl.CurlB, qsl.seed` only, just run
       ```
       IDL> fastqsl, Bvec, /B, /CurlB, /seed, maxsteps=0, qsl=qsl
       ```
       * And then **q, rboundary, sign2d, tol, step, RK4Flag** will not exist in **qsl**. 
-      * Even if **length_out, twist_out, rF_out, scottflag, path_out, loopB_out, loopCurlB_out** are set to 1 in the above command, they will be ignored, which means **length, twist, rFs, rFe, q_perp, path, loopB, loopCurlB** will not exist in **qsl**
+      * Even if **length_out, twist_out, rF_out, scottflag, path_out, loopB_out, loopCurlB_out** are set to 1 in the above command, they will be ignored, which means `qsl.length, qsl.twist, qsl.rFs, qsl.rFe, qsl.q_perp, qsl.path, qsl.loopB, qsl.loopCurlB` will not exist
   * **r_local**: the radius of the local sphere
     * default is 0.
     * If it is set to a positive value, **q_local** will be exported
@@ -367,12 +367,12 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
     * default is 0
 ### Optional outputs
 See **Products** for more details. All default values here are 0.
-  * **B_out, CurlB_out, length_out, twist_out, path_out, loopB_out, loopCurlB_out**:  to export **B, CurlB, length, twist, path, loopB, loopCurlB**, respectively
+  * **B_out, CurlB_out, length_out, twist_out, path_out, loopB_out, loopCurlB_out**:  to export `qsl.B, qsl.CurlB, qsl.length, qsl.twist, qsl.path, qsl.loopB, qsl.loopCurlB`, respectively
     * **path_out** is not allowed to invoke with 3D output grid, due to too huge memory occupation; if this happens, **path_out** will be ignored
     * **path_out** should be invoked first for invoking **loopB_out, loopCurlB_out**
-  * **rF_out**:      to export **rFs, rFe**
-  * **targetB_out**: to export **Bs, Be**
-  * **targetCurlB_out**: to export **CurlBs, CurlBe**
+  * **rF_out**:      to export `qsl.rFs, qsl.rFe`
+  * **targetB_out**: to export `qsl.Bs, qsl.Be`
+  * **targetCurlB_out**: to export `qsl.CurlBs, qsl.CurlBe`
 ### Output files
   * **odir**:        directory to save the results
     * default is `cdir+'fastqsl/'`, where cdir is the current directory
@@ -399,7 +399,7 @@ See **Products** for more details. All default values here are 0.
       * For Windows, one choice is https://sourceforge.net/projects/imdisk-toolkit/
   * **keep_tmp**:    do not delete the temporary binary files in **tmp_dir**
     * default is 0
-    * if **keep_tmp** is invoked in the previous run, and we want to use the same field for the current run, then **Bx, By, Bz, xa, ya, za, spherical, xperiod, yperiod, zperiod** can be ignored. For example, 
+    * if **keep_tmp** is invoked in the previous run, and we want to use the same field for the current run, then **Bx, By, Bz, CurlBx, CurlBy, CurlBz, xa, ya, za, spherical, xperiod, yperiod, zperiod** can be ignored. For example, 
       ```
       fastqsl, Bvec, qsl=qsl1, /keep_tmp
       fastqsl, qsl=qsl2, /keep_tmp
@@ -413,7 +413,7 @@ For fastqsl\.pro, the result is given by the structure **qsl**, and can be retur
 For fastqsl\.py, the result is given by the object **qsl**, and can be returned by the return of the function fastqsl, or can be saved as `odir+fname+'.pkl'`. This object is constructed using `types.SimpleNamespace`, therefore it also can be accessed as a [dictionary](https://docs.python.org/3.14/tutorial/datastructures.html#dictionaries) via `qsl.__dict__`. The names of its elements can be found in `qsl.__dict__.keys()`. For example, the element **q** can be accessed as `qsl.q` or `qsl.__dict__['q']`.
 
 Possible elements in **qsl** are:
-  * **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol** can also appear, their meanings are the same as the input keywords
+  * **xreg, yreg, zreg, csFlag, delta, lon_delta, lat_delta, r_delta, arc_delta, RK4Flag, step, tol**: their meanings are the same as the input keywords
   * **seed**:    the coordinates of the output grid for the launch of tracing; its units are the same as **xa, ya, za** if stretchFlag
   * **dim**: dimensions of the output region
   * **axis1**:  the coordinates $x, y$ ($\varphi, \vartheta$, if **spherical** is invoked) from point0 to point1
@@ -533,7 +533,7 @@ In fastqsl.x, the most memory is occupied by:
 * a dbdc_field (3 times as the occupation of the 3D magnetic field)
 * data on a 2D slice
   * Even if the output domain is 3D, FastQSL processes the computation layer by layer. Once a layer's computation is finished, the results are appended to associated *.bin files. The program then proceeds to the subsequent layer.
-  * If **path_out** or is invoked, `lines` can occupy a quite large amount of memory; if **r_local** is > 0., `lines` is also allocated
+  * If **path_out** or is invoked, `lines` in `fastqsl.f90` can occupy a quite large amount of memory; if **r_local** is > 0., `lines` is also allocated
 
 -----------------------------
 ## Convert coordinate
