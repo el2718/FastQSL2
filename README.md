@@ -95,7 +95,7 @@ After reading the following, you will know how to adjust the commands for other 
   * setting the environment variable `$IDL_PATH` and placing fastqsl\.pro into a private path are suggested. If your IDL is installed at /usr/local/exelis/idl, and if you use Bash Shell, just append the following lines to ~/.bashrc:
     ```
     export IDL_DIR=/usr/local/exelis/idl
-    export IDL_PATH="$IDL_DIR/lib:+/your/private/pro/path"
+    export IDL_PATH="+$IDL_DIR/lib:+/your/private/pro/path"
     ``` 
     * Setting an environment variable in Windows:  https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables
 * or install **GDL** https://gnudatalanguage.github.io/downloads.html
@@ -108,7 +108,7 @@ After reading the following, you will know how to adjust the commands for other 
     **Please append the following lines to ~/.bashrc**, e.g. for Ubuntu
     ```
     export GDL_DIR=/usr/share/gnudatalanguage
-    export GDL_PATH="$GDL_DIR/lib:+/your/private/pro/path"
+    export GDL_PATH="+$GDL_DIR/lib:+/your/private/pro/path"
     ```
   * If you also need [SSW](http://www.lmsal.com/solarsoft/) for some other analysis, please take a look at https://github.com/rbluosolar/sswgdl
 #### If using fastqsl\.py
