@@ -425,7 +425,7 @@ Possible elements in **qsl** are:
     * **q_perp** is only available when **scottFlag** is invoked, [Pariat (2012)]((https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html)) is not precise enough for $Q_\perp$
   * **q_local**: see Chen (2026), for locating where magnetic field lines bifurcate, i.e.  (quasi-)separators 
   * **B, CurlB**:  $\vec{B}$, $\nabla \times \vec{B}$ on **seed**
-    For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field line is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same spherical grid of B_lon, B_lat, B_r
+    For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field line is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same spherical grid of B_lon, B_lat, B_r.
     Then just run
     ```
     IDL> fastqsl, density, pressure, temperatrue, xa=lon_rad, ya=lat_rad, za=radius, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
