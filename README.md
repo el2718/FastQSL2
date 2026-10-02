@@ -80,6 +80,7 @@ If you use MacOS, and your Fortran compiler is gfortran, you can just execute
 cd ~/Documents/FastQSL2/
 gfortran -o fastqsl.x fastqsl.f90 -fopenmp -O3 -march=native
 gfortran -o convert_coordinate.x convert_coordinate.f90 -fopenmp -O3 -march=native
+rm ./*.mod
 sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.pro
 sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' fastqsl.py
 sed -i '' 's#/path/of/#~/Documents/FastQSL2/#' convert_coordinate.pro
