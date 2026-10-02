@@ -98,7 +98,28 @@ fi
 "${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" convert_coordinate.pro
 "${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" convert_coordinate.py
 ```
-After reading the following, you will know how to adjust the commands in Windows.
+
+And the following is an example of setting environment variables. Some lines should be adjusted according to your configuration
+```
+topdir=$HOME/Documents
+mypropath=$HOME/.idl/mycode
+mypypath=$HOME/.python/mycode
+shrc=$HOME/.bashrc
+# shrc=$HOME/.zshrc
+
+echo "export IDL_DIR=/usr/local/exelis/idl" >> $shrc
+echo "export IDL_PATH=+\$IDL_DIR/lib:+${mypropath}" >> $shrc
+echo "export PYTHONPATH=$mypypath:\$PYTHONPATH" >> $shrc
+
+cd ${mypropath}
+ln -s ${topdir}/FastQSL2/fastqsl.pro
+ln -s ${topdir}/FastQSL2/convert_coordinate.pro
+
+cd ${mypypath}
+ln -s ${topdir}/FastQSL2/fastqsl.py
+ln -s ${topdir}/FastQSL2/convert_coordinate.py
+```
+After reading the following, you will know what the above means
 
 ### Software for Interface
 
@@ -130,7 +151,6 @@ After reading the following, you will know how to adjust the commands in Windows
   ```
   export PYTHONPATH="/your/private/py/path:$PYTHONPATH"
   ```
-
 ### Computation core
 #### Compiler installation
 * gfortran https://fortran-lang.org/learn/os_setup/install_gfortran/ or
