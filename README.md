@@ -425,13 +425,12 @@ Possible elements in **qsl** are:
     * **q_perp** is only available when **scottFlag** is invoked, [Pariat (2012)]((https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html)) is not precise enough for $Q_\perp$
   * **q_local**: see Chen (2026), for locating where magnetic field lines bifurcate, i.e.  (quasi-)separators 
   * **B, CurlB**:  $\vec{B}$, $\nabla \times \vec{B}$ on **seed**
-    For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field line is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same spherical grid of B_lon, B_lat, B_r.
-    Then just run
-    ```
-    IDL> fastqsl, density, pressure, temperatrue, xa=lon_rad, ya=lat_rad, za=radius, $
-    seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
-    ```
-    then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line. Please note that the keyword **spherical** is not invoked here; It is unnecessary when only interpolation is performed, and not invoking it also avoids the problem of vector transformation around the polar regions.
+    * For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field line is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same spherical grid of B_lon, B_lat, B_r. Then just run
+      ```
+      IDL> fastqsl, density, pressure, temperatrue, xa=lon_rad, ya=lat_rad, za=radius, $
+      seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
+      ```
+      then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line. Please note that the keyword **spherical** is not invoked here; It is unnecessary when only interpolation is performed, and not invoking it also avoids the problem of vector transformation around the polar regions.
   * **sign2d**:  $\textrm{sign}(B_z)|_{z=zmin}$
     * only exists when the bottom plane is included
     * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.) * qsl.sign2d`
