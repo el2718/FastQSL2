@@ -83,21 +83,22 @@ compile='gfortran -fopenmp -O3 -march=native -o'
 # compile='ifx -fopenmp -O3 -xHost -ipo -o'
 # compile='ifort -fopenmp -O3 -xHost -ipo -o'
 
+cd $topdir/FastQSL2
+$compile fastqsl.x fastqsl.f90
+$compile convert_coordinate.x convert_coordinate.f90
+rm ./*.mod
+
 if [ "`uname`"=="Darwin" ]; then
   sedstr=(sed -i '')
 else
   sedstr=(sed -i)
 fi
-cd $topdir/FastQSL2
-$compile fastqsl.x fastqsl.f90
-$compile convert_coordinate.x convert_coordinate.f90
-rm ./*.mod
 "${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" fastqsl.pro
 "${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" fastqsl.py
 "${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" convert_coordinate.pro
 "${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" convert_coordinate.py
 ```
-After reading the following, you will know how to adjust the commands for other operating systems and Fortran compilers.
+After reading the following, you will know how to adjust the commands in Windows.
 
 ### Software for Interface
 
