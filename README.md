@@ -66,7 +66,7 @@ This project can be downloaded via the command
 ```
 git clone https://github.com/el2718/FastQSL2
 ```
-Here assume that the path of the project is `~/Documents/FastQSL2/`.  
+Here assume that you use macOS or Linux, and the path of the project is `~/Documents/FastQSL2/`.
 
 For update, you can execute
 ```
@@ -75,7 +75,7 @@ git reset --hard
 git pull
 ```
 
-If you use macOS or Linux, you can execute
+The following commands will compile fastqsl.f90 and correct the path of fastqsl.x
 ```
 topdir=$HOME/Documents
 
