@@ -158,10 +158,10 @@ fastqsl(Bx, By, Bz, xreg=[ixh/2,ixh], yreg=[ixh/4,ixh], zreg=[kend/4, kend/2], \
 delta=0.8, tol=1.0e-3, odir='fastqsl', nthreads=12, preview=True)
 
 # only exporting CurlB
-qsl=fastqsl(Bx, By, Bz, CurlB_out=True, maxsteps=0, seed='original', odir= 'fastqsl', fname='CurlB', save_file=True)
+qsl=fastqsl(Bx, By, Bz, CurlB_out=True, maxsteps=0, seed='original', fname='CurlB', save_file=True)
 
 # compute twist with the input qsl.CurlB
-fastqsl(Bvec, qsl.CurlB, odir= 'fastqsl', twist_out=True, fname='input_CurlB', preview=True)
+fastqsl(Bvec, qsl.CurlB, twist_out=True, fname='input_CurlB', preview=True)
 
 # Figure 4 of Chen (2026), see fname+'_logq_local.png'
 fastqsl(Bx, By, Bz, xa=xa, ya=ya, za=za, \

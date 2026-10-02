@@ -185,10 +185,10 @@ fastqsl, Bx, By, Bz, xreg=[ixh/2,ixh], yreg=[ixh/4,ixh], zreg=[kend/4, kend/2], 
 delta=0.8, tol=1.0e-3, odir= 'fastqsl', nthreads=12, /preview
 
 ; only exporting curlB
-fastqsl, Bx, By, Bz, /curlB, maxsteps=0, seed='original', fname='CurlB', odir= 'fastqsl', qsl=qsl, /save_file
+fastqsl, Bx, By, Bz, /curlB, maxsteps=0, seed='original', fname='CurlB', qsl=qsl, /save_file
 
 ; compute twist with the input qsl.CurlB
-fastqsl, Bvec, qsl.CurlB, odir= 'fastqsl', /twist, fname='input_CurlB', /preview
+fastqsl, Bvec, qsl.CurlB, /twist, fname='input_CurlB', /preview
 
 ; Figure 4 of Chen (2026), see fname+'_logq_local.png'
 fastqsl, Bx, By, Bz, xa=xa, ya=ya, za=za, $
@@ -202,10 +202,10 @@ xreg=[-1.7, 1.7], yreg=[0,0], zreg=[0,1.3], /preview, r_local=0.05, fname='r_loc
 ;------------------------------------------------------------
 ; Examples for spherical grid
 bfile='charge4_spherical.sav'
-if ~file_test(bfile) then bfield_charge4_spherical, bfile
+if ~file_test(bfile) then bfield2_charge4_spherical, bfile
 restore, bfile
 
-; Q  and length at r=1
+; Q and length at r=1
 fastqsl, b_lon, b_lat, b_r, xa=lon_rad, ya=lat_rad, za=radius, /spherical, $
 factor=4, /preview, /keep_tmp, qsl=qsl, $
 xreg=[0.,2*!Pi], yreg=[-!pi/2, !pi/2], /length
