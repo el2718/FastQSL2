@@ -428,7 +428,8 @@ Possible elements in **qsl** are:
     For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field line is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same spherical grid of B_lon, B_lat, B_r.
     Then just run
     ```
-    IDL> fastqsl, density, pressure, temperatrue, xa=lon_rad, ya=lat_rad, za=radius, seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
+    IDL> fastqsl, density, pressure, temperatrue, xa=lon_rad, ya=lat_rad, za=radius, $
+    seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
     ```
     then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line. Please note that the keyword **spherical** is not invoked here; It is unnecessary when only interpolation is performed, and not invoking it also avoids the problem of vector transformation around the polar regions.
   * **sign2d**:  $\textrm{sign}(B_z)|_{z=zmin}$
