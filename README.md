@@ -179,7 +179,7 @@ All *.mod produced from compilation can be deleted
   * set -O3, -xHost, -ipo, -march=native for better efficiency
 * For Windows (either by ifort or gfortran):
 
-  executing "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" in cmd first would be necessary
+  executing `C:\Program Files (x86)\Intel\oneAPI\setvars.bat` in cmd first would be necessary
   ```
   ifort /o fastqsl.exe fastqsl.f90 /Qopenmp /O3 /QxHost /Qipo
   ``` 
@@ -215,7 +215,7 @@ All *.mod produced from compilation can be deleted
     ```
   * in Windows, if the path is `D:\FastQSL2\`, this command can replace the text
     ```
-    (Get-Content fastqsl.pro) | Foreach-Object {$_ -replace ("/path/of/fastqsl.x","D:\FastQSL2\fastqsl.exe")} | Out-File fastqsl.pro
+    powershell -NoProfile -Command "(Get-Content -Raw 'fastqsl.pro') -replace '/path/of/fastqsl.x','D:\FastQSL2\fastqsl.exe' | Set-Content -NoNewline 'fastqsl.pro'"
     ```
 -----------------------------
 ## Parameters
