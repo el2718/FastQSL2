@@ -134,7 +134,7 @@ After reading the following, you will know what the above means.
     export IDL_PATH="+$IDL_DIR/lib:+/your/private/pro/path"
     ``` 
 * or install **GDL** https://gnudatalanguage.github.io/downloads.html
-  * setting an environment variable `$GDL_PATH` is **necessary for write\_png**, and placing fastqsl\.pro into a private path is suggested. The default `$GDL_DIR` is dependent on the distribution:
+  * setting an environment variable `$GDL_PATH` is necessary for `write_png`, and placing fastqsl\.pro into a private path is suggested. The default `$GDL_DIR` is dependent on the distribution:
     * Ubuntu & Fedora:  /usr/share/gnudatalanguage
     * ArchLinux: /usr/lib/gdl
     * Gentoo: /usr/local/share/gdl
