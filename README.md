@@ -467,7 +467,7 @@ Possible elements in **qsl** are:
       then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line. Please note that the keyword **spherical** is not invoked here; It is unnecessary when only interpolation is performed, and not invoking it also avoids the issue of vector transformation around the polar regions.
   * **sign2d**:  $\textrm{sign}(B_z)|_{z=zmin}$
     * only exists when the bottom plane is included
-    * e.g. `slogq = alog10(qsl.q[*, *, 0] > 1.) * qsl.sign2d`
+    * e.g. `slogq = qsl.sign2d * alog10(qsl.q[*, *, 0] > 1.)`
   * **rFs, rFe**:  coordinates of terminal foot points (r:remote, F:foot, s:start, e:end). A segment of a field line has two terminal points, at the start (or end) point, $\vec{B}$ (or $-\vec{B}$) points to the whole calculated path of the field line.  
     * If calculated at the bottom
       * if `qsl.sign2d[i, j]` is 1, then `qsl.rFs[*, i, j]` is identical to `qsl.seed[*, i, j]`, i.e.  the foot for launch; and `rFe[*, i, j]` is the target foot.
