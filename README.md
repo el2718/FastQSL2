@@ -104,12 +104,6 @@ The following commands can set environment variables. Some lines may need change
 topdir=$HOME/Documents
 mypropath=$HOME/.idl/mycode
 mypypath=$HOME/.python/mycode
-shrc=$HOME/.bashrc
-# shrc=$HOME/.zshrc
-
-echo "export IDL_DIR=/usr/local/exelis/idl" >> $shrc
-echo "export IDL_PATH=+\$IDL_DIR/lib:+${mypropath}" >> $shrc
-echo "export PYTHONPATH=$mypypath:\$PYTHONPATH" >> $shrc
 
 cd ${mypropath}
 ln -s ${topdir}/FastQSL2/fastqsl.pro
@@ -118,6 +112,14 @@ ln -s ${topdir}/FastQSL2/convert_coordinate.pro
 cd ${mypypath}
 ln -s ${topdir}/FastQSL2/fastqsl.py
 ln -s ${topdir}/FastQSL2/convert_coordinate.py
+
+
+# if these are already set, please comment out the following lines 
+shrc=$HOME/.bashrc
+# shrc=$HOME/.zshrc
+echo "export IDL_DIR=/usr/local/exelis/idl" >> $shrc
+echo "export IDL_PATH=+\$IDL_DIR/lib:+${mypropath}" >> $shrc
+echo "export PYTHONPATH=$mypypath:\$PYTHONPATH" >> $shrc
 ```
 After reading the following, you will know what the above means
 
