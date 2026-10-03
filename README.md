@@ -122,7 +122,7 @@ echo "export PYTHONPATH=$mypypath:\$PYTHONPATH" >> $shrc
 ```
 For Windows, the way of setting environment variables is detailed at https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables
 
-After reading the following, you will know what the above means
+After reading the following, you will know what the above means.
 
 ### Software for Interface
 
