@@ -113,7 +113,6 @@ cd ${mypypath}
 ln -s ${topdir}/FastQSL2/fastqsl.py
 ln -s ${topdir}/FastQSL2/convert_coordinate.py
 
-
 # if these are already set, please comment out the following lines 
 shrc=$HOME/.bashrc
 # shrc=$HOME/.zshrc
