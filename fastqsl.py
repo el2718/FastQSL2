@@ -282,7 +282,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
     os.chdir(tmp_dir)
     # please specify the path
     # the following r can avoid the potential problem of '\n' from os.sep ='\' in Windows
-    subprocess.run(r'C:\Users\el2718\Documents\FastQSL2\fastqsl.exe', shell=True)
+    subprocess.run(r'/path/of/fastqsl.x', shell=True)
     os.chdir(cdir)
 # ################################### retrieving results ######################################
 # make the dictionary qsl
