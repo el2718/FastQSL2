@@ -89,9 +89,9 @@ $compile convert_coordinate.x convert_coordinate.f90
 rm ./*.mod
 
 if [ "`uname`"=="Darwin" ]; then
-  sedstr=(sed -i '')
+  sedstr=(sed -i '')  # for macOS
 else
-  sedstr=(sed -i)
+  sedstr=(sed -i)     # for Linux
 fi
 "${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" fastqsl.pro
 "${sedstr[@]}" "s#/path/of/#${topdir}/FastQSL2/#" fastqsl.py
