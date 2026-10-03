@@ -120,6 +120,8 @@ echo "export IDL_DIR=/usr/local/exelis/idl" >> $shrc
 echo "export IDL_PATH=+\$IDL_DIR/lib:+${mypropath}" >> $shrc
 echo "export PYTHONPATH=$mypypath:\$PYTHONPATH" >> $shrc
 ```
+For Windows, the way of setting environment variables is detailed at https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables
+
 After reading the following, you will know what the above means
 
 ### Software for Interface
@@ -131,7 +133,6 @@ After reading the following, you will know what the above means
     export IDL_DIR=/usr/local/exelis/idl
     export IDL_PATH="+$IDL_DIR/lib:+/your/private/pro/path"
     ``` 
-    * Setting an environment variable in Windows:  https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables
 * or install **GDL** https://gnudatalanguage.github.io/downloads.html
   * setting an environment variable `$GDL_PATH` is **necessary for write\_png**, and placing fastqsl\.pro into a private path is suggested. The default `$GDL_DIR` is dependent on the distribution:
     * Ubuntu & Fedora:  /usr/share/gnudatalanguage
