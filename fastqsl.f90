@@ -122,7 +122,7 @@ else
 endif
 period_lon = periodFlag(0) .and. spherical
 
-if (.not. spherical) forall(s=0:2, periodFlag(s)) period(s)=pmax(i)-pmin(i)
+if (.not. spherical) forall(s=0:2, periodFlag(s)) period(s)=pmax(s)-pmin(s)
 !------------------------------------------------------------
 ! read a 1D array is faster than a 4D array
 allocate(field_tmp(0:int8(3)*nx*ny*nz-1))
