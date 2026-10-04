@@ -543,7 +543,7 @@ Users can define their private line integrals of the form $\int_\textrm{path} \m
 ## Demos
 ### If using fastqsl\.pro
 ```idl
-.r demo_charge4.pro
+IDL> .r demo_charge4.pro
 ```
 if you use Linux or macOS, and don't want to entry the interactive environment of IDL, you can create demo_charge4.sh with the content:
 ```
