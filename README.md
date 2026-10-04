@@ -382,7 +382,7 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
 
     $\mathtt{tol|_{S_0}} = \mathtt{tol_\perp} \times $
     
-    $\mathtt{tol}|_{S_0} = \mathtt{tol}_\perp \times $
+    $\mathtt{tol}|_{S_0} = \mathtt{tol_\perp} \times $
     
     $tol|_{S_0} = tol_\perp \times $
     
