@@ -376,15 +376,12 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
     * default is 0 (Method 3 of [Pariat_2012_A&A_541_A78](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), while some problematic sites are filled with [Scott (2017)](https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64))
   * **inclineFlag**: to apply Equation (20) or (21) in [Zhang (2022)](https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61):
 
-    $\mathtt{step|_{S_0}} = \textrm{max}([\mathtt{step_\perp} \times |B\_{n,0} / B|, \mathtt{step_\mathrm{min}}])$
-    
-    $\mathtt{tol}|_{S_0} =\mathtt{tol} _\perp \times | B_{n,0} / B |^{1.5}$
-    
+    $\mathtt{step}|_{S_0}= \textrm{max}([\mathtt{step} _\perp \times |B _{n,0} / B|, \mathtt{step}_\mathrm{min}])$
     
     $\mathtt{tol}|_{S_0} =\mathtt{tol} _\perp \times | B _{n,0} / B |^{1.5}$
     
     
-    for every field line launched from $S_0$, then **step** and **tol** at the input are actually $\mathtt{step_\perp}$ and $\mathtt{tol_\perp}$
+    for every field line launched from $S_0$, then **step** and **tol** at the input are actually $\mathtt{step}_\perp $ and $\mathtt{tol} _\perp$
     * invoking it can provide a better quality of **q** calculated with Method 3 of [Pariat (2012)](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), but then FastQSL will take slightly longer time for computation and make slightly more points on **path** (so setting a slightly larger **maxsteps** may be necessary)
     * default is 0
     * can only work when scottFlag is not invoked
