@@ -376,7 +376,7 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
     * default is 0 (Method 3 of [Pariat_2012_A&A_541_A78](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), while some problematic sites are filled with [Scott (2017)](https://iopscience.iop.org/article/10.3847/1538-4357/aa8a64))
   * **inclineFlag**: to apply Equation (20) or (21) in [Zhang (2022)](https://iopscience.iop.org/article/10.3847/1538-4357/ac8d61):
 
-    $\mathtt{step}|_{S_0}= \textrm{max}([\mathtt{step} _\perp \times |\frac{B _{n,0}}{B}|,\ \mathtt{step} _\mathrm{min}])$
+    $\mathtt{step}|_{S_0}= \textrm{max}([\mathtt{step} _\perp \times \left|\ffrac{B _{n,0}}{B}\right|,\ \mathtt{step} _\mathrm{min}])$
     
     $\mathtt{tol}|_{S_0} =\mathtt{tol} _\perp \times | B _{n,0} / B |^{1.5}$
     
