@@ -390,7 +390,7 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
     
     $\mathtt{tol}|_{S_0} $
     
-    $\mathtt{tol}|_{S_0} = tol_\perp$
+    $\mathtt{tol}|_{S_0} = tol_{\perp}$
     
     $\mathtt{tol}|_{S_0} = \mathtt{tol_\perp}$
     
