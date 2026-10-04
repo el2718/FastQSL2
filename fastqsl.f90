@@ -43,7 +43,7 @@ integer:: i, j, k, s, t, nx, ny, nz, nx_mag, ny_mag, aend1, round(0:1,0:2), j1, 
 real:: weight(0:1,0:1,0:1), mag_delta, clat_pole, dlast, dperiod, &
 matrix(0:1, 0:1), fj2, vp_yin(0:2), vp(0:2), bp(0:2), ap(0:2), CurlBp(0:2)
 real, allocatable:: field_tmp(:), magnetogram(:,:), lon_tmp(:), lat_tmp(:)
-real, pointer:: ax_tmp(:)
+real, pointer, contiguous:: ax_tmp(:)
 type(pole_field), pointer:: pole
 !------------------------------------------------------------
 ! read Bx, By, Bz
@@ -451,7 +451,7 @@ END subroutine CurlB_grid
 subroutine diff_coefficent(s)
 implicit none
 integer:: i, i_end, s
-real, pointer:: da(:), coef(:,:)
+real, pointer, contiguous:: da(:), coef(:,:)
 !------------------------------------------------------------
 i_end=pend(s)
 allocate(axis(s)%coef_diff(0:2,0:i_end))
@@ -912,7 +912,7 @@ include 'privates.f90'
 subroutine cal_yinyang(site, toyang, dvdsflag)
 implicit none
 type(site_info), target :: site
-real, pointer:: vector1(:), vector2(:), dvds1(:), dvds2(:)
+real, pointer, contiguous:: vector1(:), vector2(:), dvds1(:), dvds2(:)
 real:: matrix0(0:1, 0:1), matrix1(0:1, 0:1), matrix2(0:1, 0:1), &
 matrix3(0:1, 0:1), matrix4(0:1, 0:1)
 integer:: i, j
@@ -977,7 +977,7 @@ end subroutine cal_yinyang
 subroutine RK4(dt, site, site1)
 implicit none
 real:: dt, ds, k2(0:8), k3(0:8)
-real, pointer:: vector(:), vector1(:), dvds1(:), k1(:)
+real, pointer, contiguous:: vector(:), vector1(:), dvds1(:), k1(:)
 type(site_info), target:: site, site1
 !------------------------------------------------------------
 ! the unit of ds is same as the physical unit (e.g. the unit of xreg, yreg, zreg)
@@ -1022,7 +1022,7 @@ logical:: repeat_flag
 integer:: rb
 real:: k2(0:8), k3(0:8), k4(0:8), k5(0:8), dvp(0:2), &
 dt, dt_executed, ds, ds0, trim_factor, error, tol_this, tol_ds, incline
-real, pointer:: vector(:), vector1(:), dvds1(:), k1(:)
+real, pointer, contiguous:: vector(:), vector1(:), dvds1(:), k1(:)
 type(site_info), target:: site, site1
 !------------------------------------------------------------
 tol_ds=tol_this/site%ds_factor
@@ -1114,7 +1114,7 @@ logical:: launch_step, identical, flagRK4B, repeat_flag
 integer:: rb, rb_index, it
 real:: dt, dt_executed, ds0, trim_factor, incline, &
 vector1_orig(0:8), v1_yang_orig(0:8), k1(0:8), k2(0:8), k3(0:8), k4(0:8)
-real, pointer:: dvds(:), dvds0(:), dvds1(:), vector(:), vector0(:), vector1(:)
+real, pointer, contiguous:: dvds(:), dvds0(:), dvds1(:), vector(:), vector0(:), vector1(:)
 type(site_info), target:: site0, site, site1
 !------------------------------------------------------------
 call trim_size(site0, site1, rb, ds0, trim_factor, incline)
@@ -1341,7 +1341,7 @@ logical:: southflag, yinflag
 integer:: round(0:1,0:2), i, j, k
 real:: weight(0:1,0:1,0:1), r, sin_lat, cos_lat, &
 dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2), Ap(0:2)
-real, pointer:: bp(:), vector(:), dvds(:), CurlBp(:)
+real, pointer, contiguous:: bp(:), vector(:), dvds(:), CurlBp(:)
 !------------------------------------------------------------
 if (present(rk_first)) then
 	yinflag = (south_pole .and. (-site%v(1) .gt. lat_pole) .and. (-site%v(1) .le. lat_pole2)) &
@@ -1629,7 +1629,7 @@ real:: vp(0:2), dt, dt_executed, step_this, tol_this, dL, int2private(0:9), &
 Bn_s, Bn_e, us(0:2), ue(0:2), vs(0:2), ve(0:2), us1(0:2), ue1(0:2), vs1(0:2), ve1(0:2), &
 bs2(0:2), be2(0:2), us2(0:2), ue2(0:2), vs2(0:2), ve2(0:2), &
 b_car(0:2), cos_p(0:1), sin_p(0:1), incline, vr2vp(0:2), vr(0:2), brn
-real, pointer:: bp(:), bs(:), be(:)
+real, pointer, contiguous:: bp(:), bs(:), be(:)
 type(line_info), target:: info
 type(site_info), target:: site_a, site_b, site_p, site_s, site_e, site_r
 type(site_info), pointer:: site, site1, site_tmp
@@ -2157,17 +2157,17 @@ subroutine q_diff(i,j)
 ! method 3 of Pariat (2012), some problematic sites are filled with Scott (2017)
 implicit none
 logical:: key_rb16, key_nB, key_trace4, key_diff, local_trace4, local_diff, local_launch, exist_vr
-logical, pointer:: yinFlag(:,:)
+logical, pointer, contiguous:: yinFlag(:,:)
 integer:: i, j, k, sign_dt, it, it_end, s_index, e_index, &
 i_dim, i_diff, id4(1:4), ij(1:2), diff_index(0:2,1:2)
-integer, pointer:: dims(:)
+integer, pointer, contiguous:: dims(:)
 integer, target :: dims_s(1:2), dims_e(1:2)
 real:: delta_diff(1:2), bn_square, Bn_s, Bn_e, Dmatrix(1:2, 1:2),  &
 rF4_s(1:2, 1:4), rF4_e(1:2, 1:4), u0(0:2), v0(0:2), &
 g_e(1:2), g_s(1:2), g_e0(0:2), g_s0(0:2), gh, cos_p(0:1), sin_p(0:1), &
 cos_tmp, sin_tmp, rF4_s_local(0:2, 1:4), rF4_e_local(0:2, 1:4), vr2vp(0:2), &
 rf3(1:2, 0:2), seed3(0:2, 0:2), coef(0:2,1:2), d0, d1, arrow_seed(0:2, 1:2), vp_yin(0:2)
-real, pointer:: bp_car(:), vp_car(:), vp4_car(:,:), rF_tmp(:,:,:), diff(:,:), rF_yin(:,:,:)
+real, pointer, contiguous:: bp_car(:), vp_car(:), vp4_car(:,:), rF_tmp(:,:,:), diff(:,:), rF_yin(:,:,:)
 real, target :: diff_s(1:2, 1:2), diff_e(1:2, 1:2), bp(0:2), bp_car_tmp(0:2), &
 vp(0:2), vp_car_tmp(0:2), vp4(0:2, 1:4), vp4_car_tmp(0:2, 1:4)
 type(line_info):: info
