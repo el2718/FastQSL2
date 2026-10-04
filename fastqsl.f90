@@ -424,7 +424,7 @@ do s=0, 2
 		endif
 		if (s .eq. 2) then
 			hs(0,:) = axis(2)%pa(index_diff)/axis(2)%pa(k)
-			hs(2,:) = hs(0,:)
+			hs(1,:) = hs(0,:)
 		endif
 	endif
 
@@ -595,10 +595,10 @@ logical:: lie_boundary
 real:: vp(0:2)
 !---------------------------------------------------------------------------
 lie_boundary = &
-(.not. periodFlag(0) .and. vp(0)==pmin(0) .or. vp(0)==pmax(0))    .or. &
+(.not. periodFlag(0) .and. (vp(0)==pmin(0) .or. vp(0)==pmax(0)))    .or. &
 (.not. south_pole .and. .not. periodFlag(1) .and. vp(1)==pmin(1)) .or. &
 (.not. north_pole .and. .not. periodFlag(1) .and. vp(1)==pmax(1)) .or. &
-(.not. periodFlag(2) .and. vp(2)==pmin(2) .or. vp(2)==pmax(2))
+(.not. periodFlag(2) .and. (vp(2)==pmin(2) .or. vp(2)==pmax(2)))
 end function lie_boundary
 
 
@@ -947,7 +947,8 @@ if (present(dvdsflag)) then
 		endif
 
 		!\partial (vector2(0:1))/\partial (vector1(0:1))
-		matrix1(0,:)=matrix0(0,:)*cos(vector1(1))
+		matrix1=matrix0
+		matrix1(0,:)=matrix1(0,:)*cos(vector1(1))
 		matrix1(:,0)=matrix1(:,0)/cos(vector2(1))
 
 		dvds2(0:2)=[MATMUL(dvds1(0:1), matrix1), dvds1(2)]
@@ -2755,7 +2756,7 @@ do j= 0, jend, jend
 			endif
 			if (loopCurlB_out) then
 				allocate(lines(label)%loopCurlB(0:2, 0:loop_end))
-				lines(label)%loopB = lines(label0)%loopB
+				lines(label)%loopCurlB = lines(label0)%loopCurlB
 			endif
 		endif
 	enddo

@@ -182,7 +182,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
             p0= [np.cos(yreg[0])*np.cos(xreg[0]), np.cos(yreg[0])*np.sin(xreg[0]), np.sin(yreg[0])]
             p1= [np.cos(yreg[1])*np.cos(xreg[1]), np.cos(yreg[1])*np.sin(xreg[1]), np.sin(yreg[1])]
             # if p0 \cdot p1 eq 1 or -1, there are many great circles can pass p0 and p1
-            if np.dot(p0,p1) > 0.999: raise Exception('The great circle can not be clearly defined')
+            if abs(np.dot(p0,p1)) > 0.999: raise Exception('The great circle can not be clearly defined')
         zmin = za[0] if stretchFlag else 0.0
         bFlag = zreg[0] == zmin and zreg[1] == zmin
         vFlag = (xreg[1] != xreg[0]) and (yreg[1] != yreg[0]) and (zreg[1] != zreg[0]) and (not csFlag)
