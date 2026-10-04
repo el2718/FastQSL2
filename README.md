@@ -6,7 +6,7 @@ Please address comments and suggestions to [Dr. Chen, Jun (陈俊)](mailto:chenj
 
 If your markdown reader cannot render the formulae in `README.md`, try using [AsterPDF](https://github.com/eternitylzt/AsterPDF). Another option is [Markdown Preview Enhanced](https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-enhanced) ported to Visual Studio Code.
 
-Some external resouces are available at https://pan.cstcloud.cn/s/WjRJ2DHXRjw
+Some external resources (e.g. installation scripts) are available at https://pan.cstcloud.cn/s/WjRJ2DHXRjw
 
 -----------------------------
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
