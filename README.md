@@ -158,7 +158,7 @@ After reading the following, you will know what the above means.
 ### Computation core
 #### Compiler installation
 * gfortran https://fortran-lang.org/learn/os_setup/install_gfortran/ 
-  * For Windows, http://www.equation.com/servlet/equation.cmd?fa=fortran is suggested. Then the command `gfortran` will be automatically added to the Windows `%PATH%`, so you will need to log out or reboot after the installation.
+  * For Windows, http://www.equation.com/servlet/equation.cmd?fa=fortran is suggested. Then the command `gfortran` will be automatically added to the Windows `%PATH%` A logout or reboot will then be necessary.
 * Intel® Fortran Compiler https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler-download.html
   * please append this line to ~/.bashrc
     ``` 
