@@ -358,7 +358,7 @@ The IDL language is case-insensitive, and the name of a keyword parameter can be
       * invoke sflag. And then FastQSL applies **the second way** to define the output domain by **seed**, and **xreg, yreg, zreg, csFlag, factor, delta, lon_delta, lat_delta, r_delta, arc_delta** will be ignored
       * if set `seed = 'original'`, then `qsl.seed` will be the original 3D grid of magnetic field. For example, for a field on a uniform grid, if you only need $\nabla \times \vec{B}$ on the same input grid, just run
         ```
-        IDL> fastqsl, Bx, By, Bz, seed='original', /CurlB, maxsteps=0, qsl=qsl
+        fastqsl, Bx, By, Bz, seed='original', /CurlB, maxsteps=0, qsl=qsl
         ```
       * if set `seed = 'original_bottom'`, then `qsl.seed` will be the original 2D grid at the bottom of magnetic field
     * if set `seed = 1` at the input of fastqsl\.pro ( `, /seed` also makes seed eq 1), or set `seed = True` at the input of fastqsl\.py
@@ -390,7 +390,7 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
     * if **maxsteps** is too small, many 0 will appear in `qsl.rboundary`,  then the values in `qsl.q` will result in NaN, and the values in `qsl.length, qsl.twist, qsl.q_perp` are calculated for one segment of field lines. For example, if `qsl.rboundary[i, j]` is 0 and `not stretchFlag and RK4flag and ~keyword_set(inclineFlag)`, then `qsl.length[i, j]` is approximately `2*maxsteps*step`
     * Sometimes we want to disable the tracing and want to get `qsl.B, qsl.CurlB, qsl.seed` only, just run
       ```
-      IDL> fastqsl, Bvec, /B, /CurlB, /seed, maxsteps=0, qsl=qsl
+      fastqsl, Bvec, /B, /CurlB, /seed, maxsteps=0, qsl=qsl
       ```
       * And then **q, rboundary, sign2d, tol, step, RK4Flag** will not exist in **qsl**. 
       * Even if **length_out, twist_out, rF_out, scottflag, path_out, loopB_out, loopCurlB_out** are set to 1 in the above command, they will be ignored, which means `qsl.length, qsl.twist, qsl.rFs, qsl.rFe, qsl.q_perp, qsl.path, qsl.loopB, qsl.loopCurlB` will not exist
@@ -464,7 +464,7 @@ Possible elements in **qsl** are:
   * **B, CurlB**:  $\vec{B}$, $\nabla \times \vec{B}$ on **seed**
     * For example, sometimes we want to know the density, pressure, temperature distribution on a field line. The field line is given by `*qsl.path[i]` from a previous run, and density, pressure, temperature are 3D arrays on the same spherical grid of B_lon, B_lat, B_r. Then just run
       ```
-      IDL> fastqsl, density, pressure, temperatrue, xa=lon_rad, ya=lat_rad, za=radius, $
+      fastqsl, density, pressure, temperatrue, xa=lon_rad, ya=lat_rad, za=radius, $
       seed=*qsl.path[i], maxsteps=0, /B_out, qsl=qsl
       ```
       then `reform(qsl.B[0, *]), reform(qsl.B[1, *]), reform(qsl.B[2, *])` are actually the distributions of density, pressure, temperature on the field line. Please note that the keyword **spherical** is not invoked here; It is unnecessary when only interpolation is performed, and not invoking it also avoids the issue of vector transformation around the polar regions.
@@ -543,7 +543,7 @@ Users can define their private line integrals of the form $\int_\textrm{path} \m
 ## Demos
 ### If using fastqsl\.pro
 ```idl
-IDL> .r demo_charge4.pro
+.r demo_charge4.pro
 ```
 if you use Linux or macOS, and don't want to entry the interactive environment of IDL, you can create demo_charge4.sh with the content:
 ```
