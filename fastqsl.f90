@@ -291,16 +291,16 @@ do s=0, 1
 		pole%Bvec(:,0,0,k)=0.
 		if (CurlB_input) pole%CurlBvec(:,0,0,k)=0.
 		if (A_input) pole%Avec(:,0,0,k)=0.
-		do i= 0, pend(0)
+		do i= 0, pend(0)-1  ! i=0 and i=pend(0) are the same point
 			vp=[axis(0)%pa(i), axis(1)%pa(j1), axis(2)%pa(k)]
 			call vp_yinyang(vp_yin, vp, .false., matrix)
 			pole%Bvec(:,0,0,k)= pole%Bvec(:,0,0,k)+ [MATMUL(Bvec(0:1,i,j1,k), matrix), Bvec(2,i,j1,k)]
 			if (CurlB_input) pole%CurlBvec(:,0,0,k)= pole%CurlBvec(:,0,0,k)+ [MATMUL(CurlBvec(0:1,i,j1,k), matrix), CurlBvec(2,i,j1,k)]
 			if (A_input) pole%Avec(:,0,0,k)= pole%Avec(:,0,0,k)+ [MATMUL(Avec(0:1,i,j1,k), matrix), Avec(2,i,j1,k)]
 		enddo
-		pole%Bvec(:,0,0,k)= pole%Bvec(:,0,0,k)/(pend(0)+1)
-		if (CurlB_input) pole%CurlBvec(:,0,0,k)= pole%CurlBvec(:,0,0,k)/(pend(0)+1)
-		if (A_input) pole%Avec(:,0,0,k)= pole%Avec(:,0,0,k)/(pend(0)+1)
+		pole%Bvec(:,0,0,k)= pole%Bvec(:,0,0,k)/pend(0)
+		if (CurlB_input) pole%CurlBvec(:,0,0,k)= pole%CurlBvec(:,0,0,k)/pend(0)
+		if (A_input) pole%Avec(:,0,0,k)= pole%Avec(:,0,0,k)/pend(0)
 	enddo
 
 	do k= 0, pend(2)
@@ -554,10 +554,10 @@ implicit none
 logical:: inside
 real:: vp(0:2)
 !------------------------------------------------------------
-inside = &
+inside = .not. any(isnan(vp)) .and. &
 (periodFlag(0) .or. (vp(0)>=pmin(0) .and. vp(0)<=pmax(0))) .and. &
-((south_pole .or. periodFlag(1) .or.vp(1)>=pmin(1))        .and. &
- (north_pole .or. periodFlag(1) .or.vp(1)<=pmax(1)))       .and. &
+((south_pole .or. periodFlag(1) .or. vp(1)>=pmin(1))       .and. &
+ (north_pole .or. periodFlag(1) .or. vp(1)<=pmax(1)))      .and. &
 (periodFlag(2) .or. (vp(2)>=pmin(2) .and. vp(2)<=pmax(2)))
 end function inside
 
@@ -584,7 +584,7 @@ else
 	endif
 endif
 
-inside_yin= all(pole%pmin < vp_yin(0:1) .and. pole%pmax > vp_yin(0:1)) 
+inside_yin= .not. any(isnan(vp_yin)) .and. all(pole%pmin < vp_yin(0:1) .and. pole%pmax > vp_yin(0:1)) 
 
 end function inside_yin
 
@@ -620,7 +620,7 @@ do i=0, 2
 		w(1,i)=1.0
 	else
 		round(0,i)=floor(vpi)
-		w(1,i)=vp(i)-round(0,i)
+		w(1,i)=vpi-round(0,i)
 	endif
 enddo
 
@@ -3122,7 +3122,7 @@ endif
 !------------------------------------------------------------
 ! https://www.openmp.org/spec-html/5.0/openmpsu112.html
 if (nthreads .gt. OMP_GET_NUM_PROCS()) nthreads=OMP_GET_NUM_PROCS()
-if (nthreads .eq. 0) nthreads=OMP_GET_NUM_PROCS()-2
+if (nthreads .eq. 0) nthreads=max(1, OMP_GET_NUM_PROCS()-2)
 
 privateFlag=any(int_private_out)
 traceflag = maxsteps .ne. 0
