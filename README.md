@@ -379,6 +379,8 @@ A magnetic field line is integrated using $\dfrac{\textrm{d} \vec{r}(s)}{\textrm
     $\texttt{step}|_{S_0} = \textrm{max}([\texttt{step}_{\perp} \times |B\_{n,0} / B|, \texttt{step}\_\mathrm{min}])$
     
     $\texttt{tol}|_{S_0} = \texttt{tol}\_\perp \times | B\_{n,0} / B |^{1.5}$
+
+    $x_1$, $x_{1}$, $x_\perp$, $x_{\perp}$
     
     for every field line launched from $S_0$, then **step** and **tol** at the input are actually $\texttt{step}_{\perp}$ and $\texttt{tol}_{\perp}$
     * invoking it can provide a better quality of **q** calculated with Method 3 of [Pariat (2012)](https://www.aanda.org/articles/aa/full_html/2012/05/aa18515-11/aa18515-11.html), but then FastQSL will take slightly longer time for computation and make slightly more points on **path** (so setting a slightly larger **maxsteps** may be necessary)
