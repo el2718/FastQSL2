@@ -1521,9 +1521,9 @@ forall(i=0:2) site%B(i)=sum(weight* Bvec(i, round(:,0), round(:,1), round(:,2)))
 site%dvds(0:2)=normalize(site%b)
 !------------------------------------------------------------
 if (present(rk_first)) then
-	if (CurlBvec_Flag) &
+	if (site%CurlBFlag) &
 	forall(i=0:2) site%CurlB(i)=sum(weight*CurlBvec(i, round(:,0), round(:,1), round(:,2)))
-	if (A_input) &
+	if (site%AFlag) &
 	forall(i=0:2) site%A(i)=sum(weight*Avec(i, round(:,0), round(:,1), round(:,2)))
 
 	if (rk_first) return ! interpolate_foot is true
@@ -2453,6 +2453,10 @@ if (key_trace4 .or. local_trace4) then
 							site  %v(0:2)= info%path(:, it-sign_dt)
 							site_r%v(0:2)= info%path(:, it)
 							site%yinFlag=.false.
+							site%CurlBFlag=.false.
+							site%AFlag=.false.
+							site%scottLaunch=.false.
+							site%scottFlag=.false.
 							call interpolate(site, .false.)
 							call locate_path_r(vp, site, site_r, sign_dt, vr2vp)
 
@@ -2600,6 +2604,10 @@ if (key_diff .or. local_diff) then
 						site  %v(0:2)= lines(id4(k))%path(:, it-sign_dt)
 						site_r%v(0:2)= lines(id4(k))%path(:, it)
 						site%yinFlag=.false.
+						site%CurlBFlag=.false.
+						site%AFlag=.false.
+						site%scottLaunch=.false.
+						site%scottFlag=.false.
 						call interpolate(site, .false.)
 						call locate_path_r(vp, site, site_r, sign_dt, vr2vp)
 						
