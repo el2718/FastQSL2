@@ -53,7 +53,9 @@ def convert_coordinate(coordinate, v1=None, v2=None, v3=None, v4=None, \
     with open(tmp_dir+'head.bin','wb') as file: 
         file.write(np.array([mode, nthreads, r4flag],'i4'))
         file.write(np.array(coordinate.size,'i8'))
-    with open(tmp_dir+'coordinate.bin','wb') as file: file.write(coordinate)
+    with open(tmp_dir+'coordinate.bin','wb') as file: 
+        file.write(np.array(coordinate, dtype=coordinate.dtype, order='C'))
+        
     if present1: 
         with open(tmp_dir+'v1.bin','wb') as file:
             file.write(np.array(v1, dtype=coordinate.dtype, order='C'))
