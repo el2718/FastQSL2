@@ -718,4 +718,4 @@ If you need this derived code, please visit https://github.com/el2718/slipq
 * Sep, 18, 2026 Jun Chen, complete convert_coordinate
 * Sep, 20, 2026 Jun Chen, for fastqsl.py, return **qsl** as an object instead of a dictionary
 * Sep, 27, 2026 Jun Chen, Fix fastqsl.exe not exiting on some Windows systems
-* Oct,  5, 2026 Jun Chen, Fix incorrect $\nabla \times \vec{B}$ on a spherical mesh
+* Oct,  5, 2026 Jun Chen, Fix incorrect $\nabla \times \vec{B}$ on a spherical mesh and other bugs; improved performance with a stretched grid
