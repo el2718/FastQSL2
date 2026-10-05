@@ -1521,9 +1521,9 @@ forall(i=0:2) site%B(i)=sum(weight* Bvec(i, round(:,0), round(:,1), round(:,2)))
 site%dvds(0:2)=normalize(site%b)
 !------------------------------------------------------------
 if (present(rk_first)) then
-	if (site%CurlBFlag) &
+	if (CurlBvec_Flag) &
 	forall(i=0:2) site%CurlB(i)=sum(weight*CurlBvec(i, round(:,0), round(:,1), round(:,2)))
-	if (site%AFlag) &
+	if (A_input) &
 	forall(i=0:2) site%A(i)=sum(weight*Avec(i, round(:,0), round(:,1), round(:,2)))
 
 	if (rk_first) return ! interpolate_foot is true
