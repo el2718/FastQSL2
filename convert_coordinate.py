@@ -87,23 +87,22 @@ def convert_coordinate(coordinate, v1=None, v2=None, v3=None, v4=None, \
         with open(tmp_dir+'v4out.bin','rb') as file: 
             v4out=np.fromfile(file, dtype=coordinate.dtype).reshape(coordinate.shape)
     # -----------------------------------------------------
-    if old_tmp_dir:
-        os.remove(tmp_dir+'head.bin')
-        os.remove(tmp_dir+'coordinate.bin')
-        os.remove(tmp_dir+'coordinate_out.bin')
-        if present1: 
-            os.remove(tmp_dir+'v1.bin')
-            os.remove(tmp_dir+'v1out.bin')
-        if present2: 
-            os.remove(tmp_dir+'v2.bin')
-            os.remove(tmp_dir+'v2out.bin')
-        if present3: 
-            os.remove(tmp_dir+'v3.bin')
-            os.remove(tmp_dir+'v3out.bin')
-        if present4: 
-            os.remove(tmp_dir+'v4.bin')
-            os.remove(tmp_dir+'v4out.bin')
-    else: os.rmdir(tmp_dir)
+    os.remove(tmp_dir+'head.bin')
+    os.remove(tmp_dir+'coordinate.bin')
+    os.remove(tmp_dir+'coordinate_out.bin')
+    if present1: 
+        os.remove(tmp_dir+'v1.bin')
+        os.remove(tmp_dir+'v1out.bin')
+    if present2: 
+        os.remove(tmp_dir+'v2.bin')
+        os.remove(tmp_dir+'v2out.bin')
+    if present3: 
+        os.remove(tmp_dir+'v3.bin')
+        os.remove(tmp_dir+'v3out.bin')
+    if present4: 
+        os.remove(tmp_dir+'v4.bin')
+        os.remove(tmp_dir+'v4out.bin')
+    if not old_tmp_dir: os.rmdir(tmp_dir)
     # -----------------------------------------------------
     if present1 or  present2 or  present3 or present4:
         convert_out= (coordinate_out,)
