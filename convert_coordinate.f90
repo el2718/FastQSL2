@@ -167,8 +167,6 @@ if (r4flag) allocate(dummy(0:ndata-1))
 allocate(coordinate(0:ndata-1))
 call io_bin('coordinate.bin', coordinate, .true.)
 
-present_v= present1 .or. present2 .or. present3 .or. present4
-
 inquire(file='v1.bin', exist=present1)
 if (present1) then
     allocate(v1(0:ndata-1))
@@ -192,6 +190,8 @@ if (present4) then
     allocate(v4(0:ndata-1))
     call io_bin('v4.bin', v4, .true.)
 endif
+
+present_v= present1 .or. present2 .or. present3 .or. present4
 !------------------------------------------------------------
 ! https://www.openmp.org/spec-html/5.0/openmpsu112.html
 if (nthreads .gt. OMP_GET_NUM_PROCS()) nthreads=OMP_GET_NUM_PROCS()
