@@ -30,6 +30,7 @@ type site_info
 	real:: v(0:8), dvds(0:8), B(0:2), CurlB(0:2), A(0:2), ds_factor, &
 	v_yin(0:8), dvds_yin(0:8), B_yin(0:2), CurlB_yin(0:2), A_yin(0:2), private(0:9)
 	logical:: CurlBFlag, Aflag, yinFlag, scottFlag, scottLaunch
+	integer:: itry(0:2) = 1
 endtype site_info
 
 procedure(), pointer:: round_weight
@@ -45,6 +46,7 @@ matrix(0:1, 0:1), fj2, vp_yin(0:2), vp(0:2), bp(0:2), ap(0:2), CurlBp(0:2)
 real, allocatable:: field_tmp(:), magnetogram(:,:), lon_tmp(:), lat_tmp(:)
 real, pointer, contiguous:: ax_tmp(:)
 type(pole_field), pointer:: pole
+type(site_info):: site
 !------------------------------------------------------------
 ! read Bx, By, Bz
 open(1, file='field.bin', access='stream', status='old')
@@ -199,9 +201,11 @@ if (magnetogram_out) then
 		ny_mag=nint((pmax(1)-pmin(1))/mag_delta)+1
 		
 		allocate(magnetogram(0:nx_mag-1, 0:ny_mag-1))
+		
 		do j=0, ny_mag-1
 		do i=0, nx_mag-1
-			call round_weight(pmin + mag_delta * [i, j, 0], round, weight)
+			site%v(0:2)= pmin + mag_delta * [i, j, 0]
+			call round_weight(site, round, weight)
 			magnetogram(i, j)=sum(weight(:,:, 0)*Bvec(2, round(:,0), round(:,1), 0))
 		enddo
 		enddo
@@ -269,8 +273,8 @@ do s=0, 1
 	do i= - aend1, aend1
 		if (abs(lat_tmp(j)) .le. half_pi-dlast) then
 			vp_yin=[lon_tmp(i), lat_tmp(j), axis(2)%pa(k)]
-			call vp_yinyang(vp_yin, vp, .true., matrix)
-			call round_weight(vp, round, weight)
+			call vp_yinyang(vp_yin, site%v(0:2), .true., matrix)
+			call round_weight(site, round, weight)
 			forall(t=0:2) bp(t)=sum(weight*Bvec(t, round(:,0), round(:,1), round(:,2)))
 			matrix=transpose(matrix)
 			pole%Bvec(:,i,j,k)= [MATMUL(bp(0:1), matrix), bp(2)]
@@ -602,13 +606,14 @@ lie_boundary = &
 end function lie_boundary
 
 
-subroutine round_weight_uniform(vp, round, weight)
+subroutine round_weight_uniform(site, round, weight)
 implicit none
-real:: w(0:1,0:2), weight(0:1,0:1,0:1), vp(0:2), vpi
+type(site_info) :: site
+real:: w(0:1,0:2), weight(0:1,0:1,0:1), vpi
 integer:: round(0:1,0:2), i, j, k
 !------------------------------------------------------------
 do i=0, 2
-	vpi=vp(i)
+	vpi=site%v(i)
 	if (periodFlag(i)) vpi = modulo(vpi, period(i))
 
 	if (.not. (vpi .gt. 0.0)) then
@@ -631,13 +636,14 @@ forall(i=0:1,j=0:1,k=0:1) weight(i,j,k)=w(i,0)*w(j,1)*w(k,2)
 end subroutine round_weight_uniform
 
 
-subroutine round_weight_stretch(vp, round, weight)
+subroutine round_weight_stretch(site, round, weight)
 implicit none
+type(site_info) :: site
 real:: w(0:1,0:2), vp(0:2), vpi, weight(0:1,0:1,0:1)
 integer:: i, j, k, round(0:1, 0:2), binary_index, index_try
 !------------------------------------------------------------
 do i=0, 2
-	vpi=vp(i)
+	vpi=site%v(i)
 	if (periodFlag(i)) vpi = modulo(vpi-pmin(i), period(i)) + pmin(i)
 
 	if (.not. (vpi .gt. pmin(i))) then
@@ -656,26 +662,35 @@ do i=0, 2
 			! this way is slower than binary (tree) search
 			! round(0, i) = count(vpi .ge. axis(i)%pa(1:dend(i)))
 !------------------------------------------------------------
-			! binary (tree) search
-			binary_index = axis(i)%binary_index_start
-			index_try = axis(i)%index_try_start
+			site%itry(i)= max(site%itry(i),1)
+			site%itry(i)= min(site%itry(i),pend(i)-2)
+			if (vpi .ge. axis(i)%pa(site%itry(i)) .and. vpi .lt. axis(i)%pa(site%itry(i)+1)) then
+				round(0,i)=site%itry(i)
+			else if (vpi .ge. axis(i)%pa(site%itry(i)-1) .and. vpi .lt. axis(i)%pa(site%itry(i))) then
+				round(0,i)=site%itry(i)-1
+			else if (vpi .ge. axis(i)%pa(site%itry(i)+1) .and. vpi .lt. axis(i)%pa(site%itry(i)+2)) then
+				round(0,i)=site%itry(i)+1
+			else ! binary (tree) search
+				binary_index = axis(i)%binary_index_start
+				index_try = axis(i)%index_try_start
 
-			do while(binary_index .ge. 1)
-				binary_index = binary_index-1
+				do while(binary_index .ge. 1)
+					binary_index = binary_index-1
+					if (vpi .ge. axis(i)%pa(index_try)) then
+						if (index_try + binary_values(binary_index) .le. dend(i)) &
+						index_try = index_try + binary_values(binary_index)
+					else
+						index_try = index_try - binary_values(binary_index)
+					endif
+				enddo
+				
 				if (vpi .ge. axis(i)%pa(index_try)) then
-					if (index_try + binary_values(binary_index) .le. dend(i)) &
-					index_try = index_try + binary_values(binary_index)
+					round(0,i) = index_try
 				else
-					index_try = index_try - binary_values(binary_index)
+					round(0,i) = index_try-1
 				endif
-			enddo
-			
-			if (vpi .ge. axis(i)%pa(index_try)) then
-				round(0,i) = index_try
-			else
-				round(0,i) = index_try-1
 			endif
-	
+			site%itry(i)=round(0,i)
 		endif
 !------------------------------------------------------------
 		w(1,i) = (vpi-axis(i)%pa(round(0,i))) / axis(i)%da(round(0,i))
@@ -805,59 +820,74 @@ endif
 end subroutine vp_yinyang
 
 
-subroutine round_weight_pole(vp, round, weight, southflag)
+subroutine round_weight_pole(site, round, weight, southflag)
 implicit none
-real:: w(0:1,0:2), vp(0:2), weight(0:1,0:1,0:1), p_lonlat(0:1)
+type(site_info):: site
+real:: w(0:1,0:2), weight(0:1,0:1,0:1), p_lonlat(0:1), vpi
 integer:: i, j, k, round(0:1, 0:2), binary_index, index_try
 logical:: southflag
 !------------------------------------------------------------
 if (southflag) then
-	p_lonlat=(vp(0:1)-south%origin)/south%darc
+	p_lonlat=(site%v_yin(0:1)-south%origin)/south%darc
 else
-	p_lonlat=(vp(0:1)-north%origin)/north%darc
+	p_lonlat=(site%v_yin(0:1)-north%origin)/north%darc
 endif
 round(0, 0:1)=floor(p_lonlat)
 w(1, 0:1)=p_lonlat-round(0, 0:1)
 
 i=2
-	if (.not. (vp(i) .gt. pmin(i))) then
+vpi=site%v_yin(2)
+
+	if (.not. (vpi .gt. pmin(i))) then
 		round(0, i)=0
 		w(1,i)=0.0
-	else if   (vp(i) .ge. pmax(i))  then
+	else if   (vpi .ge. pmax(i))  then
 		round(0, i)=dend(i)
 		w(1,i)=1.0
 	else
 !------------------------------------------------------------
 		if (axis(i)%uni_Flag) then
-			round(0, i)=floor((vp(i)-pmin(i))/axis(i)%da_uni)
+			round(0, i)=floor((vpi-pmin(i))/axis(i)%da_uni)
 			if (round(0, i) .gt. dend(i)) round(0, i)=dend(i)
 		else
 !------------------------------------------------------------
-			! binary (tree) search
-			binary_index = axis(i)%binary_index_start
-			index_try = axis(i)%index_try_start
+			! this way is slower than binary (tree) search
+			! round(0, i) = count(vpi .ge. axis(i)%pa(1:dend(i)))
+!------------------------------------------------------------
+			site%itry(i)= max(site%itry(i),1)
+			site%itry(i)= min(site%itry(i),pend(i)-2)
+			if (vpi .ge. axis(i)%pa(site%itry(i)) .and. vpi .lt. axis(i)%pa(site%itry(i)+1)) then
+				round(0,i)=site%itry(i)
+			else if (vpi .ge. axis(i)%pa(site%itry(i)-1) .and. vpi .lt. axis(i)%pa(site%itry(i))) then
+				round(0,i)=site%itry(i)-1
+			else if (vpi .ge. axis(i)%pa(site%itry(i)+1) .and. vpi .lt. axis(i)%pa(site%itry(i)+2)) then
+				round(0,i)=site%itry(i)+1
+			else ! binary (tree) search
+				binary_index = axis(i)%binary_index_start
+				index_try = axis(i)%index_try_start
 
-			do while(binary_index .ge. 1)
-				binary_index = binary_index-1
-				if (vp(i) .ge. axis(i)%pa(index_try)) then
-					if (index_try + binary_values(binary_index) .le. dend(i)) &
-					index_try = index_try + binary_values(binary_index)
+				do while(binary_index .ge. 1)
+					binary_index = binary_index-1
+					if (vpi .ge. axis(i)%pa(index_try)) then
+						if (index_try + binary_values(binary_index) .le. dend(i)) &
+						index_try = index_try + binary_values(binary_index)
+					else
+						index_try = index_try - binary_values(binary_index)
+					endif
+				enddo
+				
+				if (vpi .ge. axis(i)%pa(index_try)) then
+					round(0,i) = index_try
 				else
-					index_try = index_try - binary_values(binary_index)
+					round(0,i) = index_try-1
 				endif
-			enddo
-			
-			if (vp(i) .ge. axis(i)%pa(index_try)) then
-				round(0,i) = index_try
-			else
-				round(0,i) = index_try-1
 			endif
-
+			site%itry(i)=round(0,i)
 		endif
 !------------------------------------------------------------
-		w(1,i) = (vp(i)-axis(i)%pa(round(0,i))) / axis(i)%da(round(0,i))
+		w(1,i) = (vpi-axis(i)%pa(round(0,i))) / axis(i)%da(round(0,i))
 	endif
-
+	
 round(1,:)=round(0,:)+1
 w(0,:)= 1.0 - w(1,:)
 forall(i=0:1,j=0:1,k=0:1) weight(i,j,k)=w(i,0)*w(j,1)*w(k,2)
@@ -1381,13 +1411,13 @@ if (yinflag) then
 	vector => site%v_yin
 	dvds   => site%dvds_yin
 	bp     => site%b_yin
-	call round_weight_pole(site%v_yin(0:2), round, weight, southflag)
+	call round_weight_pole(site, round, weight, southflag)
 	forall(i=0:2) Bp(i)=sum(weight* pole%Bvec(i, round(:,0), round(:,1), round(:,2)))
 else
 	vector => site%v
 	dvds   => site%dvds
 	bp     => site%b
-	call round_weight(site%v(0:2), round, weight)
+	call round_weight(site, round, weight)
 	forall(i=0:2) Bp(i)=sum(weight* Bvec(i, round(:,0), round(:,1), round(:,2)))
 endif
 !------------------------------------------------------------
@@ -1486,14 +1516,14 @@ logical, optional:: rk_first
 integer:: round(0:1,0:2), i, j, k
 real:: weight(0:1,0:1,0:1), dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2), Ap(0:2)
 !------------------------------------------------------------
-call round_weight(site%v(0:2), round, weight)
+call round_weight(site, round, weight)
 forall(i=0:2) site%B(i)=sum(weight* Bvec(i, round(:,0), round(:,1), round(:,2)))
 site%dvds(0:2)=normalize(site%b)
 !------------------------------------------------------------
 if (present(rk_first)) then
-	if (CurlBvec_Flag) &
+	if (site%CurlBFlag) &
 	forall(i=0:2) site%CurlB(i)=sum(weight*CurlBvec(i, round(:,0), round(:,1), round(:,2)))
-	if (A_input) &
+	if (site%AFlag) &
 	forall(i=0:2) site%A(i)=sum(weight*Avec(i, round(:,0), round(:,1), round(:,2)))
 
 	if (rk_first) return ! interpolate_foot is true
@@ -3103,7 +3133,6 @@ read(1) step, tol, r_local, maxsteps, RK4Flag, inclineFlag, &
         verbose, keep_tmp, magnetogram_out, int_private_out
 close(1, status='delete')
 !------------------------------------------------------------
-if (verbose) call system_clock(tnow)
 if (verbose) tnow=omp_get_wtime()
 NaN = transfer(2143289344, 1.0)
 pi = 3.141592653589793
@@ -3416,7 +3445,7 @@ round_weight => null()
 interpolate  => null()
 !------------------------------------------------------------
 if (verbose) then
-	when 100.00% is printed, everything is done in fastqsl.x
+! 	when 100.00% is printed, everything is done in fastqsl.x
 	call show_time(100.0)
 
 	tend=omp_get_wtime()
