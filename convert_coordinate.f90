@@ -1,7 +1,7 @@
 module share
 integer:: mode
 real(8) :: pi, two_pi
-logical:: r4flag, present1
+logical:: r4flag, present_v
 real(4), allocatable :: dummy(:)
 
 interface
@@ -63,7 +63,7 @@ else if (mode .eq. 1 .or. mode .eq. 3) then
     if (mode .eq. 3) coor= cshift(coor, -1)
 endif
 
-if (present1) then
+if (present_v) then
     if (mode .eq. 0 .or. mode .eq. 2) then
         sin01= sin(coor(0:1))
         cos01= cos(coor(0:1))
@@ -97,7 +97,7 @@ else
 	coor(1)= asin(cos_1(1)*cos_1(0))
 endif
 
-if (present1) then
+if (present_v) then
     cos_2=cos(coor(0:1))
     sin_2=sin(coor(0:1))
     
@@ -154,7 +154,7 @@ use share
 implicit none
 integer:: nthreads, OMP_GET_NUM_PROCS
 integer(8):: k, ndata
-logical::  present2, present3, present4
+logical::  present1, present2, present3, present4
 real(8):: matrix(0:2, 0:2)
 real(8), allocatable :: coordinate(:), v1(:), v2(:), v3(:), v4(:)
 character(len=1) :: str_aux
@@ -166,6 +166,8 @@ close(1)
 if (r4flag) allocate(dummy(0:ndata-1))
 allocate(coordinate(0:ndata-1))
 call io_bin('coordinate.bin', coordinate, .true.)
+
+present_v= present1 .or. present2 .or. present3 .or. present4
 
 inquire(file='v1.bin', exist=present1)
 if (present1) then
@@ -207,12 +209,10 @@ pi    =3.14159265358979323846D0
 !$OMP PARALLEL DO PRIVATE(k, matrix), num_threads(nthreads), schedule(static)
 do k=0, ndata/3-1
     call convert(coordinate(k*3:k*3+2), matrix)
-    if (present1) then
-        v1(k*3:k*3+2)= MATMUL(v1(k*3:k*3+2), matrix)
-        if (present2) v2(k*3:k*3+2)= MATMUL(v2(k*3:k*3+2), matrix)
-        if (present3) v3(k*3:k*3+2)= MATMUL(v3(k*3:k*3+2), matrix)
-        if (present4) v4(k*3:k*3+2)= MATMUL(v4(k*3:k*3+2), matrix)
-    endif
+    if (present1) v1(k*3:k*3+2)= MATMUL(v1(k*3:k*3+2), matrix)
+    if (present2) v2(k*3:k*3+2)= MATMUL(v2(k*3:k*3+2), matrix)
+    if (present3) v3(k*3:k*3+2)= MATMUL(v3(k*3:k*3+2), matrix)
+    if (present4) v4(k*3:k*3+2)= MATMUL(v4(k*3:k*3+2), matrix)
 enddo
 !$OMP END PARALLEL DO
 !------------------------------------------------------------
