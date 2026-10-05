@@ -1243,6 +1243,15 @@ type(site_info), target:: site, site1
 vp =site %v(0:2)
 vp1=site1%v(0:2)
 
+incline = 1. ! give a return if rb .eq. 0, 7, 8
+
+! NaN found in vp1, caused by terminated at where B is 0/NaN
+if (any(isnan(vp1))) then
+	rb=8
+	trim_factor=0. ! to make dt = sign(min_step, dt_executed) in subroutine rkf45
+    return
+endif
+
 boundary_mark(1)= (.not. periodFlag(2)) .and. .not. (vp1(2) .ge. pmin(2))
 boundary_mark(2)= (.not. periodFlag(2)) .and. .not. (vp1(2) .le. pmax(2))
 boundary_mark(3)= (.not. periodFlag(1)) .and. .not. (vp1(1) .ge. pmin(1)) .and. .not. south_pole
@@ -1250,8 +1259,6 @@ boundary_mark(4)= (.not. periodFlag(1)) .and. .not. (vp1(1) .le. pmax(1)) .and. 
 boundary_mark(5)= (.not. periodFlag(0)) .and. .not. (vp1(0) .ge. pmin(0))
 boundary_mark(6)= (.not. periodFlag(0)) .and. .not. (vp1(0) .le. pmax(0))
 !------------------------------------------------------------
-incline = 1. ! give a return if rb .eq. 0, 7, 8
-
 if      (count(boundary_mark) .eq. 0) then
 	rb=0  !inside
 else if (count(boundary_mark) .eq. 1) then
@@ -1296,9 +1303,6 @@ else if (.not. (all(boundary_mark(1:2)) .or. all(boundary_mark(3:4)) .or. all(bo
 		trim_factor=trim_factor*0.5
 		vp_mid=vp1*trim_factor + (1.-trim_factor)*vp
 	enddo
-else ! NaN found in vp1, caused by terminated at where B is 0/NaN
-	rb=8
-	trim_factor=0. ! to make dt = sign(min_step, dt_executed) in subroutine rkf45
 endif
 
 end subroutine trim_size
@@ -2015,8 +2019,8 @@ seed(:,:,:), b_layer(:,:,:), CurlB_layer(:,:,:), bnp2d(:,:), &
 bs_layer(:,:,:), be_layer(:,:,:), CurlBs_layer(:,:,:), CurlBe_layer(:,:,:), &
 q_local(:,:), brn_s(:,:), brn_e(:,:)
 real, allocatable, target:: rFs(:,:,:), rFe(:,:,:), rFs_yin(:,:,:), rFe_yin(:,:,:)
-logical:: vflag, bflag, cflag, sFlag, scottFlag, diff_seed, pole_j0, pole_jend, &
-targetB_flag, sign2dFlag, allocate_path, path_out, loopB_out, q_local_Flag
+logical:: vflag, bflag, cflag, sFlag, qflag, scottFlag, q_local_Flag, diff_seed, &
+pole_j0, pole_jend, targetB_flag, sign2dFlag, allocate_path, path_out, loopB_out
 logical, allocatable:: tangent(:,:), local_s_flag(:,:), local_e_flag(:,:)
 logical, allocatable, target:: s_yinFlag(:,:), e_yinFlag(:,:)
 type line
@@ -2117,7 +2121,7 @@ if (scottFlag) then
 	if (q_local_flag) q_local(i,j)=info%q_local
 else if (diff_flag) then
 	if (pole_j) then
-		q(i,j)=info%q
+		if (qflag) q(i,j)=info%q
 		if (q_local_flag) q_local(i,j)=info%q_local
 	endif
 	rbs(i, j)=info%rbs
@@ -2218,7 +2222,13 @@ else
 				exit
 			endif
 
-			arrow_seed(:, i_diff)=seed3(:,2)-seed3(:,0)
+			if (spherical) then 
+				arrow_seed(:, i_diff)=vp_spherical2car(seed3(:,2))-&
+				                      vp_spherical2car(seed3(:,0))
+			else
+				arrow_seed(:, i_diff)=seed3(:,2)-seed3(:,0)
+			endif
+
 			delta_diff(i_diff) = (d0+d1)/2.
 
 			if (diff_index(0, i_diff) .eq. 0) then
@@ -2234,10 +2244,11 @@ else
 			coef(1,i_diff) = - coef(0,i_diff) - coef(2,i_diff)
 		enddo
 
-		cos_tmp = cos2vector(arrow_seed(:,1), arrow_seed(:,2), gh) ! gh=sin_tmp
+		cos_tmp = cos2vector(arrow_seed(:,1), arrow_seed(:,2), sin_tmp)
+		gh = sin_tmp**2.
 
 		if (delta_diff(1)* 100. < delta_diff(2) .or. &
-		    delta_diff(2)* 100. < delta_diff(1) .or. gh .le. 0.01) key_nB=.true.
+		    delta_diff(2)* 100. < delta_diff(1) .or. sin_tmp .le. 0.01) key_nB=.true.
 
 	endif
 endif
@@ -2693,7 +2704,7 @@ enddo
 enddo
 !$OMP END PARALLEL DO
 !------------------------------------------------------------
-if (pole_j0 .or. pole_jend) then
+if (jend .ne. 0) then
 do j= 0, jend, jend
 	if (j .eq.    0 .and. .not. pole_j0  ) cycle
 	if (j .eq. jend .and. .not. pole_jend) cycle
@@ -2722,7 +2733,7 @@ do j= 0, jend, jend
 			be_layer(:, i, j)=be_layer(:, 0, j)
 		endif 
 
-		q(i,j)=q(0, j)
+		if (qflag) q(i,j)=q(0, j)
 		if (q_local_Flag) q_local(i,j)=q_local(0, j)
 		if (scottFlag) then	
 			q_perp(i,j)=q_perp(0, j)
@@ -2780,7 +2791,7 @@ enddo
 !$OMP END PARALLEL DO
 endif
 !------------------------------------------------------------
-where(q .lt. 2.) q=2.
+if (qflag) where(q .lt. 2.) q=2.
 if (scottFlag) where(q_perp .lt. 2.) q_perp=2.
 if (q_local_Flag) where(q_local .lt. 2.) q_local=2.
 
@@ -2880,7 +2891,7 @@ open(1, file='head_region.bin', access='stream', status='old')
 read(1) xreg, yreg, zreg, deltas, csFlag, preset_xreg, preset_yreg
 close(1, status='delete')
 !------------------------------------------------------------
-if (period_lon .and. .not. preset_xreg) xreg(1)= two_pi
+if (period_lon .and. .not. preset_xreg) xreg(1)= pmax(0)
 
 if (csflag) then
 	normal_index = -1
@@ -2890,6 +2901,7 @@ if (csflag) then
 
 	if ((-xreg(0) .eq. xreg(1)) .and. (-yreg(0) .eq. yreg(1))) then
 		if (spherical) then
+			p0= [cos(yreg(0))*[cos(xreg(0)), sin(xreg(0))], sin(yreg(0))]
 			p1= [cos(yreg(1))*[cos(xreg(1)), sin(xreg(1))], sin(yreg(1))]
 			arc= acos(cos2vector([1., 0., 0.], p1, sin_arc))
 			nq1= int(arc/delta_i)*2+1
@@ -2957,8 +2969,8 @@ if (csFlag .and. spherical) then
 	if ((-xreg(0) .eq. xreg(1)) .and. (-yreg(0) .eq. yreg(1))) then
 		seed(0:1, iend/2, 0)=0.
 		do i=iend/2+1, iend
-			p2_spherical = vp_car2spherical([1.,0.,0.]*sin(arc-delta_i*(i-iend/2))+ &
-			                                        p1*sin(delta_i*(i-iend/2))/sin_arc)
+			p2_spherical = vp_car2spherical(([1.,0.,0.]*sin(arc-delta_i*(i-iend/2))+ &
+			                                         p1*sin(delta_i*(i-iend/2)))/sin_arc)
 			seed(0:1, i, 0)      =  p2_spherical(0:1)
 			seed(0:1, iend-i, 0) = -p2_spherical(0:1)
 		enddo
@@ -3075,7 +3087,7 @@ end module compute
 program fastqsl
 use compute
 implicit none
-logical:: qflag, verbose, launch_out
+logical:: verbose, launch_out
 real(8):: tcalc, tnow, tend, omp_get_wtime
 integer:: i, k, i2end, OMP_GET_NUM_PROCS
 integer(8), allocatable:: indexes(:)
@@ -3091,7 +3103,7 @@ read(1) step, tol, r_local, maxsteps, RK4Flag, inclineFlag, &
         verbose, keep_tmp, magnetogram_out, int_private_out
 close(1, status='delete')
 !------------------------------------------------------------
-! if (verbose) call system_clock(tnow)
+if (verbose) call system_clock(tnow)
 if (verbose) tnow=omp_get_wtime()
 NaN = transfer(2143289344, 1.0)
 pi = 3.141592653589793
@@ -3126,9 +3138,8 @@ if (nthreads .eq. 0) nthreads=max(1, OMP_GET_NUM_PROCS()-2)
 
 privateFlag=any(int_private_out)
 traceflag = maxsteps .ne. 0
-
+! scottFlag = traceflag .and. scottFlag ! set already
 call set_CurlBvec_Flag
-
 dbdc_field_Flag  = traceflag .and. .not. (sflag .and. scottFlag .and. nq1 .le. 1000)
 
 call readB
@@ -3141,8 +3152,10 @@ endif
 
 if (.not. sflag) call initialize_region
 
-diff_flag= iend .ge. 2 .and. jend .ge. 2 .and. .not. scottFlag
+diff_flag = traceflag .and. iend .ge. 2 .and. jend .ge. 2 .and. .not. scottFlag
 diff_seed= diff_flag .and. sflag
+qflag    = diff_flag .or. scottFlag
+q_local_Flag= r_local .gt. 0. .and. qflag
 !------------------------------------------------------------
 ! parameters for tracing
 inclineFlag = inclineFlag .and. diff_flag
@@ -3169,13 +3182,12 @@ endif
 !------------------------------------------------------------
 ijend=[iend, jend]
 ! allocate arrays for module compute
-allocate(q(0:iend, 0:jend))
+if (qflag) allocate(q(0:iend, 0:jend))
 allocate(rboundary(0:iend, 0:jend))
 allocate(rFs(0:2, 0:iend, 0:jend))
 allocate(rFe(0:2, 0:iend, 0:jend))
 allocate(b_layer(0:2, 0:iend, 0:jend))
 
-q_local_Flag= r_local .gt. 0. .and. (diff_flag .or. scottFlag)
 if (q_local_Flag) then
 	r_local_square=r_local**2.
 	allocate(q_local(0:iend, 0:jend))
@@ -3239,7 +3251,7 @@ endif
 ! unit 1 is used in compute_layer, if traceflag is .false., scottFlag, int_private_out, rF_out 
 ! are already set to .false. in fastqsl.pro/fastqsl.py
 
-qflag= traceflag .and. (diff_flag .or. scottFlag)
+
 
 if (traceflag)       open(2,  file='rboundary.bin', access='stream', status='replace')
 if (qflag)           open(3,  file='q.bin',         access='stream', status='replace')
@@ -3369,7 +3381,8 @@ do ip=0, 9
 enddo
 !------------------------------------------------------------
 ! house keeping
-deallocate(q, rboundary, rFs, rFe, b_layer, seed, Bvec)
+deallocate(rboundary, rFs, rFe, b_layer, seed, Bvec)
+if (qflag) deallocate(q)
 if (allocate_path) deallocate(lines, loop_size, indexes, index_seed)
 if (CurlB_out) deallocate(CurlB_layer)
 if (targetB_flag) deallocate(bs_layer, be_layer)
@@ -3403,7 +3416,7 @@ round_weight => null()
 interpolate  => null()
 !------------------------------------------------------------
 if (verbose) then
-	! when 100.00% is printed, everything is done in fastqsl.x
+	when 100.00% is printed, everything is done in fastqsl.x
 	call show_time(100.0)
 
 	tend=omp_get_wtime()
