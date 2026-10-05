@@ -53,7 +53,7 @@ real(8) :: sin01(0:1), cos01(0:1), coor_in(0:2)
 coor_in=coor
 if (mode .eq. 0 .or. mode .eq. 2) then
     coor(2)= norm2(coor_in)
-    if (mode .eq. 2) coor_in = cshift(coor_in, -1)
+    if (mode .eq. 2) coor_in = cshift(coor_in, 1)
     coor(1)= asin(coor_in(2)/coor(2))
     coor(0)= xy2lon(coor_in(0:1))
 else if (mode .eq. 1 .or. mode .eq. 3) then
@@ -204,17 +204,17 @@ endif
 two_pi=6.28318530717958647692D0
 pi    =3.14159265358979323846D0
 
-!!$OMP PARALLEL DO PRIVATE(k, matrix), num_threads(nthreads), schedule(static)
+!$OMP PARALLEL DO PRIVATE(k, matrix), num_threads(nthreads), schedule(static)
 do k=0, ndata/3-1
     call convert(coordinate(k*3:k*3+2), matrix)
     if (present1) then
         v1(k*3:k*3+2)= MATMUL(v1(k*3:k*3+2), matrix)
         if (present2) v2(k*3:k*3+2)= MATMUL(v2(k*3:k*3+2), matrix)
         if (present3) v3(k*3:k*3+2)= MATMUL(v3(k*3:k*3+2), matrix)
-        if (present3) v4(k*3:k*3+2)= MATMUL(v4(k*3:k*3+2), matrix)
+        if (present4) v4(k*3:k*3+2)= MATMUL(v4(k*3:k*3+2), matrix)
     endif
 enddo
-!!$OMP END PARALLEL DO
+!$OMP END PARALLEL DO
 !------------------------------------------------------------
 call io_bin('coordinate_out.bin', coordinate, .false.)
 deallocate(coordinate)
