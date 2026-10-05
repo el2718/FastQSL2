@@ -105,10 +105,13 @@ def convert_coordinate(coordinate, v1=None, v2=None, v3=None, v4=None, \
             os.remove(tmp_dir+'v4out.bin')
     else: os.rmdir(tmp_dir)
     # -----------------------------------------------------
-    convert_out= coordinate_out
-    if present1: convert_out=(convert_out,).__add__((v1out,))
-    if present2: convert_out=   convert_out.__add__((v2out,))
-    if present3: convert_out=   convert_out.__add__((v3out,))
-    if present4: convert_out=   convert_out.__add__((v4out,))
+    if present1 or  present2 or  present2 or  present2:
+        convert_out= (coordinate_out,)
+    else: convert_out= coordinate_out
+
+    if present1: convert_out= convert_out.__add__((v1out,))
+    if present2: convert_out= convert_out.__add__((v2out,))
+    if present3: convert_out= convert_out.__add__((v3out,))
+    if present4: convert_out= convert_out.__add__((v4out,))
 
     return convert_out
