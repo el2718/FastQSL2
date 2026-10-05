@@ -105,7 +105,7 @@ def convert_coordinate(coordinate, v1=None, v2=None, v3=None, v4=None, \
             os.remove(tmp_dir+'v4out.bin')
     else: os.rmdir(tmp_dir)
     # -----------------------------------------------------
-    if present1 or  present2 or  present2 or  present2:
+    if present1 or  present2 or  present3 or present4:
         convert_out= (coordinate_out,)
     else: convert_out= coordinate_out
 
