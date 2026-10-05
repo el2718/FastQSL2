@@ -636,7 +636,7 @@ Here we provide a way to transform coordinates among $\{x, y, z\}$, $\{\varphi, 
 ### Two Parameters Used for Modeling Solar Wind Speed
 
 [Arge (2003)](https://pubs.aip.org/aip/acp/article-abstract/679/1/190/1010917/Improved-Method-for-Specifying-Solar-Wind-Speed?redirectedFrom=fulltext) found that the solar wind speed at the first Lagrangian point from December 1994 to the end of 1995 can be roughly modeled by
-$v_\textrm{sw}=265+\dfrac{25}{f_s^{2/7}} \left(5-1.1\times \exp(1-(\theta_b/4)^2)\right)~\textrm{km/s}, $
+$v_\textrm{sw}=265+\dfrac{25}{f_s^{2/7}} \left(5-1.1\times \exp(1-(\theta_b/4)^2)\right)^2~\textrm{km/s}, $
 and two parameters in this formula are defined as:
 * Magnetic field expansion factor
 $f_\textrm{s}(\varphi, \vartheta, r)=
