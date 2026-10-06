@@ -42,7 +42,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
         with open(tmp_dir+'field.bin','rb') as file:
             nx, ny, nz = np.fromfile(file, dtype='i4', count=3)
             stretchFlag, spherical= np.array(np.fromfile(file, dtype='i4', count=2), dtype='b1')
-            dummy=np.fromfile(file, dtype='i4', count=5)
+            np.fromfile(file, dtype='i4', count=5)
             if stretchFlag:
                 xa=np.fromfile(file, dtype='f4', count=nx)
                 ya=np.fromfile(file, dtype='f4', count=ny)
@@ -75,11 +75,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                 raise Exception('The size of xa, ya, and za must be consistant with the dimensions of the magnetic field')
         elif spherical: raise Exception('xa, ya, and za should be specified in spherical coordinates')
 
-        if B3Flag: 
-            Bvec=np.zeros((nz, ny, nx, 3), dtype='f4')
-            Bvec[:,:,:,0]=Bx
-            Bvec[:,:,:,1]=By
-            Bvec[:,:,:,2]=Bz
+        if B3Flag: Bvec = np.stack((Bx, By, Bz), axis=-1).astype('f4', copy=False)
         else: Bvec=np.array(Bx, dtype='f4', order='C')
 
         CurlB_input= (CurlBx is not None) or (By is not None and Bz is None)
@@ -90,10 +86,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                np.array(CurlBy).shape != (nz, ny, nx) or \
                np.array(CurlBz).shape != (nz, ny, nx):
                 raise Exception('CurlBx, CurlBy, and CurlBz must have the same dimensions!')
-            CurlBvec=np.zeros((nz, ny, nx, 3), dtype='f4')
-            CurlBvec[:,:,:,0]=CurlBx
-            CurlBvec[:,:,:,1]=CurlBy
-            CurlBvec[:,:,:,2]=CurlBz
+            CurlBvec = np.stack((CurlBx, CurlBy, CurlBz), axis=-1).astype('f4', copy=False)
         if  By is not None and Bz is None:
             # for this case, CurlBvec is inputted by By
             if np.array(By).shape != (nz, ny, nx, 3):
@@ -106,10 +99,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                    np.array(Ay).shape != (nz, ny, nx) or \
                    np.array(Az).shape != (nz, ny, nx):
                     raise Exception('Ax, Ay, and Az must have the same dimensions!')
-                Avec=np.zeros((nz, ny, nx, 3), dtype='f4')
-                Avec[:,:,:,0]=Ax
-                Avec[:,:,:,1]=Ay
-                Avec[:,:,:,2]=Az
+                Avec = np.stack((Ax, Ay, Az), axis=-1).astype('f4', copy=False)
             else: 
                 if np.array(Ax).shape != (nz, ny, nx, 3):
                     raise Exception('Something is wrong with the additional field')
@@ -128,22 +118,22 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
             if seed == 'original':
                 seed = np.zeros((nz, ny, nx, 3), dtype='f4')
                 if stretchFlag:
-                    for i in range(nx): seed[:, :, i, 0] = xa[i]
-                    for i in range(ny): seed[:, i, :, 1] = ya[i]
-                    for i in range(nz): seed[i, :, :, 2] = za[i]
+                    seed[..., 0] = xa
+                    seed[..., 1] = np.asarray(ya)[:, None]
+                    seed[..., 2] = np.asarray(za)[:, None, None]
                 else:
-                    for i in range(nx): seed[:, :, i, 0] = i
-                    for i in range(ny): seed[:, i, :, 1] = i
-                    for i in range(nz): seed[i, :, :, 2] = i
+                    seed[..., 0] = np.arange(nx)
+                    seed[..., 1] = np.arange(ny)[:, None]
+                    seed[..., 2] = np.arange(nz)[:, None, None]
             elif seed == 'original_bottom':
                 seed = np.zeros((ny, nx, 3), dtype='f4')
                 if stretchFlag:
-                    for i in range(nx): seed[:, i, 0] = xa[i]
-                    for i in range(ny): seed[i, :, 1] = ya[i]
-                    seed[:, :, 2] = za[0]
+                    seed[..., 0] = xa
+                    seed[..., 1] = np.asarray(ya)[:, None]
+                    seed[..., 2] = za[0]
                 else:
-                    for i in range(nx): seed[:, i, 0] = i
-                    for i in range(ny): seed[i, :, 1] = i
+                    seed[..., 0] = np.arange(nx)
+                    seed[..., 1] = np.arange(ny)[:, None]
             else: raise ValueError('Something is wrong with seed')
         else: seed=np.array(seed, dtype='f4')
 
@@ -279,11 +269,9 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
             file.write(np.array([csFlag, preset_xreg, preset_yreg], dtype='i4'))
 # ------------------------------------------------------------
     # computed by fastqsl.x
-    os.chdir(tmp_dir)
     # please specify the path
     # the following r can avoid the potential problem of '\n' from os.sep ='\' in Windows
-    subprocess.run(r'/path/of/fastqsl.x', shell=True)
-    os.chdir(cdir)
+    subprocess.run(r'/path/of/fastqsl.x', shell=True, cwd=tmp_dir)
 # ################################### retrieving results ######################################
 # make the dictionary qsl
     qsl=SimpleNamespace()
@@ -355,20 +343,18 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
     ['index_seed', 'i4', dim]]
 
     for i in range(nprivate):
-        file_orig=tmp_dir+'int_private'+f'{round(i):d}'+'.bin'
+        file_orig=tmp_dir+'int_private'+f'{i:d}'+'.bin'
         if os.path.exists(file_orig):
-            if 'int_private'+f'{round(i):d}' is not int_private_name[i]:
-                os.rename(file_orig, tmp_dir+int_private_name[i]+'.bin')
+            os.rename(file_orig, tmp_dir+int_private_name[i]+'.bin')
             qsl_data0.append([int_private_name[i], 'f4', dim])
 
     qsl_data=[str3 for str3 in qsl_data0 if os.path.exists(tmp_dir+str3[0]+'.bin')]    
     if path_out:
         with open(tmp_dir+'indexes.bin','rb') as file: indexes=np.fromfile(file, dtype='i8')
 
-    for str3 in qsl_data:
-        name=str3[0]
+    for name, dtype, shape in qsl_data:
         with open(tmp_dir+name+'.bin','rb') as file: 
-            dummy=np.fromfile(file, dtype=str3[1]).reshape(str3[2])
+            dummy=np.fromfile(file, dtype=dtype).reshape(shape)
         if name in ['path', 'loopB','loopCurlB']:
             if   out_dim <=1: qsl.__setattr__(name, [dummy[indexes[i]:indexes[i+1],:] \
                                       for i in range(nq1)])
@@ -482,10 +468,8 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                 plt.plot(np.array(x_margin)+two_pi, y_margin, style, markersize=1)
                 plt.plot(np.array(x_margin)-two_pi, y_margin, style, markersize=1)
 
-        magnetogram[np.isnan(magnetogram)]=0.
-        magnetogram[np.isinf(magnetogram)]=0.  
-        scale_top=  np.max(np.abs(magnetogram))/4.0 
-        if scale_top > 1000.: scale_top=1000.
+        magnetogram[~np.isfinite(magnetogram)] = 0.
+        scale_top = min(np.max(np.abs(magnetogram)) / 4., 1000.)
 
         plt.imshow(magnetogram,extent=extent,origin='lower',vmin=-scale_top,vmax=scale_top,cmap='gray')
         # plt.colorbar()
@@ -535,20 +519,20 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 
             # q/q_perp/q_local
             q_strs=[str3[0] for str3 in qsl_data if str3[0] in ['q', 'q_perp','q_local' ]]
-            
+            q_tmp1 = None
+
             for q_str in q_strs:
                 q_tmp = qsl.__dict__[q_str].copy() if out_dim ==2 else qsl.__dict__[q_str][0,:,:].copy()
 
                 # 1. for white color
-                q_tmp[np.isnan(q_tmp)]=1.
-                q_tmp[np.isinf(q_tmp)]=1.
+                q_tmp[~np.isfinite(q_tmp)] = 1.
 
                 if plot_bottom:
                     plt.imsave(odir+fname+'_slog'+q_str+'.png', \
                     np.log10(q_tmp)*qsl.sign2d, vmin=-5., vmax=5., origin='lower', cmap='bwr')
                     if verbose: print(odir+fname+'_slog'+q_str+'.png')
 
-                    if targetB_out and q_str=='q': q_tmp1=q_tmp.copy()
+                    if targetB_out and q_str=='q': q_tmp1=q_tmp
 
                     # make white color for open field line
                     # q_tmp[rb_tmp != 11]=1. 
@@ -587,17 +571,13 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                 N=np.sqrt(q_tmp1 * Bnr)  # Priest and Demoulin (1995)
             
                 # 1. for black color
-                N[N == 0.    ]=1.
-                N[np.isinf(N)]=1.
-                N[np.isnan(N)]=1.
+                N[(N == 0.) | ~np.isfinite(N)] = 1.
                 plt.imsave(odir+fname+'_N.png', np.log10(N), \
                            vmin=0.5, vmax=3., origin='lower', cmap='gray')
                 if verbose: print(odir+fname+'_N.png')
                     
                 # 1. for white color, should be done after N is calculated
-                Bnr[Bnr == 0.    ]=1.
-                Bnr[np.isinf(Bnr)]=1.
-                Bnr[np.isnan(Bnr)]=1.
+                Bnr[(Bnr == 0.) | ~np.isfinite(Bnr)] = 1.
 
                 plt.imsave(odir+fname+'_lg_Bnr.png', np.log10(Bnr), \
                            vmin=-2., vmax=2., origin='lower', cmap='bwr')
@@ -608,8 +588,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                 for int_name in int_private_name:
                     if int_name in qsl.__dict__.keys():
                         int_tmp=qsl.__dict__[int_name].copy()
-                        int_tmp[np.isnan(int_tmp)]=0. # 0. for black color
-                        int_tmp[np.isinf(int_tmp)]=0.
+                        int_tmp[~np.isfinite(int_tmp)] = 0. # 0. for black color
                         png_file=odir+fname+'_'+int_name+'.png'
                         if int_name =='length':
                             int_top=2.*(nz-1) if not stretchFlag else 2.*(za[nz-1]-za[0])
@@ -618,7 +597,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
                             int_top=2.
                             doppler_Flag=True
                         elif np.min(int_tmp) < 0. :
-                            int_top=max([np.abs(np.min(int_tmp)),max(np.int_tmp)])/2.
+                            int_top = max(abs(np.min(int_tmp)), np.max(int_tmp)) / 2.
                             doppler_Flag=True
                         else:
                             int_top=np.max(int_tmp)/2.
@@ -636,7 +615,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
     # end if preview
 # ------------------------------------------------------------
     if not keep_tmp:
-        for str3 in qsl_data: os.remove(tmp_dir+str3[0]+'.bin')
+        for name, _, _ in qsl_data: os.remove(tmp_dir + name + '.bin')
         if path_out: os.remove(tmp_dir+'indexes.bin')
         if not sFlag: os.remove(tmp_dir+'tail_region.bin')
         if preview and (BtmpFlag or stretchFlag): os.remove(tmp_dir+'magnetogram.bin')
@@ -644,8 +623,7 @@ def fastqsl(Bx=None, By=None, Bz=None, CurlBx=None, CurlBy=None, CurlBz=None, *,
 
     if verbose:
         print('\n'+'Elements in qsl:')
-        for key in qsl.__dict__.keys():
-            attr = qsl.__dict__[key]
+        for key, attr in vars(qsl).items():
             if isinstance(attr, np.ndarray):
                 content = attr if attr.size <=3 else attr.shape
                 print('{0:<17}{1:<10}'.format("qsl."+key, attr.dtype.name), content)
