@@ -4,6 +4,12 @@ real(8) :: pi, two_pi
 logical:: r4flag, present_v
 real(4), allocatable :: dummy(:)
 
+type vector_file
+    real(8), allocatable :: data(:)
+    logical :: present
+    character(len=2) :: name
+endtype vector_file
+
 interface
 	pure subroutine convert0(coor, matrix)
     implicit none
@@ -146,18 +152,18 @@ else
 endif
 end subroutine io_bin
 
-
 end module share
+
 
 program main
 use share
 implicit none
 integer:: nthreads, OMP_GET_NUM_PROCS
-integer(8):: k, ndata
+integer(8):: i, k, ndata
 logical::  present1, present2, present3, present4
 real(8):: matrix(0:2, 0:2)
-real(8), allocatable :: coordinate(:), v1(:), v2(:), v3(:), v4(:)
-character(len=1) :: str_aux
+real(8), allocatable :: coordinate(:)
+type(vector_file) :: v(4)
 !------------------------------------------------------------
 open(1, file='head.bin', access='stream', status='old')
 read(1) mode, nthreads, r4flag, ndata
@@ -167,31 +173,16 @@ if (r4flag) allocate(dummy(0:ndata-1))
 allocate(coordinate(0:ndata-1))
 call io_bin('coordinate.bin', coordinate, .true.)
 
-inquire(file='v1.bin', exist=present1)
-if (present1) then
-    allocate(v1(0:ndata-1))
-    call io_bin('v1.bin', v1, .true.)
-endif
-
-inquire(file='v2.bin', exist=present2)
-if (present2) then
-    allocate(v2(0:ndata-1))
-    call io_bin('v2.bin', v2, .true.)
-endif
-
-inquire(file='v3.bin', exist=present3)
-if (present3) then
-    allocate(v3(0:ndata-1))
-    call io_bin('v3.bin', v3, .true.)
-endif
-
-inquire(file='v4.bin', exist=present4)
-if (present4) then
-    allocate(v4(0:ndata-1))
-    call io_bin('v4.bin', v4, .true.)
-endif
-
-present_v= present1 .or. present2 .or. present3 .or. present4
+present_v=.false.
+do i=1, 4
+    write(v(i)%name,'("v",i0)') i
+    inquire(file=v(i)%name//'.bin', exist=v(i)%present)
+    if (v(i)%present) then
+         allocate(v(i)%data(0:ndata-1))
+         call io_bin(v(i)%name//'.bin', v(i)%data, .true.)
+         if (.not. present_v) present_v=.true.
+    endif
+enddo
 !------------------------------------------------------------
 ! https://www.openmp.org/spec-html/5.0/openmpsu112.html
 if (nthreads .gt. OMP_GET_NUM_PROCS()) nthreads=OMP_GET_NUM_PROCS()
@@ -209,35 +200,19 @@ pi    =3.14159265358979323846D0
 !$OMP PARALLEL DO PRIVATE(k, matrix), num_threads(nthreads), schedule(static)
 do k=0, ndata/3-1
     call convert(coordinate(k*3:k*3+2), matrix)
-    if (present1) v1(k*3:k*3+2)= MATMUL(v1(k*3:k*3+2), matrix)
-    if (present2) v2(k*3:k*3+2)= MATMUL(v2(k*3:k*3+2), matrix)
-    if (present3) v3(k*3:k*3+2)= MATMUL(v3(k*3:k*3+2), matrix)
-    if (present4) v4(k*3:k*3+2)= MATMUL(v4(k*3:k*3+2), matrix)
+    forall(i=1:4, v(i)%present) v(i)%data(k*3:k*3+2)= MATMUL(v(i)%data(k*3:k*3+2), matrix)
 enddo
 !$OMP END PARALLEL DO
 !------------------------------------------------------------
 call io_bin('coordinate_out.bin', coordinate, .false.)
 deallocate(coordinate)
 
-if (present1) then
-    call io_bin('v1out.bin', v1, .false.)
-    deallocate(v1)
-endif
-
-if (present2) then
-    call io_bin('v2out.bin', v2, .false.)
-    deallocate(v2)
-endif
-
-if (present3) then
-    call io_bin('v3out.bin', v3, .false.)
-    deallocate(v3)
-endif
-
-if (present4) then
-    call io_bin('v4out.bin', v4, .false.)
-    deallocate(v4)
-endif
+do i=1,4
+    if (v(i)%present) then
+        call io_bin(v(i)%name//'out.bin', v(i)%data, .false.)
+        deallocate(v(i)%data)
+    endif
+enddo
 
 if (r4flag) deallocate(dummy)
 
