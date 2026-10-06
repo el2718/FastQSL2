@@ -104,12 +104,9 @@ if ~BtmpFlag then begin
 			yperiod=0
 			zperiod=0
 		endif else begin
-			if nx eq 2 then xperiod=1
-			if ny eq 2 then yperiod=1
-			if nz eq 2 then zperiod=1
-			xperiod=keyword_set(xperiod)
-			yperiod=keyword_set(yperiod)
-			zperiod=keyword_set(zperiod)
+			xperiod = (nx eq 2) or keyword_set(xperiod)
+			yperiod = (ny eq 2) or keyword_set(yperiod)
+			zperiod = (nz eq 2) or keyword_set(zperiod)
 		endelse
 	endelse
 
@@ -379,7 +376,7 @@ qsl_data0=[ $
 ['Bs', array_vfloat], $
 ['Be', array_vfloat], $
 ['CurlBs', array_vfloat], $
-['CurlBe', array_vfloat], $o
+['CurlBe', array_vfloat], $
 ['path', array_ptr], $
 ['loopB', array_ptr], $
 ['loopCurlB', array_ptr], $
@@ -388,7 +385,6 @@ qsl_data0=[ $
 for i=0, nprivate-1 do begin
 	file_orig=tmp_dir+'int_private'+string(i, '(i0)')+'.bin'
 	if file_test(file_orig) then begin
-		if int_private_name[i] ne 'int_private'+string(i, '(i0)') then $
 		file_move, file_orig, tmp_dir+int_private_name[i]+'.bin'
 		qsl_data0=[[qsl_data0], [int_private_name[i], array_float]]
 	endif
@@ -792,41 +788,39 @@ if (maxsteps ne 0 and (out_dim eq 2 or plot_bottom)) then begin
 	for j=0, nprivate-1 do begin
 		if int_private_out[j] then begin
 
-			int_name=int_private_name[j]
-			png_file=odir+fname+'_'+int_name+'.png'
+			int_name =int_private_name[j]
+			tag_index= where(qsl_tags eq strupcase(int_name), nmatch)
 
-			for i=0, n_tags(qsl)-1 do begin
-				if strlowcase(qsl_tags[i]) eq strlowcase(int_name) then begin
-					int_tmp=qsl.(i)
-					abnormal=WHERE(~FINITE(int_tmp))
-					if (abnormal[0] ne -1) then int_tmp[abnormal]=0.
-					
-					if int_name eq 'length' then begin
-						if stretchFlag then int_top=2.*(za[nz-1]-za[0]) else int_top=2.*(nz-1)
-						doppler_Flag=0
-					endif else if int_name eq 'twist' then begin
-						int_top=2.
-						doppler_Flag=1
-					endif else if min(int_tmp) lt 0. then begin
-						int_top=max([abs(min(int_tmp)), max(int_tmp)])/2.
-						doppler_Flag=1
-					endif else begin
-						int_top=max(int_tmp)/2.
-						doppler_Flag=0
-					endelse
-					
-					if doppler_Flag then begin
-						im=bytscl(int_tmp, min=-int_top, max=int_top)
-						write_png, png_file, im, r_doppler, g_doppler, b_doppler
-					endif else begin
-						im=bytscl(int_tmp, min=0., max=int_top)
-						write_png, png_file, im
-					endelse
+			if nmatch gt 0 then begin
+				int_tmp=qsl.(tag_index[0])
+				png_file=odir+fname+'_'+int_name+'.png'
+				abnormal=WHERE(~FINITE(int_tmp))
+				if (abnormal[0] ne -1) then int_tmp[abnormal]=0.
+				
+				if int_name eq 'length' then begin
+					if stretchFlag then int_top=2.*(za[nz-1]-za[0]) else int_top=2.*(nz-1)
+					doppler_Flag=0
+				endif else if int_name eq 'twist' then begin
+					int_top=2.
+					doppler_Flag=1
+				endif else if min(int_tmp) lt 0. then begin
+					int_top=max([abs(min(int_tmp)), max(int_tmp)])/2.
+					doppler_Flag=1
+				endif else begin
+					int_top=max(int_tmp)/2.
+					doppler_Flag=0
+				endelse
+				
+				if doppler_Flag then begin
+					im=bytscl(int_tmp, min=-int_top, max=int_top)
+					write_png, png_file, im, r_doppler, g_doppler, b_doppler
+				endif else begin
+					im=bytscl(int_tmp, min=0., max=int_top)
+					write_png, png_file, im
+				endelse
 
-					if verbose then print, png_file
-				break
-				endif
-			endfor
+				if verbose then print, png_file
+			endif
 		endif
 	endfor
 	endif
