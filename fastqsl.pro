@@ -37,7 +37,7 @@ if n_elements(bx) eq 0 then begin
 	openr, unit, tmp_dir+'field.bin'
 	readu, unit, nx, ny, nz, stretchFlag, spherical, dummy
 	if stretchFlag then begin
-		xa= fltarr(nx) & ya= fltarr(ny) & za= fltarr(nz)
+		xa= fltarr(nx, /nozero) & ya= fltarr(ny, /nozero) & za= fltarr(nz, /nozero)
 		readu, unit, xa, ya, za
 	endif
 	close, unit
@@ -368,7 +368,7 @@ qsl_data0=[ $
 ['q_perp', array_float], $
 ['q_local', array_float], $
 ['rboundary', array_byte], $
-['sign2d', 'intarr(nq1, nq2)'], $
+['sign2d', 'intarr(nq1, nq2, /nozero)'], $
 ['B', array_vfloat], $
 ['CurlB', array_vfloat], $
 ['rFs', array_vfloat], $
@@ -402,11 +402,11 @@ cmd0 = 'get_lun, unit2'
 
 if path_out then begin
 	cmd0=cmd0+' & n_loops=long64(nq1)*nq2*nq3' + $
-	          ' & indexes=lon64arr(n_loops+1)' + $
+	          ' & indexes=lon64arr(n_loops+1, /nozero)' + $
 	          ' & openr, unit2, "'+tmp_dir+'indexes.bin"' + $
 	          ' & readu, unit2, indexes' + $
 	          ' & close, unit2' + $
-	          ' & dummy=fltarr(3,indexes[n_loops])'
+	          ' & dummy=fltarr(3,indexes[n_loops], /nozero)'
 endif
 
 n_data=0
@@ -527,7 +527,7 @@ if BtmpFlag or stretchFlag then begin
 	nx_mag=0L & ny_mag=0L & mag_delta=0.0
 	openr, unit, tmp_dir+'magnetogram.bin'
 	readu, unit, nx_mag, ny_mag, mag_delta
-	magnetogram=fltarr(nx_mag, ny_mag)
+	magnetogram=fltarr(nx_mag, ny_mag, /nozero)
 	readu, unit, magnetogram
 	close, unit
 endif else  begin
