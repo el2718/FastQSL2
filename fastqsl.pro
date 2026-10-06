@@ -55,7 +55,7 @@ endif else begin
 		   sbx[3] ne sby[3] or sbx[3] ne sbz[3] then message, 'Bx, By and Bz must have the same dimensions!'
 		nx=sbz[1] & ny=sbz[2] & nz=sbz[3]
 
-		Bvec=fltarr(3, nx, ny, nz)
+		Bvec=fltarr(3, nx, ny, nz, /nozero)
 		Bvec[0,*,*,*]=Bx
 		Bvec[1,*,*,*]=By
 		Bvec[2,*,*,*]=Bz
@@ -68,7 +68,7 @@ endif else begin
 			             szz[1] eq nx and szz[2] eq ny and szz[3] eq nz 
 		endif
 		if CurlB_input then begin
-			CurlBvec=fltarr(3, nx, ny, nz)
+			CurlBvec=fltarr(3, nx, ny, nz, /nozero)
 			CurlBvec[0,*,*,*]=CurlBx
 			CurlBvec[1,*,*,*]=CurlBy
 			CurlBvec[2,*,*,*]=CurlBz
@@ -118,7 +118,7 @@ if ~BtmpFlag then begin
 			if szx[1] ne nx or szx[2] ne ny or szx[3] ne nz or $
 			   szy[1] ne nx or szy[2] ne ny or szy[3] ne nz or $
 			   szz[1] ne nx or szz[2] ne ny or szz[3] ne nz then message, 'Ax, Ay and Az must have the same dimensions!'
-			Avec=fltarr(3, nx, ny, nz)
+			Avec=fltarr(3, nx, ny, nz, /nozero)
 			Avec[0,*,*,*]=Ax
 			Avec[1,*,*,*]=Ay
 			Avec[2,*,*,*]=Az
@@ -145,7 +145,7 @@ if sFlag then begin
 	
 	if (size(seed,/tname) eq 'STRING') then begin
 		if seed eq 'original' then begin
-			seed=fltarr(3, nx, ny, nz)
+			seed=fltarr(3, nx, ny, nz, /nozero)
 			if stretchFlag then begin
 				for i=0, nx-1 do seed[0,i,*,*]=xa[i]
 				for i=0, ny-1 do seed[1,*,i,*]=ya[i]
@@ -156,7 +156,7 @@ if sFlag then begin
 				for i=0, nz-1 do seed[2,*,*,i]=i
 			endelse
 		endif else if seed eq 'original_bottom' then begin
-			seed=fltarr(3, nx, ny)
+			seed=fltarr(3, nx, ny, /nozero)
 			if stretchFlag then begin
 				for i=0, nx-1 do seed[0,i,*]=xa[i]
 				for i=0, ny-1 do seed[1,*,i]=ya[i]
@@ -354,15 +354,15 @@ if (out_dim eq 0) then begin
 	array_ptr='ptr_new()'
 endif else begin
 	; if out_dim eq 2, fltarr(nq1, nq2, nq3) will become fltarr(nq1, nq2) by IDL
-	array_float='fltarr(nq1, nq2, nq3)'
-	array_byte='bytarr(nq1, nq2, nq3)'
-	array_long='lonarr(nq1, nq2, nq3)'
+	array_float='fltarr(nq1, nq2, nq3, /nozero)'
+	array_byte='bytarr(nq1, nq2, nq3, /nozero)'
+	array_long='lonarr(nq1, nq2, nq3, /nozero)'
 	array_ptr='ptrarr(nq1, nq2, nq3)'
 endelse
-array_vfloat='fltarr(3, nq1, nq2, nq3)'
+array_vfloat='fltarr(3, nq1, nq2, nq3, /nozero)'
 
 qsl_data0=[ $
-['axis1', 'fltarr(2, nq1)'], $
+['axis1', 'fltarr(2, nq1, /nozero)'], $
 ['seed', array_vfloat], $
 ['q', array_float], $
 ['q_perp', array_float], $
@@ -398,19 +398,15 @@ if ~sFlag then begin
 	close,  unit
 endif
 
-openw,  unit, tmp_dir+'qsl_structure.pro'
-printf, unit, 'pro qsl_structure, QSL, nq1, nq2, nq3, xreg, yreg, zreg, $'
-printf, unit, 'delta, arc_delta, lon_delta, lat_delta, r_delta, step, tol, r_local'
-
-printf, unit, 'get_lun, unit'
+cmd0 = 'get_lun, unit2'
 
 if path_out then begin
-	printf, unit, 'n_loops=long64(nq1)*nq2*nq3'
-	printf, unit, 'indexes=lon64arr(n_loops+1)'
-	printf, unit, 'openr, unit, "'+tmp_dir+'indexes.bin"'
-	printf, unit, 'readu, unit, indexes'
-	printf, unit, 'close, unit'
-	printf, unit, 'dummy=fltarr(3,indexes[n_loops])'
+	cmd0=cmd0+' & n_loops=long64(nq1)*nq2*nq3' + $
+	          ' & indexes=lon64arr(n_loops+1)' + $
+	          ' & openr, unit2, "'+tmp_dir+'indexes.bin"' + $
+	          ' & readu, unit2, indexes' + $
+	          ' & close, unit2' + $
+	          ' & dummy=fltarr(3,indexes[n_loops])'
 endif
 
 n_data=0
@@ -420,20 +416,20 @@ for i=0, n_elements(qsl_data0)/2-1 do begin
 	if file_test(file) then begin
 		n_data=n_data+1
 		if n_data eq 1 then qsl_data=name else qsl_data=[qsl_data,name]
-		printf, unit, name+'='+qsl_data0[1,i]
-		printf, unit, 'openr, unit, "'+file+'"'
+		cmd0=cmd0+' & '+ name+'='+qsl_data0[1,i]+ $
+		          ' & openr, unit2, "'+file+'"'
 		if (qsl_data0[1,i] eq array_ptr) then begin
-			printf, unit, 'readu, unit, dummy'
-			printf, unit, 'for i=0L, n_loops-1 do $'
-			printf, unit, name+'[i]=ptr_new(dummy[*,indexes[i]:indexes[i+1]-1])'		
-		endif else printf, unit, 'readu, unit, '+name
-		printf, unit, 'close, unit'
+			cmd0=cmd0+' & readu, unit2, dummy'     + $
+			          ' & for i=0L, n_loops-1 do ' + $
+			name+'[i]=ptr_new(dummy[*,indexes[i]:indexes[i+1]-1])'		
+		endif else cmd0=cmd0+' & readu, unit2, '+name
+		cmd0=cmd0+' & close, unit2'
 	endif
 endfor
 
-printf, unit, 'free_lun, unit, /force'
+cmd0= cmd0+' & free_lun, unit2, /force &'
 
-strs='QSL={ $'
+strs=' QSL={'
 
 if maxsteps ne 0 then $
 if rk4Flag then strs=[strs, 'step:float(step)'] else strs=[strs, 'tol:float(tol)'] 
@@ -451,31 +447,20 @@ endif
 if file_test(tmp_dir+'q_local.bin') then strs=[strs,'r_local:float(r_local)']
 
 if nq2 eq 1 then begin
-	strs=[strs,'dim: nq1'] 
+	strs=[strs,'dim:nq1'] 
 endif else if nq3 eq 1 then begin
-	strs=[strs,'dim: [nq1, nq2]']
-endif else strs=[strs,'dim: [nq1, nq2, nq3]']
+	strs=[strs,'dim:[nq1, nq2]']
+endif else strs=[strs,'dim:[nq1, nq2, nq3]']
 
 for i=0, n_data-1 do strs=[strs, qsl_data[i]+':'+qsl_data[i]]
 
 n_strs=n_elements(strs)
-printf, unit, strs[0]
-for i=1, n_strs-2 do printf, unit, strs[i]+', $'
-printf, unit, strs[n_strs-1]+'}'
+cmd1=strs[0]
+for i=1, n_strs-2 do cmd1=cmd1+ strs[i]+','
+cmd1=cmd1+strs[n_strs-1]+'}'
 
-printf, unit, 'end'
-close,  unit
-
-cd, tmp_dir
-resolve_routine, 'qsl_structure'
-cd, cdir
-
-qsl_structure, QSL, nq1, nq2, nq3, xreg, yreg, zreg, $
-delta, arc_delta, lon_delta, lat_delta, r_delta, step, tol, r_local
-
+dummy=execute(cmd0+cmd1)
 qsl_tags=tag_names(qsl)
-
-file_delete, tmp_dir+'qsl_structure.pro'
 ;------------------------------------------------------------
 ; the directory for output
 if preview or save_file then begin
