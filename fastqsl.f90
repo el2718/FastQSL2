@@ -44,7 +44,6 @@ integer:: i, j, k, s, t, nx, ny, nz, nx_mag, ny_mag, aend1, round(0:1,0:2), j1, 
 real:: weight(0:1,0:1,0:1), mag_delta, clat_pole, dlast, dperiod, &
 matrix(0:1, 0:1), fj2, vp_yin(0:2), vp(0:2), bp(0:2), ap(0:2), CurlBp(0:2)
 real, allocatable:: field_tmp(:), magnetogram(:,:), lon_tmp(:), lat_tmp(:)
-real, pointer, contiguous:: ax_tmp(:)
 type(pole_field), pointer:: pole
 type(site_info):: site
 !------------------------------------------------------------
@@ -396,7 +395,7 @@ end subroutine diff_grid
 !dbdc, b:\vec(B)/B, c: coordinates
 subroutine dbdc_grid(i, j, k, dbdc)
 implicit none
-integer:: i, j, k, r, s, t, index_diff(0:2)
+integer:: i, j, k, s, t, index_diff(0:2)
 real:: dbdc(0:2, 0:2), coef_diff(0:2), B3(0:2,0:2)
 !------------------------------------------------------------
 dbdc=0.
@@ -412,7 +411,7 @@ END subroutine dbdc_grid
 
 subroutine CurlB_grid(i, j, k, CurlBp)
 implicit none
-integer:: i, j, k, r, s, t, index_diff(0:2), index2(0:1)
+integer:: i, j, k, s, t, index_diff(0:2), index2(0:1)
 real:: gradBp(0:2,0:2), CurlBp(0:2), coef_diff(0:2), B3(0:2,0:2), hs(0:2,0:2)
 !------------------------------------------------------------
 gradBp=0.
@@ -1375,8 +1374,8 @@ logical, optional:: rk_first
 logical:: southflag, yinflag
 integer:: round(0:1,0:2), i, j, k
 real:: weight(0:1,0:1,0:1), r, sin_lat, cos_lat, &
-dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2), Ap(0:2)
-real, pointer, contiguous:: bp(:), vector(:), dvds(:), CurlBp(:)
+dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2)
+real, pointer, contiguous:: bp(:), vector(:), dvds(:)
 !------------------------------------------------------------
 if (present(rk_first)) then
 	yinflag = (south_pole .and. (-site%v(1) .gt. lat_pole) .and. (-site%v(1) .le. lat_pole2)) &
@@ -1514,7 +1513,7 @@ implicit none
 type(site_info), target:: site
 logical, optional:: rk_first
 integer:: round(0:1,0:2), i, j, k
-real:: weight(0:1,0:1,0:1), dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2), Ap(0:2)
+real:: weight(0:1,0:1,0:1), dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2)
 !------------------------------------------------------------
 call round_weight(site, round, weight)
 forall(i=0:2) site%B(i)=sum(weight* Bvec(i, round(:,0), round(:,1), round(:,2)))
@@ -1663,7 +1662,7 @@ integer:: i, sign_down, sign_up, sign_forward, it, sign_dt, rb, e_index, s_index
 real:: vp(0:2), dt, dt_executed, step_this, tol_this, dL, int2private(0:9), &
 Bn_s, Bn_e, us(0:2), ue(0:2), vs(0:2), ve(0:2), us1(0:2), ue1(0:2), vs1(0:2), ve1(0:2), &
 bs2(0:2), be2(0:2), us2(0:2), ue2(0:2), vs2(0:2), ve2(0:2), &
-b_car(0:2), cos_p(0:1), sin_p(0:1), incline, vr2vp(0:2), vr(0:2), brn
+b_car(0:2), cos_p(0:1), sin_p(0:1), incline, vr2vp(0:2), brn
 real, pointer, contiguous:: bp(:), bs(:), be(:)
 type(line_info), target:: info
 type(site_info), target:: site_a, site_b, site_p, site_s, site_e, site_r
@@ -2072,8 +2071,6 @@ implicit none
 integer:: i, j, ip, id, its, ite
 logical:: pole_j
 type(line_info):: info
-real:: weight(0:1,0:1,0:1)
-integer:: round(0:1, 0:2)
 !------------------------------------------------------------
 pole_j= (pole_j0 .and. j .eq. 0) .or. (pole_jend .and. j .eq. jend)
 if (pole_j .and. i .ne. 0) return
@@ -2094,7 +2091,9 @@ info%scottFlag = scottFlag .or. pole_j
 info%get = .true.
 if (diff_flag) then
 	if (diff_seed) then
-		info%ev3 = seed_ev3(i,j)
+		info%ev3 = normalize_cross_product( &
+		coor_car(seed(:, min(i+1,iend), j))-coor_car(seed(:, max(i-1,0), j)), &
+		coor_car(seed(:, i, min(j+1,jend)))-coor_car(seed(:, i, max(j-1,0))))
 	else
 		info%ev3 = ev3
 	endif
@@ -2836,71 +2835,14 @@ if (q_local_Flag) where(q_local .lt. 2.) q_local=2.
 end subroutine compute_layer
 
 
-function seed_ev3(i, j)
-implicit none
-integer:: i, j
-real:: arrow_i(0:2), arrow_j(0:2), p0(0:2), p1(0:2), seed_ev3(0:2)
-!------------------------------------------------------------
-if (i .eq. 0) then
-	if (spherical) then
-		p0 = vp_spherical2car(seed(:,i,j))
-	else
-		p0 = seed(:,i,j)
-	endif
+function coor_car(coor)
+real:: coor(0:2), coor_car(0:2)
+if (spherical) then
+	coor_car = vp_spherical2car(coor)
 else
-	if (spherical) then
-		p0 = vp_spherical2car(seed(:,i-1,j))
-	else
-		p0 = seed(:,i-1,j)
-	endif
+	coor_car = coor
 endif
-if (i .eq. iend) then
-	if (spherical) then
-		p1 = vp_spherical2car(seed(:,i,j))
-	else
-		p1 = seed(:,i,j)
-	endif
-else
-	if (spherical) then
-		p1 = vp_spherical2car(seed(:,i+1,j))
-	else
-		p1 = seed(:,i+1,j)
-	endif
-endif
-
-arrow_i=p1-p0
-
-if (j .eq. 0) then
-	if (spherical) then
-		p0 = vp_spherical2car(seed(:,i,j))
-	else
-		p0 = seed(:,i,j)
-	endif
-else
-	if (spherical) then
-		p0 = vp_spherical2car(seed(:,i,j-1))
-	else
-		p0 = seed(:,i,j-1)
-	endif
-endif
-if (j .eq. jend) then
-	if (spherical) then
-		p1 = vp_spherical2car(seed(:,i,j))
-	else
-		p1 = seed(:,i,j)
-	endif
-else
-	if (spherical) then
-		p1 = vp_spherical2car(seed(:,i,j+1))
-	else
-		p1 = seed(:,i,j+1)
-	endif
-endif
-arrow_j=p1-p0
-
-seed_ev3 = normalize_cross_product(arrow_i, arrow_j)
-
-end function seed_ev3
+end function
 
 
 function cos2vector(vector, vector1, sin2vector)
