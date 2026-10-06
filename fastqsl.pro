@@ -427,9 +427,9 @@ for i=0, n_elements(qsl_data0)/2-1 do begin
 	endif
 endfor
 
-cmd0= cmd0+' & free_lun, unit2, /force &'
+cmd0= cmd0+' & free_lun, unit2, /force & '
 
-strs=' QSL={'
+strs='QSL={'
 
 if maxsteps ne 0 then $
 if rk4Flag then strs=[strs, 'step:float(step)'] else strs=[strs, 'tol:float(tol)'] 
@@ -452,7 +452,7 @@ endif else if nq3 eq 1 then begin
 	strs=[strs,'dim:[nq1, nq2]']
 endif else strs=[strs,'dim:[nq1, nq2, nq3]']
 
-for i=0, n_data-1 do strs=[strs, qsl_data[i]+':'+qsl_data[i]]
+for i=0, n_data-1 do strs=[strs, qsl_data[i]+':temporary('+qsl_data[i]+')']
 
 n_strs=n_elements(strs)
 cmd1=strs[0]
@@ -549,8 +549,8 @@ if spherical then two_pi=2*!pi
 if sFlag then begin
 	if (out_dim le 1) then begin
 	
-		x_seed=reform(seed[0,*])
-		y_seed=reform(seed[1,*])
+		x_seed=reform(qsl.seed[0,*])
+		y_seed=reform(qsl.seed[1,*])
 		if stretchFlag then begin
 			x_seed=x_seed-xa[0]
 			if spherical then x_seed= ((x_seed mod two_pi)+two_pi) mod two_pi
