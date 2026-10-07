@@ -29,7 +29,7 @@ type(pole_field), target:: south, north
 type site_info
 	real:: v(0:8), dvds(0:8), B(0:2), CurlB(0:2), A(0:2), ds_factor, &
 	v_yin(0:8), dvds_yin(0:8), B_yin(0:2), CurlB_yin(0:2), A_yin(0:2), private(0:9)
-	logical:: CurlBFlag, Aflag, yinFlag, scottFlag, scottLaunch
+	logical:: CurlBFlag, Aflag, yinFlag, scottFlag, scottLaunch, interpolate_pole
 	integer:: itry(0:2) = 1
 endtype site_info
 
@@ -190,6 +190,9 @@ if (dbdc_field_Flag) then
 	!$OMP END PARALLEL DO
 endif
 !------------------------------------------------------------
+! initialize site for round_weight
+site%yinFlag          = .false.
+site%interpolate_pole = .false.
 ! interpolate magnetogram on uniformed grids from the stretched input
 if (magnetogram_out) then
 
@@ -227,9 +230,9 @@ north_pole = .false.
 if (.not. period_lon) return
 
 lat_pole = 3./8. *Pi
-
 clat_pole= half_pi-lat_pole
 lat_pole2= half_pi+0.01
+site%interpolate_pole=.false.
 
 do s=0, 1
 	southFlag = s .eq. 0
@@ -525,6 +528,16 @@ vp_spherical2car = vp(2)* [cos_p(1)*[cos_p(0), sin_p(0)], sin_p(1)]
 end function vp_spherical2car
 
 
+function coor_car(coor)
+real:: coor(0:2), coor_car(0:2)
+if (spherical) then
+	coor_car = vp_spherical2car(coor)
+else
+	coor_car = coor
+endif
+end function
+
+
 function normalize(vector)
 implicit none
 real::vector(0:2), normalize(0:2)
@@ -544,11 +557,7 @@ function distance(vp, vp1)
 implicit none
 real:: distance, vp(0:2), vp1(0:2)
 !------------------------------------------------------------
-if (spherical) then
-	distance= norm2s(vp_spherical2car(vp1)-vp_spherical2car(vp))
-else
-	distance= norm2s(vp1-vp)
-endif
+distance= norm2s(coor_car(vp1)-coor_car(vp))
 end function distance
 
 
@@ -638,10 +647,23 @@ end subroutine round_weight_uniform
 subroutine round_weight_stretch(site, round, weight)
 implicit none
 type(site_info) :: site
-real:: w(0:1,0:2), vp(0:2), vpi, weight(0:1,0:1,0:1)
-integer:: i, j, k, round(0:1, 0:2), binary_index, index_try
+real:: w(0:1,0:2), weight(0:1,0:1,0:1), vpi, p_lonlat(0:1)
+integer:: i0, i, j, k, round(0:1, 0:2), binary_index, index_try
 !------------------------------------------------------------
-do i=0, 2
+if (site%yinflag .and. site%interpolate_pole) then
+	i0=2
+	if (site%v(1) .le. 0.) then
+		p_lonlat=(site%v_yin(0:1)-south%origin)/south%darc
+	else
+		p_lonlat=(site%v_yin(0:1)-north%origin)/north%darc
+	endif
+	round(0, 0:1)=floor(p_lonlat)
+	w(1, 0:1)=p_lonlat-round(0, 0:1)
+else
+	i0=0
+endif
+
+do i=i0, 2
 	vpi=site%v(i)
 	if (periodFlag(i)) vpi = modulo(vpi-pmin(i), period(i)) + pmin(i)
 
@@ -661,8 +683,7 @@ do i=0, 2
 			! this way is slower than binary (tree) search
 			! round(0, i) = count(vpi .ge. axis(i)%pa(1:dend(i)))
 !------------------------------------------------------------
-			site%itry(i)= max(site%itry(i),1)
-			site%itry(i)= min(site%itry(i),pend(i)-2)
+			site%itry(i)= min(max(site%itry(i), 1), pend(i)-2)
 			if (vpi .ge. axis(i)%pa(site%itry(i)) .and. vpi .lt. axis(i)%pa(site%itry(i)+1)) then
 				round(0,i)=site%itry(i)
 			else if (vpi .ge. axis(i)%pa(site%itry(i)-1) .and. vpi .lt. axis(i)%pa(site%itry(i))) then
@@ -818,81 +839,6 @@ if (present(matrix)) then
 endif
 end subroutine vp_yinyang
 
-
-subroutine round_weight_pole(site, round, weight, southflag)
-implicit none
-type(site_info):: site
-real:: w(0:1,0:2), weight(0:1,0:1,0:1), p_lonlat(0:1), vpi
-integer:: i, j, k, round(0:1, 0:2), binary_index, index_try
-logical:: southflag
-!------------------------------------------------------------
-if (southflag) then
-	p_lonlat=(site%v_yin(0:1)-south%origin)/south%darc
-else
-	p_lonlat=(site%v_yin(0:1)-north%origin)/north%darc
-endif
-round(0, 0:1)=floor(p_lonlat)
-w(1, 0:1)=p_lonlat-round(0, 0:1)
-
-i=2
-vpi=site%v_yin(2)
-
-	if (.not. (vpi .gt. pmin(i))) then
-		round(0, i)=0
-		w(1,i)=0.0
-	else if   (vpi .ge. pmax(i))  then
-		round(0, i)=dend(i)
-		w(1,i)=1.0
-	else
-!------------------------------------------------------------
-		if (axis(i)%uni_Flag) then
-			round(0, i)=floor((vpi-pmin(i))/axis(i)%da_uni)
-			if (round(0, i) .gt. dend(i)) round(0, i)=dend(i)
-		else
-!------------------------------------------------------------
-			! this way is slower than binary (tree) search
-			! round(0, i) = count(vpi .ge. axis(i)%pa(1:dend(i)))
-!------------------------------------------------------------
-			site%itry(i)= max(site%itry(i),1)
-			site%itry(i)= min(site%itry(i),pend(i)-2)
-			if (vpi .ge. axis(i)%pa(site%itry(i)) .and. vpi .lt. axis(i)%pa(site%itry(i)+1)) then
-				round(0,i)=site%itry(i)
-			else if (vpi .ge. axis(i)%pa(site%itry(i)-1) .and. vpi .lt. axis(i)%pa(site%itry(i))) then
-				round(0,i)=site%itry(i)-1
-			else if (vpi .ge. axis(i)%pa(site%itry(i)+1) .and. vpi .lt. axis(i)%pa(site%itry(i)+2)) then
-				round(0,i)=site%itry(i)+1
-			else ! binary (tree) search
-				binary_index = axis(i)%binary_index_start
-				index_try = axis(i)%index_try_start
-
-				do while(binary_index .ge. 1)
-					binary_index = binary_index-1
-					if (vpi .ge. axis(i)%pa(index_try)) then
-						if (index_try + binary_values(binary_index) .le. dend(i)) &
-						index_try = index_try + binary_values(binary_index)
-					else
-						index_try = index_try - binary_values(binary_index)
-					endif
-				enddo
-				
-				if (vpi .ge. axis(i)%pa(index_try)) then
-					round(0,i) = index_try
-				else
-					round(0,i) = index_try-1
-				endif
-			endif
-			site%itry(i)=round(0,i)
-		endif
-!------------------------------------------------------------
-		w(1,i) = (vpi-axis(i)%pa(round(0,i))) / axis(i)%da(round(0,i))
-	endif
-	
-round(1,:)=round(0,:)+1
-w(0,:)= 1.0 - w(1,:)
-forall(i=0:1,j=0:1,k=0:1) weight(i,j,k)=w(i,0)*w(j,1)*w(k,2)
-
-end subroutine round_weight_pole
-
 end module fields
 
 
@@ -944,7 +890,6 @@ type(site_info), target :: site
 real, pointer, contiguous:: vector1(:), vector2(:), dvds1(:), dvds2(:)
 real:: matrix0(0:1, 0:1), matrix1(0:1, 0:1), matrix2(0:1, 0:1), &
 matrix3(0:1, 0:1), matrix4(0:1, 0:1)
-integer:: i, j
 logical:: toyang
 logical, optional:: dvdsflag
 !------------------------------------------------------------
@@ -1371,36 +1316,37 @@ implicit none
 type(site_info), target:: site
 type(pole_field), pointer:: pole
 logical, optional:: rk_first
-logical:: southflag, yinflag
+logical:: southflag
 integer:: round(0:1,0:2), i, j, k
 real:: weight(0:1,0:1,0:1), r, sin_lat, cos_lat, &
 dbdc_cell(0:2,0:2,0:1,0:1,0:1), dbdcp(0:2,0:2), da(0:2)
 real, pointer, contiguous:: bp(:), vector(:), dvds(:)
 !------------------------------------------------------------
 if (present(rk_first)) then
-	yinflag = (south_pole .and. (-site%v(1) .gt. lat_pole) .and. (-site%v(1) .le. lat_pole2)) &
-	    .or.  (north_pole .and. ( site%v(1) .gt. lat_pole) .and. ( site%v(1) .le. lat_pole2))
+	site%interpolate_pole = &
+	(south_pole .and. (-site%v(1) .gt. lat_pole) .and. (-site%v(1) .le. lat_pole2)) &
+	.or.  (north_pole .and. ( site%v(1) .gt. lat_pole) .and. ( site%v(1) .le. lat_pole2))
 
 	! a RK step or correct_foot will given site%v finally,
 	! do not need to process the case of (.not. yinflag .and. site%yinflag) 
-	if (yinflag .and. .not. site%yinflag) call cal_yinyang(site, .false.)
+	if (site%interpolate_pole .and. .not. site%yinflag) call cal_yinyang(site, .false.)
 
 	! site%yinFlag is inherited from the last RK step, for the next step, it should be updated
-	site%yinFlag = yinflag
+	site%yinFlag = site%interpolate_pole
 else
 	if (site%yinflag) then
 		if (inside_yin(site%v_yin(0:2))) then
-			yinflag= .true.
+			site%interpolate_pole= .true.
 		else
 			call cal_yinyang(site, .true.)
-			yinflag= .false.
+			site%interpolate_pole= .false.
 		endif
 	else
-		yinflag= .false.
+		site%interpolate_pole= .false.
 	endif
 endif
 !------------------------------------------------------------
-if (yinflag) then
+if (site%interpolate_pole) then
 	southflag = site%v_yin(0) .gt. pi
 	if (southflag) then 
 		pole => south
@@ -1410,7 +1356,7 @@ if (yinflag) then
 	vector => site%v_yin
 	dvds   => site%dvds_yin
 	bp     => site%b_yin
-	call round_weight_pole(site, round, weight, southflag)
+	call round_weight(site, round, weight)
 	forall(i=0:2) Bp(i)=sum(weight* pole%Bvec(i, round(:,0), round(:,1), round(:,2)))
 else
 	vector => site%v
@@ -1426,14 +1372,14 @@ dvds(0:2)= normalize(bp)/[r*cos_lat, r, 1.]
 !------------------------------------------------------------
 if (present(rk_first)) then
 	if (site%CurlBFlag) then
-		if (yinflag) then
+		if (site%interpolate_pole) then
 			forall(i=0:2) site%CurlB_yin(i)=sum(weight*pole%CurlBvec(i, round(:,0), round(:,1), round(:,2)))
 		else
 			forall(i=0:2) site%CurlB(i)=sum(weight*CurlBvec(i, round(:,0), round(:,1), round(:,2)))
 		endif
 	endif
 	if(site%AFlag) then
-		if (yinflag) then
+		if (site%interpolate_pole) then
 			forall(i=0:2) site%A_yin(i)=sum(weight*pole%Avec(i, round(:,0), round(:,1), round(:,2)))
 		else
 			forall(i=0:2) site%A(i)=sum(weight*Avec(i, round(:,0), round(:,1), round(:,2)))
@@ -1459,7 +1405,7 @@ endif
 !------------------------------------------------------------
 if (site%scottFlag) then
 	if (dbdc_field_Flag) then
-		if (yinflag) then
+		if (site%interpolate_pole) then
 			forall(i=0:2, j=0:2) &
 			dbdcp(i,j)=sum(weight*pole%dbdc_field(i, j, round(:,0), round(:,1), round(:,2)))
 		else
@@ -1472,7 +1418,7 @@ if (site%scottFlag) then
 		do j=0,1
 		do i=0,1
 			if (weight(i,j,k) .ne. 0.0) then
-				if (yinflag) then
+				if (site%interpolate_pole) then
 					call dbdc_grid_pole(round(i,0), round(j,1), round(k,2), dbdc_cell(:,:,i,j,k), southflag)
 				else
 					call dbdc_grid(round(i,0), round(j,1), round(k,2), dbdc_cell(:,:,i,j,k))
@@ -1502,8 +1448,8 @@ endif
 ! if yinflag do not provide the corresponding vector/dvds for RK step, a conversion should be executed
 
 ! if present(rk_first) is .true., site%yinflag and yinFlag are identical
-! if present(rk_first) is .false. and site%yinflag is .false., yinFlag is .false. already
-if (.not. yinFlag .and. site%yinflag) call cal_yinyang(site, .false., .true.)
+! if present(rk_first) is .false. and site%yinflag is .false., site%interpolate_pole is .false. already
+if (.not. site%interpolate_pole .and. site%yinflag) call cal_yinyang(site, .false., .true.)
 
 end subroutine interpolate_spherical
 
@@ -1582,14 +1528,9 @@ site_b%CurlBFlag=.false.
 site => site_a
 site1=> site_b
 !------------------------------------------------------------
-if (spherical) then
-	vp_car=vp_spherical2car(vp)
-	r0=vp_spherical2car(site %v(0:2))-vp_car
-	r1=vp_spherical2car(site1%v(0:2))-vp_car
-else
-	r0=site %v(0:2)-vp
-	r1=site1%v(0:2)-vp
-endif
+vp_car=coor_car(vp)
+r0=coor_car(site %v(0:2))-vp_car
+r1=coor_car(site1%v(0:2))-vp_car
 
  a=   dot_product(r0-r1, r0-r1)
  b=2.*dot_product(r0-r1, r1)
@@ -2299,10 +2240,12 @@ if (q_local_flag) then
 	local_trace4 =     key_nB .and. (local_s_flag(i,j) .or. local_e_flag(i,j))
 	local_diff = .not. key_nB .and. (local_s_flag(i,j) .or. local_e_flag(i,j)) &
     .and. ((i .ne. 0) .and. (i .ne. iend) .and. (j .ne. 0) .and. (j .ne. jend))
-	site  %scottFlag=.false.
-	site  %scottLaunch=.false.
 	site_r%scottFlag=.false.
 	site_r%scottLaunch=.false.
+	site%CurlBFlag=.false.
+	site%AFlag=.false.
+	site%scottLaunch=.false.
+	site%scottFlag=.false.
 else
 	local_trace4 = .false.
 	local_diff   = .false.
@@ -2452,10 +2395,6 @@ if (key_trace4 .or. local_trace4) then
 							site  %v(0:2)= info%path(:, it-sign_dt)
 							site_r%v(0:2)= info%path(:, it)
 							site%yinFlag=.false.
-							site%CurlBFlag=.false.
-							site%AFlag=.false.
-							site%scottLaunch=.false.
-							site%scottFlag=.false.
 							call interpolate(site, .false.)
 							call locate_path_r(vp, site, site_r, sign_dt, vr2vp)
 
@@ -2603,10 +2542,6 @@ if (key_diff .or. local_diff) then
 						site  %v(0:2)= lines(id4(k))%path(:, it-sign_dt)
 						site_r%v(0:2)= lines(id4(k))%path(:, it)
 						site%yinFlag=.false.
-						site%CurlBFlag=.false.
-						site%AFlag=.false.
-						site%scottLaunch=.false.
-						site%scottFlag=.false.
 						call interpolate(site, .false.)
 						call locate_path_r(vp, site, site_r, sign_dt, vr2vp)
 						
@@ -2833,16 +2768,6 @@ if (scottFlag) where(q_perp .lt. 2.) q_perp=2.
 if (q_local_Flag) where(q_local .lt. 2.) q_local=2.
 
 end subroutine compute_layer
-
-
-function coor_car(coor)
-real:: coor(0:2), coor_car(0:2)
-if (spherical) then
-	coor_car = vp_spherical2car(coor)
-else
-	coor_car = coor
-endif
-end function
 
 
 function cos2vector(vector, vector1, sin2vector)
@@ -3229,8 +3154,6 @@ endif
 ! Fortran use unit 0 for error, unit 5 for input (keyboard) and unit 6 for output (screen), these units should not be used
 ! unit 1 is used in compute_layer, if traceflag is .false., scottFlag, int_private_out, rF_out 
 ! are already set to .false. in fastqsl.pro/fastqsl.py
-
-
 
 if (traceflag)       open(2,  file='rboundary.bin', access='stream', status='replace')
 if (qflag)           open(3,  file='q.bin',         access='stream', status='replace')
