@@ -29,109 +29,72 @@ endif else tmp_dir= cdir+'tmpFastQSL'+os_sep
 get_lun, unit
 ;------------------------------------------------------------
 ; check input
-if n_elements(bx) eq 0 then begin
-	BtmpFlag=file_test(tmp_dir+'field.bin')
-	if ~BtmpFlag then message, 'please provde a magnetic field'
+sbx=size(bx)
+sby=size(by)
+B3Flag = sbx[0] eq 3
 
-	nx=0L & ny=0L & nz=0L & spherical=0L & dummy=lonarr(5)
-	openr, unit, tmp_dir+'field.bin'
-	readu, unit, nx, ny, nz, stretchFlag, spherical, dummy
-	if stretchFlag then begin
-		xa= fltarr(nx, /nozero) & ya= fltarr(ny, /nozero) & za= fltarr(nz, /nozero)
-		readu, unit, xa, ya, za
+if B3Flag then begin
+	sbz=size(Bz)
+	if sby[0] ne 3 or sbz[0] ne 3 then message, 'Bx, By and Bz must be 3D arrays!'
+	if sbx[1] ne sby[1] or sbx[1] ne sbz[1] or $
+		sbx[2] ne sby[2] or sbx[2] ne sbz[2] or $
+		sbx[3] ne sby[3] or sbx[3] ne sbz[3] then message, 'Bx, By and Bz must have the same dimensions!'
+	nx=sbz[1] & ny=sbz[2] & nz=sbz[3]
+
+	szx=size(CurlBx) & szy=size(CurlBy) & szz=size(CurlBz)
+	CurlB_input= N_PARAMS() ge 6 and szx[0] eq 3 and szy[0] eq 3 and szz[0] eq 3
+	if CurlB_input then begin
+		CurlB_input= szx[1] eq nx and szx[2] eq ny and szx[3] eq nz and $
+						szy[1] eq nx and szy[2] eq ny and szy[3] eq nz and $
+						szz[1] eq nx and szz[2] eq ny and szz[3] eq nz 
 	endif
-	close, unit
 endif else begin
-	BtmpFlag=0
-	sbx=size(bx)
-	sby=size(by)
-	B3Flag = sbx[0] eq 3
+	if sbx[0] ne 4 or sbx[1] ne 3 then message, 'Something is wrong with the magnetic field'
+	nx=sbx[2] & ny=sbx[3] & nz=sbx[4]
 
-	if B3Flag then begin
-		sbz=size(Bz)
-		if sby[0] ne 3 or sbz[0] ne 3 then message, 'Bx, By and Bz must be 3D arrays!'
-		if sbx[1] ne sby[1] or sbx[1] ne sbz[1] or $
-		   sbx[2] ne sby[2] or sbx[2] ne sbz[2] or $
-		   sbx[3] ne sby[3] or sbx[3] ne sbz[3] then message, 'Bx, By and Bz must have the same dimensions!'
-		nx=sbz[1] & ny=sbz[2] & nz=sbz[3]
-
-		Bvec=fltarr(3, nx, ny, nz, /nozero)
-		Bvec[0,*,*,*]=Bx
-		Bvec[1,*,*,*]=By
-		Bvec[2,*,*,*]=Bz
-
-		szx=size(CurlBx) & szy=size(CurlBy) & szz=size(CurlBz)
-		CurlB_input= N_PARAMS() ge 6 and szx[0] eq 3 and szy[0] eq 3 and szz[0] eq 3
-		if CurlB_input then begin
-			CurlB_input= szx[1] eq nx and szx[2] eq ny and szx[3] eq nz and $
-			             szy[1] eq nx and szy[2] eq ny and szy[3] eq nz and $
-			             szz[1] eq nx and szz[2] eq ny and szz[3] eq nz 
-		endif
-		if CurlB_input then begin
-			CurlBvec=fltarr(3, nx, ny, nz, /nozero)
-			CurlBvec[0,*,*,*]=CurlBx
-			CurlBvec[1,*,*,*]=CurlBy
-			CurlBvec[2,*,*,*]=CurlBz
-		endif
-	endif else begin
-		if sbx[0] ne 4 or sbx[1] ne 3 then message, 'Something is wrong with the magnetic field'
-		Bvec=float(Bx)
-		nx=sbx[2] & ny=sbx[3] & nz=sbx[4]
-
-		; for this case, CurlBvec is inputted by By
-		CurlB_input = N_PARAMS() ge 2 and sby[0] eq 4
-		if CurlB_input then CurlB_input= sby[1] eq 3 and sby[2] eq nx and sby[3] eq ny and sby[4] eq nz
-		if CurlB_input then CurlBvec=float(By)
-	endelse
+	CurlB_input = N_PARAMS() ge 2 and sby[0] eq 4
+	if CurlB_input then CurlB_input= sby[1] eq 3 and sby[2] eq nx and sby[3] eq ny and sby[4] eq nz
 endelse
 ;------------------------------------------------------------
 ; understand grids 
-if ~BtmpFlag then begin
+stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
+spherical= keyword_set(spherical)
 
-	stretchFlag= keyword_set(xa) and keyword_set(ya) and keyword_set(za)
-	spherical= keyword_set(spherical)
+if stretchFlag then begin
+	if (nx ne n_elements(xa)) or (ny ne n_elements(ya)) or (nz ne n_elements(za)) then $
+	message, 'the size of xa, ya and za must be consistant with the dimensions of the magnetic field'
+endif else if spherical then message, 'xa, ya and za should be specified in spherical coordinates'
 
-	if stretchFlag then begin
-		if (nx ne n_elements(xa)) or (ny ne n_elements(ya)) or (nz ne n_elements(za)) then $
-		message, 'the size of xa, ya and za must be consistant with the dimensions of the magnetic field'
-	endif else if spherical then message, 'xa, ya and za should be specified in spherical coordinates'
-
-	if nx lt 2 or ny lt 2 or nz lt 2 then begin
-		message, 'The thickness of Bx should not be smaller than 2!'
+if nx lt 2 or ny lt 2 or nz lt 2 then begin
+	message, 'The thickness of Bx should not be smaller than 2!'
+endif else begin
+	if spherical then begin
+		xperiod=0; this could be changed in field.f90
+		yperiod=0
+		zperiod=0
 	endif else begin
-		if spherical then begin
-			xperiod=0; this could be changed in field.f90
-			yperiod=0
-			zperiod=0
-		endif else begin
-			xperiod = (nx eq 2) or keyword_set(xperiod)
-			yperiod = (ny eq 2) or keyword_set(yperiod)
-			zperiod = (nz eq 2) or keyword_set(zperiod)
-		endelse
+		xperiod = (nx eq 2) or keyword_set(xperiod)
+		yperiod = (ny eq 2) or keyword_set(yperiod)
+		zperiod = (nz eq 2) or keyword_set(zperiod)
 	endelse
+endelse
 
-	if keyword_set(Ax) then begin
-		szx=size(Ax)
-		if keyword_set(Ay) and keyword_set(Az) then begin
-			szy=size(Ay) & szz=size(Az)
-			if szx[0] ne 3 or szy[0] ne 3 or szz[0] ne 3 then message, 'Ax, Ay and Az must be 3D arrays!'
-			if szx[1] ne nx or szx[2] ne ny or szx[3] ne nz or $
-			   szy[1] ne nx or szy[2] ne ny or szy[3] ne nz or $
-			   szz[1] ne nx or szz[2] ne ny or szz[3] ne nz then message, 'Ax, Ay and Az must have the same dimensions!'
-			Avec=fltarr(3, nx, ny, nz, /nozero)
-			Avec[0,*,*,*]=Ax
-			Avec[1,*,*,*]=Ay
-			Avec[2,*,*,*]=Az
-		endif else begin
-			if szx[0] ne 4 or szx[1] ne 3 then $
-			message, 'Something is wrong with the additional field'
-			if szx[2] ne nx or szx[3] ne ny or szx[4] ne nz then $
-			message, 'Something is wrong with the additional field'
-			Avec=float(Ax)
-		endelse
-		A_input=1
-	endif else A_input=0
-endif
+if keyword_set(Ax) then begin
+	szx=size(Ax)
+	if keyword_set(Ay) and keyword_set(Az) then begin
+		szy=size(Ay) & szz=size(Az)
+		if szx[0] ne 3 or szy[0] ne 3 or szz[0] ne 3 then message, 'Ax, Ay and Az must be 3D arrays!'
+		if szx[1] ne nx or szx[2] ne ny or szx[3] ne nz or $
+			szy[1] ne nx or szy[2] ne ny or szy[3] ne nz or $
+			szz[1] ne nx or szz[2] ne ny or szz[3] ne nz then message, 'Ax, Ay and Az must have the same dimensions!'
+	endif else begin
+		if szx[0] ne 4 or szx[1] ne 3 then $
+		message, 'Something is wrong with the additional field'
+		if szx[2] ne nx or szx[3] ne ny or szx[4] ne nz then $
+		message, 'Something is wrong with the additional field'
+	endelse
+	A_input=1
+endif else A_input=0
 ;------------------------------------------------------------
 ; understand the output grid
 csFlag=keyword_set(csFlag)
@@ -289,61 +252,117 @@ old_tmp_dir=file_test(tmp_dir)
 
 if old_tmp_dir then begin
 	dummy=file_search(tmp_dir, '*.bin', count=nf)
-	if BtmpFlag then begin
-		for i=0, nf-1 do begin
-			if dummy[i] ne tmp_dir+'field.bin' and  $
-			   dummy[i] ne tmp_dir+'magnetogram.bin' $
-			   then file_delete, dummy[i]
-		endfor
-	endif else if nf gt 0 then file_delete, dummy
+	if nf gt 0 then file_delete, dummy
 endif else file_mkdir, tmp_dir
 
-magnetogram_out = preview and ((BtmpFlag and ~file_test(tmp_dir+'magnetogram.bin')) or stretchFlag)
+magnetogram_out = preview and stretchFlag
 ;------------------------------------------------------------
 ;  transmit the configure of computation to fastqsl.x
-if ~BtmpFlag then begin
-	openw,  unit, tmp_dir+'field.bin'
-	writeu, unit, long([nx, ny, nz, stretchFlag, spherical, $
-	xperiod, yperiod, zperiod, CurlB_input, A_input])
-	if stretchFlag then writeu, unit, float(xa), float(ya), float(za)
-	writeu, unit, temporary(Bvec)
-	if CurlB_input then $
-	writeu, unit, temporary(CurlBvec)
-	if A_input then $
-	writeu, unit, temporary(Avec)
-	close,  unit
+
+if stretchFlag then  begin
+	SHMMAP, /FLOAT, DIMENSION=[nx+ny+nz], $
+	GET_NAME=xyza_segname, GET_OS_HANDLE=xyza_segstr, DESTROY_SEGMENT=0
+	xyza= SHMVAR(xyza_segname)
+
+	xyza[0:nx-1]=xa
+	xyza[nx:nx+ny-1]=ya
+	xyza[nx+ny:nx+ny+nz-1]=za
 endif
 
-openw,  unit, tmp_dir+'head.bin'
-writeu, unit, float([step, tol, r_local]), $
+SHMMAP, /FLOAT, DIMENSION=[3,nx,ny,nz], $
+GET_NAME=Bvec_segname, GET_OS_HANDLE=Bvec_segstr, DESTROY_SEGMENT=0
+Bvec= SHMVAR(Bvec_segname)
+if B3Flag then begin
+    Bvec[0,*,*,*] = Bx
+    Bvec[1,*,*,*] = By
+    Bvec[2,*,*,*] = Bz
+endif else Bvec[0,0,0,0] = Bx
+
+if CurlB_input then begin
+	SHMMAP, /FLOAT, DIMENSION=[3,nx,ny,nz], $
+	GET_NAME=CurlBvec_segname, GET_OS_HANDLE=CurlBvec_segstr, DESTROY_SEGMENT=0
+	CurlBvec= SHMVAR(CurlBvec_segname)
+	if B3Flag then begin
+		CurlBvec[0,*,*,*] = CurlBx
+		CurlBvec[1,*,*,*] = CurlBy
+		CurlBvec[2,*,*,*] = CurlBz
+	endif else CurlBvec[0,0,0,0] = By ; CurlBvec is inputted by By here
+endif
+
+if A_input then begin
+	SHMMAP, /FLOAT, DIMENSION=[3,nx,ny,nz], $
+	GET_NAME=Avec_segname, GET_OS_HANDLE=Avec_segstr, DESTROY_SEGMENT=0
+	Avec= SHMVAR(Avec_segname)
+	if B3Flag then begin
+		Avec[0,*,*,*] = Ax
+		Avec[1,*,*,*] = Ay
+		Avec[2,*,*,*] = Az
+	endif else Avec[0,0,0,0] = Ax
+endif
+;------------------------------------------------------------
+; computed by fastqsl.x
+cd, tmp_dir
+
+
+; please specify the path
+spawn, '/path/of/fastqsl.x', unit=pipe, /NOSHELL
+writeu, pipe, float([step, tol, r_local]), $
               long([maxsteps, RK4Flag, inclineFlag, $
               launch_out, B_out, CurlB_out, $
 		      rF_out, targetB_out, targetCurlB_out, $
 			  path_out, loopB_out, loopCurlB_out, $
 			  sFlag, bFlag, cFlag, vFlag, nthreads, scottFlag, $
 			  verbose, keep_tmp, magnetogram_out, int_private_out])
-close,  unit
+writeu, pipe, long([nx, ny, nz, stretchFlag, spherical, $
+	xperiod, yperiod, zperiod, CurlB_input, A_input])
+
+if stretchFlag then PRINTF, pipe, xyza_segstr
+PRINTF, pipe, Bvec_segstr
+if CurlB_input then PRINTF, pipe, CurlBvec_segstr
+if A_input then PRINTF, pipe, Avec_segstr
+FLUSH, pipe
 
 if sFlag then begin
-	openw,  unit, tmp_dir+'dim_seed.bin'
-	writeu, unit, long([nq1,nq2,nq3])
-	close,  unit
-	openw,  unit, tmp_dir+'seed.bin'
-	writeu, unit, float(seed)
+	writeu, pipe, long([nq1,nq2,nq3])
 	close,  unit
 endif else begin
 	if spherical then deltas=[arc_delta, lon_delta, lat_delta, r_delta] $
 	             else deltas=fltarr(4)+delta
-
-	openw,  unit, tmp_dir+'head_region.bin'
-	writeu, unit, float([xreg, yreg, zreg, deltas]), long([csFlag, preset_xreg, preset_yreg])
-	close,  unit
+	writeu, pipe, float([xreg, yreg, zreg, deltas]), long([csFlag, preset_xreg, preset_yreg])
 endelse
+
+if sFlag or launch_out then begin
+	SHMMAP, /FLOAT, DIMENSION=[3, nq1, nq2], $
+	GET_NAME=seed_segname, GET_OS_HANDLE=seed_segstr, DESTROY_SEGMENT=0
+	seed_shm= SHMVAR(seed_segname)
+	if sFlag then seed_shm[0,0,0] = seed[*,*,*,0]
+endif
 ;------------------------------------------------------------
-; computed by fastqsl.x
-cd, tmp_dir
-; please specify the path
-spawn, '/path/of/fastqsl.x'
+if launch_out then seed=fltarr(nq1, nq2, nq3, /nozero)
+
+status = ''
+while 1 do begin
+    readf, pipe, status; 这里会阻塞等待 Fortran 输出
+    status = strtrim(status, 2)
+	
+    if status ne 'DONE' then begin
+	k = long(status) ; 1, nq3-1
+	; update seed in fastqsl.x
+	if sFlag and k lt nq3-2 then seed_shm[0,0,0] = seed[*,*,*,k+1]
+
+	; read seed from fastqsl.x
+	if launch_out then seed[*,*,*,k]=seed_shm
+	endif else break
+endif
+endwhile
+
+if stretchFlag then SHMUNMAP, xyza_segname
+SHMUNMAP, Bvec_segname
+if CurlB_input then SHMUNMAP, CurlBvec_segname
+if A_input then SHMUNMAP, Avec_segname
+FREE_LUN, pipe, /force
+if sFlag or launch_out then SHMUNMAP, seed_segname
+
 cd, cdir
 ; ################################### retrieving results ######################################
 ; make the structure QSL
@@ -523,7 +542,7 @@ if verbose then begin
 endif
 
 ; mark the area for calculation or plot seed and their field lines on the magnetogram
-if BtmpFlag or stretchFlag then begin
+if stretchFlag then begin
 	nx_mag=0L & ny_mag=0L & mag_delta=0.0
 	openr, unit, tmp_dir+'magnetogram.bin'
 	readu, unit, nx_mag, ny_mag, mag_delta
@@ -819,7 +838,7 @@ if ~keep_tmp then begin
 		if n_data gt 0 then file_delete, tmp_dir+qsl_data+'.bin'
 		if path_out then file_delete, tmp_dir+'indexes.bin'
 		if ~sFlag then file_delete, tmp_dir+'tail_region.bin'
-		if preview and (BtmpFlag or stretchFlag) then file_delete, tmp_dir+'magnetogram.bin'
+		if preview and stretchFlag then file_delete, tmp_dir+'magnetogram.bin'
 	endif else file_delete, tmp_dir, /recursive
 endif
 
