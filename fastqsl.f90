@@ -652,7 +652,7 @@ integer:: i0, i, j, k, round(0:1, 0:2), binary_index, index_try
 !------------------------------------------------------------
 if (site%yinflag .and. site%interpolate_pole) then
 	i0=2
-	if (site%v(1) .le. 0.) then
+	if (site%v_yin(1) .gt. pi) then
 		p_lonlat=(site%v_yin(0:1)-south%origin)/south%darc
 	else
 		p_lonlat=(site%v_yin(0:1)-north%origin)/north%darc
@@ -3008,7 +3008,8 @@ read(1) step, tol, r_local, maxsteps, RK4Flag, inclineFlag, &
         verbose, keep_tmp, magnetogram_out, int_private_out
 close(1, status='delete')
 !------------------------------------------------------------
-if (verbose) tnow=omp_get_wtime()
+! if (verbose) 
+tnow=omp_get_wtime()
 NaN = transfer(2143289344, 1.0)
 pi = 3.141592653589793
 half_pi=pi/2.
@@ -3154,6 +3155,8 @@ endif
 ! Fortran use unit 0 for error, unit 5 for input (keyboard) and unit 6 for output (screen), these units should not be used
 ! unit 1 is used in compute_layer, if traceflag is .false., scottFlag, int_private_out, rF_out 
 ! are already set to .false. in fastqsl.pro/fastqsl.py
+
+
 
 if (traceflag)       open(2,  file='rboundary.bin', access='stream', status='replace')
 if (qflag)           open(3,  file='q.bin',         access='stream', status='replace')
@@ -3317,7 +3320,7 @@ endif
 round_weight => null()
 interpolate  => null()
 !------------------------------------------------------------
-if (verbose) then
+! if (verbose) then
 ! 	when 100.00% is printed, everything is done in fastqsl.x
 	call show_time(100.0)
 
@@ -3331,5 +3334,5 @@ if (verbose) then
 	else
 		print '(F7.2, " seconds elapsed in fastqsl.x")', tcalc
 	endif
-endif
+! endif
 end program fastqsl
