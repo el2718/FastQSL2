@@ -652,7 +652,7 @@ integer:: i0, i, j, k, round(0:1, 0:2), binary_index, index_try
 !------------------------------------------------------------
 if (site%yinflag .and. site%interpolate_pole) then
 	i0=2
-	if (site%v_yin(1) .gt. pi) then
+	if (site%v_yin(0) .gt. pi) then
 		p_lonlat=(site%v_yin(0:1)-south%origin)/south%darc
 	else
 		p_lonlat=(site%v_yin(0:1)-north%origin)/north%darc
